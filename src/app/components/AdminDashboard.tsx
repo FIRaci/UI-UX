@@ -7,18 +7,11 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select";
-<<<<<<< HEAD
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "./ui/dialog";
 import { Textarea } from "./ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { LayoutDashboard, Users, BarChart3, Calendar, Bell, Briefcase, Search, Pencil, Plus, Trash2, FileDown, Send } from "lucide-react";
-=======
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "./ui/dialog";
-import { Textarea } from "./ui/textarea";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
-import { LayoutDashboard, Users, BarChart3, Calendar, Bell, Briefcase, Search, Pencil, Plus, Trash2, FileDown, Send, CalendarClock, Star, Stethoscope, Wallet, Activity } from "lucide-react";
->>>>>>> 0adb142a (Update admin clinic management dashboard)
 import { toast } from "sonner";
 import { ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from "recharts";
 import { useStore, store, type Appointment } from "../store";
@@ -27,17 +20,6 @@ const REVENUE = [
   { m: "T1", v: 230 }, { m: "T2", v: 280 }, { m: "T3", v: 310 },
   { m: "T4", v: 340 }, { m: "T5", v: 290 }, { m: "T6", v: 380 },
 ];
-<<<<<<< HEAD
-=======
-const COSTS = [
-  { m: "T1", v: 150 }, { m: "T2", v: 170 }, { m: "T3", v: 160 },
-  { m: "T4", v: 175 }, { m: "T5", v: 165 }, { m: "T6", v: 190 },
-];
-const ROI = [
-  { m: "T1", v: 1.5 }, { m: "T2", v: 1.6 }, { m: "T3", v: 1.7 },
-  { m: "T4", v: 1.8 }, { m: "T5", v: 1.6 }, { m: "T6", v: 2.0 },
-];
->>>>>>> 0adb142a (Update admin clinic management dashboard)
 const VISITS = [
   { d: "T2", v: 120 }, { d: "T3", v: 145 }, { d: "T4", v: 132 },
   { d: "T5", v: 168 }, { d: "T6", v: 190 }, { d: "T7", v: 110 }, { d: "CN", v: 80 },
@@ -51,22 +33,14 @@ const SPECS = [
 ];
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#f43f5e"];
 
-<<<<<<< HEAD
 type Patient = { id: number; name: string; phone: string; gender: string; dob: string; address: string };
 type Schedule = { id: number; doctor: string; date: string; time: string; clinic: string };
-=======
-type Patient = { id: number; name: string; phone: string; gender: string; dob: string; address: string; lastVisit: string; nextFollowup: string; status: "Ổn định" | "Theo dõi" | "Cần tái khám" };
-type PatientRecord = { id: number; patientId: number; period: "week" | "month" | "quarter"; date: string; doctor: string; summary: string; nextAction: string };
-type PatientFeedback = { id: number; patientId: number; date: string; rating: number; note: string };
-type Reminder = { id: number; patientId: number; date: string; channel: "SMS" | "Zalo" | "Email"; note: string; status: "Chờ gửi" | "Đã gửi" | "Hoàn tất" };
->>>>>>> 0adb142a (Update admin clinic management dashboard)
 
 export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState("overview");
 
   // Flow 1: Patients
   const [patients, setPatients] = useState<Patient[]>([
-<<<<<<< HEAD
     { id: 1, name: "Nguyễn Minh Khoa", phone: "0901234567", gender: "Nam", dob: "1992-04-15", address: "Q1, TP.HCM" },
     { id: 2, name: "Trần Thu Hà", phone: "0907654321", gender: "Nữ", dob: "1996-08-22", address: "Q3, TP.HCM" },
     { id: 3, name: "Lê Văn Tú", phone: "0912345678", gender: "Nam", dob: "1980-12-01", address: "Q.Tân Bình" },
@@ -74,53 +48,12 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   ]);
   const [pSearch, setPSearch] = useState("");
   const [editingP, setEditingP] = useState<Patient | null>(null);
-=======
-    { id: 1, name: "Nguyễn Minh Khoa", phone: "0901234567", gender: "Nam", dob: "1992-04-15", address: "Q1, TP.HCM", lastVisit: "2025-05-04", nextFollowup: "2025-05-20", status: "Theo dõi" },
-    { id: 2, name: "Trần Thu Hà", phone: "0907654321", gender: "Nữ", dob: "1996-08-22", address: "Q3, TP.HCM", lastVisit: "2025-05-02", nextFollowup: "2025-06-01", status: "Ổn định" },
-    { id: 3, name: "Lê Văn Tú", phone: "0912345678", gender: "Nam", dob: "1980-12-01", address: "Q.Tân Bình", lastVisit: "2025-04-26", nextFollowup: "2025-05-15", status: "Cần tái khám" },
-    { id: 4, name: "Phạm Bích Ngọc", phone: "0987654321", gender: "Nữ", dob: "1975-06-10", address: "Q7, TP.HCM", lastVisit: "2025-05-01", nextFollowup: "2025-05-22", status: "Theo dõi" },
-  ]);
-  const [pSearch, setPSearch] = useState("");
-  const [editingP, setEditingP] = useState<Patient | null>(null);
-  const [selectedPatientId, setSelectedPatientId] = useState<number | null>(1);
-  const [recordRange, setRecordRange] = useState<"week" | "month" | "quarter">("month");
-  const [editingR, setEditingR] = useState<(Partial<Reminder> & { id: number; patientId: number }) | null>(null);
-
-  const [records] = useState<PatientRecord[]>([
-    { id: 1, patientId: 1, period: "week", date: "2025-05-04", doctor: "BS. Nguyễn Văn An", summary: "Đau ngực nhẹ, theo dõi huyết áp", nextAction: "Tái khám sau 2 tuần" },
-    { id: 2, patientId: 1, period: "month", date: "2025-04-12", doctor: "BS. Nguyễn Văn An", summary: "Kiểm tra tim mạch định kỳ", nextAction: "Giữ chế độ ăn nhạt" },
-    { id: 3, patientId: 2, period: "month", date: "2025-05-02", doctor: "BS. Trần Thị Bình", summary: "Viêm da dị ứng", nextAction: "Tái khám sau 1 tháng" },
-    { id: 4, patientId: 3, period: "week", date: "2025-04-26", doctor: "BS. Lê Hoàng Cường", summary: "Tăng đường huyết", nextAction: "Theo dõi đường máu hàng ngày" },
-    { id: 5, patientId: 4, period: "month", date: "2025-05-01", doctor: "BS. Trần Thị Bình", summary: "Khám da liễu", nextAction: "Dưỡng ẩm, tái khám sau 3 tuần" },
-  ]);
-
-  const [feedbacks] = useState<PatientFeedback[]>([
-    { id: 1, patientId: 1, date: "2025-05-05", rating: 5, note: "Bác sĩ giải thích rõ ràng" },
-    { id: 2, patientId: 2, date: "2025-05-02", rating: 4, note: "Thời gian chờ hợp lý" },
-    { id: 3, patientId: 3, date: "2025-04-27", rating: 3, note: "Cần nhắc lịch rõ hơn" },
-    { id: 4, patientId: 4, date: "2025-05-02", rating: 5, note: "Nhân viên hỗ trợ tốt" },
-  ]);
-
-  const [reminders, setReminders] = useState<Reminder[]>([
-    { id: 1, patientId: 1, date: "2025-05-20", channel: "Zalo", note: "Nhắc tái khám tim mạch", status: "Chờ gửi" },
-    { id: 2, patientId: 3, date: "2025-05-15", channel: "SMS", note: "Nhắc đo đường huyết", status: "Đã gửi" },
-    { id: 3, patientId: 4, date: "2025-05-22", channel: "Email", note: "Tái khám da liễu", status: "Chờ gửi" },
-  ]);
->>>>>>> 0adb142a (Update admin clinic management dashboard)
 
   const filteredP = patients.filter(p =>
     p.name.toLowerCase().includes(pSearch.toLowerCase()) ||
     p.phone.includes(pSearch)
   );
 
-<<<<<<< HEAD
-=======
-  const selectedPatient = patients.find(p => p.id === selectedPatientId) ?? null;
-  const filteredRecords = records.filter(r => (!selectedPatientId || r.patientId === selectedPatientId) && r.period === recordRange);
-  const selectedFeedbacks = feedbacks.filter(f => (!selectedPatientId || f.patientId === selectedPatientId));
-  const selectedReminders = reminders.filter(r => (!selectedPatientId || r.patientId === selectedPatientId));
-
->>>>>>> 0adb142a (Update admin clinic management dashboard)
   const savePatient = () => {
     if (!editingP) return;
     if (!editingP.name.trim() || !editingP.phone.trim()) {
@@ -230,16 +163,11 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input className="pl-9 w-64" placeholder="Tìm theo tên, SĐT..." value={pSearch} onChange={e => setPSearch(e.target.value)} />
               </div>
-<<<<<<< HEAD
               <Button onClick={() => setEditingP({ id: 0, name: "", phone: "", gender: "Nam", dob: "", address: "" })}>
-=======
-              <Button onClick={() => setEditingP({ id: 0, name: "", phone: "", gender: "Nam", dob: "", address: "", lastVisit: "", nextFollowup: "", status: "Ổn định" })}>
->>>>>>> 0adb142a (Update admin clinic management dashboard)
                 <Plus className="w-4 h-4 mr-1" /> Thêm
               </Button>
             </div>
           </div>
-<<<<<<< HEAD
           {filteredP.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground">
               {patients.length === 0 ? "Danh sách bệnh nhân trống" : "Không tìm thấy bệnh nhân phù hợp"}
@@ -275,148 +203,6 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               </TableBody>
             </Table>
           )}
-=======
-          <div className="grid lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2">
-              {filteredP.length === 0 ? (
-                <div className="py-12 text-center text-muted-foreground">
-                  {patients.length === 0 ? "Danh sách bệnh nhân trống" : "Không tìm thấy bệnh nhân phù hợp"}
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Họ tên</TableHead>
-                      <TableHead>SĐT</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead>Ngày khám gần nhất</TableHead>
-                      <TableHead>Tái khám</TableHead>
-                      <TableHead className="text-right">Thao tác</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredP.map(p => (
-                      <TableRow key={p.id} className={p.id === selectedPatientId ? "bg-slate-50" : ""}>
-                        <TableCell className="flex items-center gap-2 cursor-pointer" onClick={() => setSelectedPatientId(p.id)}>
-                          <Avatar className="w-8 h-8"><AvatarFallback className="bg-rose-100 text-rose-700 text-xs">{p.name[0]}</AvatarFallback></Avatar>
-                          {p.name}
-                        </TableCell>
-                        <TableCell>{p.phone}</TableCell>
-                        <TableCell>
-                          <Badge variant={p.status === "Ổn định" ? "secondary" : p.status === "Theo dõi" ? "default" : "outline"}>{p.status}</Badge>
-                        </TableCell>
-                        <TableCell>{p.lastVisit}</TableCell>
-                        <TableCell>{p.nextFollowup}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button size="sm" variant="outline" onClick={() => setEditingP(p)}><Pencil className="w-3.5 h-3.5" /></Button>
-                            <Button size="sm" variant="outline" onClick={() => setSelectedPatientId(p.id)}><Stethoscope className="w-3.5 h-3.5" /></Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
-            <div className="space-y-4">
-              <Card className="p-4">
-                <div className="flex items-center justify-between">
-                  <h5 className="tracking-tight">Hồ sơ & nhắc tái khám</h5>
-                  <Select value={recordRange} onValueChange={v => setRecordRange(v as "week" | "month" | "quarter")}>
-                    <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="week">Tuần</SelectItem>
-                      <SelectItem value="month">Tháng</SelectItem>
-                      <SelectItem value="quarter">Quý</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {!selectedPatient ? (
-                  <div className="text-sm text-muted-foreground mt-3">Chọn bệnh nhân để xem chi tiết hồ sơ.</div>
-                ) : (
-                  <div className="mt-3 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">{selectedPatient.name}</div>
-                        <div className="text-sm text-muted-foreground">{selectedPatient.phone} • {selectedPatient.gender}</div>
-                      </div>
-                      <Badge variant="secondary">{selectedPatient.status}</Badge>
-                    </div>
-                    <div className="text-sm text-muted-foreground">Khám gần nhất: {selectedPatient.lastVisit} • Tái khám: {selectedPatient.nextFollowup}</div>
-                    {filteredRecords.length === 0 ? (
-                      <div className="text-sm text-muted-foreground">Không có hồ sơ trong khoảng thời gian này.</div>
-                    ) : (
-                      <div className="space-y-2">
-                        {filteredRecords.map(r => (
-                          <div key={r.id} className="p-3 border rounded-lg">
-                            <div className="text-sm font-medium">{r.date} • {r.doctor}</div>
-                            <div className="text-sm text-muted-foreground">{r.summary}</div>
-                            <div className="text-xs text-muted-foreground mt-1">Hướng dẫn: {r.nextAction}</div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </Card>
-              <Card className="p-4">
-                <div className="flex items-center justify-between">
-                  <h5 className="tracking-tight">Phản hồi điều trị</h5>
-                  <Star className="w-4 h-4 text-amber-500" />
-                </div>
-                {!selectedPatient ? (
-                  <div className="text-sm text-muted-foreground mt-3">Chọn bệnh nhân để xem phản hồi.</div>
-                ) : selectedFeedbacks.length === 0 ? (
-                  <div className="text-sm text-muted-foreground mt-3">Chưa có phản hồi gần đây.</div>
-                ) : (
-                  <div className="mt-3 space-y-2">
-                    {selectedFeedbacks.map(f => (
-                      <div key={f.id} className="p-3 border rounded-lg">
-                        <div className="text-sm font-medium">{f.date}</div>
-                        <div className="text-sm text-muted-foreground">{f.note}</div>
-                        <div className="text-xs text-amber-600 mt-1">{f.rating} / 5 sao</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
-              <Card className="p-4">
-                <div className="flex items-center justify-between">
-                  <h5 className="tracking-tight">Nhắc tái khám</h5>
-                  <Button size="sm" variant="outline" onClick={() => {
-                    if (!selectedPatientId) {
-                      toast.error("Vui lòng chọn bệnh nhân trước");
-                      return;
-                    }
-                    setEditingR({ id: 0, patientId: selectedPatientId, date: "", channel: "SMS", note: "", status: "Chờ gửi" });
-                  }}><CalendarClock className="w-3.5 h-3.5 mr-1" />Tạo</Button>
-                </div>
-                {!selectedPatient ? (
-                  <div className="text-sm text-muted-foreground mt-3">Chọn bệnh nhân để xem nhắc tái khám.</div>
-                ) : selectedReminders.length === 0 ? (
-                  <div className="text-sm text-muted-foreground mt-3">Chưa có lịch nhắc.</div>
-                ) : (
-                  <div className="mt-3 space-y-2">
-                    {selectedReminders.map(r => (
-                      <div key={r.id} className="p-3 border rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm font-medium">{r.date} • {r.channel}</div>
-                          <Badge variant={r.status === "Hoàn tất" ? "secondary" : r.status === "Đã gửi" ? "default" : "outline"}>{r.status}</Badge>
-                        </div>
-                        <div className="text-sm text-muted-foreground">{r.note}</div>
-                        <div className="mt-2 flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => setReminders(prev => prev.map(x => x.id === r.id ? { ...x, status: "Đã gửi" } : x))}>Đánh dấu đã gửi</Button>
-                          <Button size="sm" variant="outline" onClick={() => setReminders(prev => prev.map(x => x.id === r.id ? { ...x, status: "Hoàn tất" } : x))}>Hoàn tất</Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
-            </div>
-          </div>
->>>>>>> 0adb142a (Update admin clinic management dashboard)
         </Card>
       )}
 
@@ -425,7 +211,6 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
       {/* Flow 3 */}
       {active === "schedule" && (
-<<<<<<< HEAD
         <Card className="p-5">
           <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
             <h4 className="tracking-tight">Lịch khám toàn hệ thống</h4>
@@ -470,71 +255,6 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             </div>
           )}
         </Card>
-=======
-        <div className="space-y-4">
-          <Card className="p-5">
-            <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
-              <h4 className="tracking-tight">Lịch khám toàn hệ thống</h4>
-              <div className="flex gap-2">
-                <Select value={sBranch} onValueChange={setSBranch}>
-                  <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả chi nhánh</SelectItem>
-                    <SelectItem value="CN Q1">CN Q1</SelectItem>
-                    <SelectItem value="CN Q3">CN Q3</SelectItem>
-                    <SelectItem value="CN Tân Bình">CN Tân Bình</SelectItem>
-                    <SelectItem value="CN Q7">CN Q7</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button onClick={() => setEditingS({ id: 0, doctorName: "", patientName: "", date: "", time: "", clinic: "CN Q1", doctorSpec: "" })}>
-                  <Plus className="w-4 h-4 mr-1" /> Tạo lịch
-                </Button>
-              </div>
-            </div>
-            {filteredSchedules.length === 0 ? (
-              <div className="py-12 text-center text-muted-foreground">
-                Lịch trống. Bấm "Tạo lịch" để thêm mới.
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {filteredSchedules.map(s => (
-                  <div key={s.id} className="p-3 border rounded-xl flex items-center justify-between">
-                    <div>
-                      <div>{s.doctorName} <span className="text-muted-foreground">→ {s.patientName}</span></div>
-                      <div className="text-sm text-muted-foreground">{s.date} • {s.time} • {s.clinic} • {s.doctorSpec}</div>
-                    </div>
-                    <div className="flex gap-2 items-center">
-                      <Badge variant={s.status === "Sắp tới" ? "secondary" : s.status === "Hoàn thành" ? "default" : "outline"}>{s.status}</Badge>
-                      <Button size="sm" variant="outline" onClick={() => setEditingS(s)}><Pencil className="w-3.5 h-3.5" /></Button>
-                      <Button size="sm" variant="outline" className="text-rose-600" onClick={() => {
-                        store.updateAppointment(s.id, { status: "Đã hủy" });
-                        toast.success("Đã hủy lịch");
-                      }}><Trash2 className="w-3.5 h-3.5" /></Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-          <div className="grid lg:grid-cols-3 gap-4">
-            <Card className="p-5">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground"><Wallet className="w-4 h-4" />Chi phí vận hành tháng</div>
-              <div className="mt-2 text-2xl tracking-tight text-rose-600">190M</div>
-              <div className="text-sm text-muted-foreground">Tăng 6% so với tháng trước</div>
-            </Card>
-            <Card className="p-5">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground"><Activity className="w-4 h-4" />ROI trung bình</div>
-              <div className="mt-2 text-2xl tracking-tight text-emerald-600">2.0x</div>
-              <div className="text-sm text-muted-foreground">Tập trung tối ưu chi phí nhân sự</div>
-            </Card>
-            <Card className="p-5">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground"><Calendar className="w-4 h-4" />Tỷ lệ phủ lịch</div>
-              <div className="mt-2 text-2xl tracking-tight text-sky-600">92%</div>
-              <div className="text-sm text-muted-foreground">Hủy lịch: 3.8% • Trễ: 2.1%</div>
-            </Card>
-          </div>
-        </div>
->>>>>>> 0adb142a (Update admin clinic management dashboard)
       )}
 
       {/* Flow 4 */}
@@ -658,21 +378,6 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 </div>
                 <div className="space-y-1.5"><Label>Ngày sinh</Label><Input type="date" value={editingP.dob} onChange={e => setEditingP({ ...editingP, dob: e.target.value })} /></div>
                 <div className="space-y-1.5"><Label>Địa chỉ</Label><Input value={editingP.address} onChange={e => setEditingP({ ...editingP, address: e.target.value })} /></div>
-<<<<<<< HEAD
-=======
-                <div className="space-y-1.5"><Label>Trạng thái</Label>
-                  <Select value={editingP.status} onValueChange={v => setEditingP({ ...editingP, status: v as Patient["status"] })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Ổn định">Ổn định</SelectItem>
-                      <SelectItem value="Theo dõi">Theo dõi</SelectItem>
-                      <SelectItem value="Cần tái khám">Cần tái khám</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5"><Label>Khám gần nhất</Label><Input type="date" value={editingP.lastVisit} onChange={e => setEditingP({ ...editingP, lastVisit: e.target.value })} /></div>
-                <div className="space-y-1.5"><Label>Tái khám</Label><Input type="date" value={editingP.nextFollowup} onChange={e => setEditingP({ ...editingP, nextFollowup: e.target.value })} /></div>
->>>>>>> 0adb142a (Update admin clinic management dashboard)
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => { setEditingP(null); toast.info("Đã hủy thay đổi"); }}>Hủy</Button>
@@ -716,57 +421,6 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         </DialogContent>
       </Dialog>
 
-<<<<<<< HEAD
-=======
-      <Dialog open={!!editingR} onOpenChange={() => setEditingR(null)}>
-        <DialogContent>
-          {editingR && (
-            <>
-              <DialogHeader>
-                <DialogTitle>Tạo nhắc tái khám</DialogTitle>
-                <DialogDescription>{patients.find(p => p.id === editingR.patientId)?.name}</DialogDescription>
-              </DialogHeader>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5"><Label>Ngày nhắc</Label><Input type="date" value={editingR.date ?? ""} onChange={e => setEditingR({ ...editingR, date: e.target.value })} /></div>
-                <div className="space-y-1.5"><Label>Kênh gửi</Label>
-                  <Select value={editingR.channel ?? "SMS"} onValueChange={v => setEditingR({ ...editingR, channel: v as Reminder["channel"] })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SMS">SMS</SelectItem>
-                      <SelectItem value="Zalo">Zalo</SelectItem>
-                      <SelectItem value="Email">Email</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5 col-span-2"><Label>Nội dung nhắc</Label><Textarea rows={4} value={editingR.note ?? ""} onChange={e => setEditingR({ ...editingR, note: e.target.value })} placeholder="VD: Nhắc tái khám tim mạch sau 2 tuần" /></div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setEditingR(null)}>Hủy</Button>
-                <Button onClick={() => {
-                  if (!editingR.date || !editingR.note?.trim()) {
-                    toast.error("Vui lòng nhập ngày nhắc và nội dung");
-                    return;
-                  }
-                  if (editingR.id === 0) {
-                    setReminders(prev => [{
-                      id: Date.now(),
-                      patientId: editingR.patientId,
-                      date: editingR.date,
-                      channel: editingR.channel ?? "SMS",
-                      note: editingR.note ?? "",
-                      status: "Chờ gửi",
-                    }, ...prev]);
-                  }
-                  toast.success("Đã tạo nhắc tái khám");
-                  setEditingR(null);
-                }}>Lưu</Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-
->>>>>>> 0adb142a (Update admin clinic management dashboard)
       <Dialog open={!!shiftDoctor} onOpenChange={() => setShiftDoctor(null)}>
         <DialogContent>
           {shiftDoctor && (
@@ -809,21 +463,11 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 function Overview() {
   return (
     <div className="space-y-5">
-<<<<<<< HEAD
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
           { l: "Doanh thu tháng", v: "380M", c: "text-emerald-600" },
           { l: "Lượt khám tuần", v: "945", c: "text-sky-600" },
           { l: "Bệnh nhân", v: "12,840", c: "text-violet-600" },
-=======
-      <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4">
-        {[
-          { l: "Doanh thu tháng", v: "380M", c: "text-emerald-600" },
-          { l: "Chi phí vận hành", v: "190M", c: "text-rose-600" },
-          { l: "ROI trung bình", v: "2.0x", c: "text-sky-600" },
-          { l: "Lượt khám tuần", v: "945", c: "text-sky-600" },
-          { l: "Tỷ lệ tái khám", v: "62%", c: "text-violet-600" },
->>>>>>> 0adb142a (Update admin clinic management dashboard)
           { l: "Bác sĩ", v: "32", c: "text-amber-600" },
         ].map((s, i) => (
           <Card key={i} className="p-4">
@@ -995,11 +639,6 @@ function Reports() {
             <SelectContent>
               <SelectItem value="revenue">Doanh thu</SelectItem>
               <SelectItem value="visits">Lượt khám</SelectItem>
-<<<<<<< HEAD
-=======
-              <SelectItem value="costs">Chi phí</SelectItem>
-              <SelectItem value="roi">ROI</SelectItem>
->>>>>>> 0adb142a (Update admin clinic management dashboard)
               <SelectItem value="doctors">Theo bác sĩ</SelectItem>
             </SelectContent>
           </Select>
@@ -1029,19 +668,10 @@ function Reports() {
       ) : (
         <div className="grid lg:grid-cols-2 gap-4">
           <Card className="p-5">
-<<<<<<< HEAD
             <h4 className="tracking-tight">{type === "revenue" ? "Doanh thu" : type === "visits" ? "Lượt khám" : "Theo bác sĩ"}</h4>
             <div className="h-72 mt-3">
               <LineChartSimple
                 data={type === "visits" ? VISITS : REVENUE}
-=======
-            <h4 className="tracking-tight">
-              {type === "revenue" ? "Doanh thu" : type === "visits" ? "Lượt khám" : type === "costs" ? "Chi phí" : type === "roi" ? "ROI" : "Theo bác sĩ"}
-            </h4>
-            <div className="h-72 mt-3">
-              <LineChartSimple
-                data={type === "visits" ? VISITS : type === "costs" ? COSTS : type === "roi" ? ROI : REVENUE}
->>>>>>> 0adb142a (Update admin clinic management dashboard)
                 labelKey={type === "visits" ? "d" : "m"}
               />
             </div>
@@ -1053,15 +683,9 @@ function Reports() {
               <TableBody>
                 {[
                   ["Doanh thu", "380.000.000đ", "+12%"],
-<<<<<<< HEAD
                   ["Lượt khám", "945", "+8%"],
                   ["Bệnh nhân mới", "128", "+15%"],
                   ["Tỷ lệ tái khám", "62%", "+3%"],
-=======
-                  ["Chi phí", "190.000.000đ", "+6%"],
-                  ["ROI", "2.0x", "+0.2x"],
-                  ["Lượt khám", "945", "+8%"],
->>>>>>> 0adb142a (Update admin clinic management dashboard)
                 ].map((r, i) => (
                   <TableRow key={i}>
                     <TableCell>{r[0]}</TableCell>

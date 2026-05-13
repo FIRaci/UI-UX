@@ -6,7 +6,9 @@ import { Badge } from "./ui/badge";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 import { Textarea } from "./ui/textarea";
-import { LayoutDashboard, BookOpen, Users2, Video, FileSearch, Mic, MicOff, PhoneOff, ScreenShare, MessageSquare } from "lucide-react";
+import { LayoutDashboard, BookOpen, Users2, Video, FileSearch, Mic, MicOff, PhoneOff, ScreenShare, MessageSquare, AlertCircle, TrendingUp, Clock, CheckCircle, AlertTriangle, Search, Bell, Filter, Eye, FileText, Activity, ArrowRight, Phone, Calendar, MapPin, ChevronRight } from "lucide-react";
+import { Input } from "./ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { toast } from "sonner";
 
 type ConsultRoom = { t: string; d: string; who: string; room: string };
@@ -93,107 +95,189 @@ export function ExpertDashboard({ onLogout }: { onLogout: () => void }) {
       ]}
     >
       {active === "overview" && (
-        <div className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="space-y-4">
+          {/* Alert Banner - Critical Cases */}
+          <div className="bg-red-50 border-l-4 border-l-red-500 p-4 rounded-lg">
+            <div className="flex items-start justify-between">
+              <div className="flex gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-red-900">Cảnh báo khẩn cấp</h3>
+                  <p className="text-sm text-red-700 mt-1">4 Ca bệnh đang cần xử lý ngay - James Harrington, Elena Vasquez, Robert Chen, Amara Okafor</p>
+                </div>
+              </div>
+              <Badge className="bg-red-600">4 Chờ xử lý</Badge>
+            </div>
+          </div>
+
+          {/* Success Banner - Stable Cases */}
+          <div className="bg-green-50 border-l-4 border-l-green-500 p-4 rounded-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <div>
+                <p className="font-medium text-green-900">Hệ thống hoạt động bình thường</p>
+                <p className="text-sm text-green-700">Tất cả ca bệnh trong tình trạng ổn định</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             {[
-              { l: "Hội chẩn tuần này", v: "7" },
-              { l: "Ca bệnh đang theo dõi", v: "23" },
-              { l: "Nghiên cứu", v: "4" },
-              { l: "Đánh giá trung bình", v: "4.95★" },
+              { l: "Hội chẩn tuần này", v: "7", icon: "📞" },
+              { l: "Ca bệnh phức tạp", v: "23", icon: "🏥" },
+              { l: "Đang tiến hành", v: "4", icon: "📊" },
+              { l: "Đánh giá trung bình", v: "4.9", icon: "⭐" },
             ].map((s, i) => (
-              <Card key={i} className="p-4">
-                <div className="text-sm text-muted-foreground">{s.l}</div>
-                <div className="mt-1 text-2xl tracking-tight">{s.v}</div>
+              <Card key={i} className="p-4 bg-gradient-to-br from-slate-50 to-slate-100">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="text-xs text-muted-foreground font-medium">{s.l}</div>
+                    <div className="mt-2 text-3xl font-bold">{s.v}</div>
+                  </div>
+                  <span className="text-2xl">{s.icon}</span>
+                </div>
               </Card>
             ))}
           </div>
-          <Card className="p-5">
-            <h4 className="tracking-tight">Hội chẩn sắp tới</h4>
-            <div className="mt-3 space-y-2">
+
+          {/* Upcoming Consultations */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-lg">Hội chẩn sắp tới</h3>
+              <Button size="sm" variant="ghost" className="text-blue-600">Xem tất cả <ChevronRight className="w-4 h-4 ml-1" /></Button>
+            </div>
+            <div className="space-y-2">
               {UPCOMING.map((c, i) => (
-                <div key={i} className="flex items-center justify-between p-3 border rounded-xl">
-                  <div>
-                    <div>{c.t}</div>
-                    <div className="text-sm text-muted-foreground">{c.d} • {c.who} • {c.room}</div>
+                <div key={i} className="flex items-center justify-between p-3 border rounded-lg bg-white hover:bg-slate-50 transition-colors">
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{c.t}</div>
+                    <div className="text-xs text-muted-foreground mt-1"><Clock className="w-3 h-3 inline mr-1" />{c.d} • {c.who}</div>
                   </div>
-                  <Button size="sm" onClick={() => joinRoom(c)}>Tham gia</Button>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">{c.room}</Badge>
+                    <Button size="sm" onClick={() => joinRoom(c)}>Tham gia</Button>
+                  </div>
                 </div>
               ))}
             </div>
-          </Card>
+          </div>
         </div>
       )}
 
       {active === "consult" && (
-        <Card className="p-5">
-          <h4 className="tracking-tight mb-3">Phòng hội chẩn online</h4>
-          <div className="grid md:grid-cols-2 gap-3">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Phòng hội chẩn online</h2>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm"><Filter className="w-4 h-4 mr-2" />Bộ lọc</Button>
+              <Button variant="outline" size="sm"><Eye className="w-4 h-4 mr-2" />Toàn bộ</Button>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
             {[1, 2, 3, 4].map(i => {
               const data: ConsultRoom = { t: `Hội chẩn ca BN-${2000 + i}`, d: "Hôm nay", who: "3-5 chuyên gia", room: `Phòng #${100 + i}` };
               return (
-                <Card key={i} className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
-                  <div className="flex items-center justify-between">
-                    <Badge>{data.room}</Badge>
-                    <span className="text-sm text-emerald-600">● Đang hoạt động</span>
+                <Card key={i} className="p-4 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => joinRoom(data)}>
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <Badge className="bg-blue-100 text-blue-700" variant="secondary">{data.room}</Badge>
+                    </div>
+                    <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">● Đang hoạt động</span>
                   </div>
-                  <h4 className="mt-2 tracking-tight">{data.t}</h4>
-                  <p className="text-sm text-muted-foreground mt-1">{data.who}</p>
-                  <Button className="mt-3 w-full" onClick={() => joinRoom(data)}>Vào phòng</Button>
+                  <h4 className="font-semibold text-sm leading-snug">{data.t}</h4>
+                  <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1"><Users2 className="w-3 h-3" />{data.who}</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1"><Clock className="w-3 h-3" />{data.d}</p>
+                  <Button className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white" size="sm">Tham gia phòng</Button>
                 </Card>
               );
             })}
           </div>
-        </Card>
+        </div>
       )}
 
       {active === "cases" && (
-        <Card className="p-5">
-          <h4 className="tracking-tight mb-3">Ca bệnh phức tạp</h4>
-          <div className="space-y-2">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">Ca bệnh phức tạp</h2>
+              <p className="text-sm text-muted-foreground mt-1">Theo dõi và quản lý các ca bệnh</p>
+            </div>
+            <Button size="sm" className="bg-green-600 hover:bg-green-700">+ Thêm ca</Button>
+          </div>
+
+          <div className="space-y-3">
             {CASES.map(c => (
-              <div key={c.id} className="p-3 border rounded-xl flex justify-between items-start">
-                <div>
-                  <div>{c.n} <span className="text-muted-foreground text-sm">({c.id})</span></div>
-                  <div className="text-sm text-muted-foreground">{c.c}</div>
+              <div key={c.id} className="p-4 border rounded-lg bg-white hover:shadow-md transition-shadow cursor-pointer" onClick={() => setCaseFile(c)}>
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <h4 className="font-semibold">{c.n} <span className="text-muted-foreground text-sm font-normal">({c.id})</span></h4>
+                    <p className="text-sm text-muted-foreground mt-1">{c.c}</p>
+                  </div>
+                  <Badge className={c.p === "Rất cao" ? "bg-red-600" : c.p === "Cao" ? "bg-orange-600" : "bg-yellow-600"}>{c.p}</Badge>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={c.p === "Rất cao" ? "destructive" : "secondary"}>{c.p}</Badge>
-                  <Button size="sm" variant="outline" onClick={() => setCaseFile(c)}>Xem</Button>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-3 pt-3 border-t">
+                  <span>👤 {c.gender} • {c.age} tuổi</span>
+                  <span>📋 {c.tests.length} xét nghiệm</span>
+                  <Button size="sm" variant="ghost" className="ml-auto">Xem chi tiết <ChevronRight className="w-3 h-3 ml-1" /></Button>
                 </div>
               </div>
             ))}
           </div>
-        </Card>
+        </div>
       )}
 
       {active === "research" && (
-        <div className="grid md:grid-cols-2 gap-4">
-          {RESEARCH.map((r, i) => (
-            <Card key={i} className="p-4">
-              <Badge variant="secondary">{r.s}</Badge>
-              <div className="mt-2 tracking-tight">{r.t}</div>
-              <div className="text-sm text-muted-foreground mt-1">{r.a} • {r.year}</div>
-              <Button size="sm" variant="outline" className="mt-3" onClick={() => setResearch(r)}>Xem chi tiết</Button>
-            </Card>
-          ))}
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-2xl font-bold">Nghiên cứu khoa học</h2>
+            <p className="text-sm text-muted-foreground mt-1">Các dự án nghiên cứu đang tiến hành</p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            {RESEARCH.map((r, i) => (
+              <Card key={i} className="p-4 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setResearch(r)}>
+                <div className="flex items-start justify-between mb-2">
+                  <Badge className="bg-purple-100 text-purple-700" variant="secondary">{r.s}</Badge>
+                  <span className="text-xs text-muted-foreground">{r.year}</span>
+                </div>
+                <h4 className="font-semibold text-sm leading-snug mt-2">{r.t}</h4>
+                <p className="text-xs text-muted-foreground mt-2">{r.a}</p>
+                <div className="flex flex-wrap gap-1 mt-3">
+                  {r.tags.map(tag => <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>)}
+                </div>
+                <Button size="sm" variant="ghost" className="w-full mt-3 justify-center">Xem chi tiết <ChevronRight className="w-3 h-3 ml-1" /></Button>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
       {active === "team" && (
-        <Card className="p-5">
-          <h4 className="tracking-tight mb-3">Đội ngũ chuyên môn</h4>
-          <div className="grid md:grid-cols-3 gap-3">
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-2xl font-bold">Đội ngũ chuyên môn</h2>
+            <p className="text-sm text-muted-foreground mt-1">Các chuyên gia trong nhóm</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
             {TEAM.map((m, i) => (
-              <Card key={i} className="p-4 flex items-center gap-3 cursor-pointer hover:shadow-md transition" onClick={() => setMember(m)}>
-                <Avatar><AvatarFallback className="bg-amber-100 text-amber-700">{m.n.split(" ").pop()?.[0]}</AvatarFallback></Avatar>
-                <div className="min-w-0">
-                  <div className="truncate">{m.n}</div>
-                  <div className="text-sm text-muted-foreground">{m.spec}</div>
+              <Card key={i} className="p-4 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setMember(m)}>
+                <div className="flex items-center gap-3 mb-3">
+                  <Avatar className="w-10 h-10"><AvatarFallback className="bg-blue-600 text-white text-sm font-semibold">{m.n.split(" ").map(n => n[0]).join("")}</AvatarFallback></Avatar>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-sm">{m.n}</h4>
+                    <p className="text-xs text-blue-600">{m.spec}</p>
+                  </div>
                 </div>
+                <div className="space-y-2 text-xs text-muted-foreground pt-3 border-t">
+                  <div className="flex items-center gap-2"><Activity className="w-3 h-3" />{m.years} năm kinh nghiệm</div>
+                  <div className="flex items-center gap-2"><FileText className="w-3 h-3" />{m.papers} bài báo khoa học</div>
+                </div>
+                <Button size="sm" variant="ghost" className="w-full mt-3">Liên hệ <ChevronRight className="w-3 h-3 ml-1" /></Button>
               </Card>
             ))}
           </div>
-        </Card>
+        </div>
       )}
 
       <Dialog open={!!room} onOpenChange={() => setRoom(null)}>
