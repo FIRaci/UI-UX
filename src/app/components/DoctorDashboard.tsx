@@ -56,10 +56,14 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState("overview");
   const [queue, setQueue] = useState<Triage[]>(INITIAL_QUEUE);
   const [levelFilter, setLevelFilter] = useState<string>("all");
+  const [scheduleLevelFilter, setScheduleLevelFilter] = useState<string>("all");
   const [consultPatient, setConsultPatient] = useState<Triage | null>(null);
 
   const appointments = useStore(s => s.appointments.filter(a => a.doctorName === ME_NAME));
-  const todayAppts = appointments.filter(a => a.status === "Sắp tới");
+  const TODAY = useStore(s => s.today) || "2026-05-14";
+  const todayAppts = appointments.filter(a => a.date === TODAY);
+  const todayUpcoming = todayAppts.filter(a => a.status === "Sắp tới");
+  const filteredSchedule = todayAppts.filter(a => scheduleLevelFilter === "all" || a.level === scheduleLevelFilter);
   const threads = useStore(s =>
     s.threads.filter(t => t.staffId === ME_ID).sort((a, b) => b.updatedAt - a.updatedAt)
   );
@@ -69,6 +73,16 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
   const [patientFile, setPatientFile] = useState<string | null>(null);
   const [recordView, setRecordView] = useState<{ p: string; d: string; t: string; m: string } | null>(null);
   const [apptDetail, setApptDetail] = useState<any | null>(null);
+  const [newRecord, setNewRecord] = useState(false);
+  const [newRecordType, setNewRecordType] = useState<"prescription" | "record">("prescription");
+  const [newRecordPatient, setNewRecordPatient] = useState("");
+  const [newRecordContent, setNewRecordContent] = useState("");
+  const [showRecordTemplate, setShowRecordTemplate] = useState(false);
+  const [records, setRecords] = useState([
+    { p: "Nguyễn Minh Khoa", d: "2026-05-05", t: "Đơn thuốc tim mạch", m: "Amlodipine 5mg • Atorvastatin 10mg" },
+    { p: "Trần Thu Hà", d: "2026-05-04", t: "Hồ sơ khám", m: "Khám định kỳ, kết quả ổn định" },
+    { p: "Lê Văn Tú", d: "2026-05-02", t: "Đơn thuốc tái khám", m: "Bisoprolol 2.5mg • Aspirin 81mg" },
+  ]);
   useEffect(() => { if (!activeThreadId && threads[0]) setActiveThreadId(threads[0].id); }, [threads, activeThreadId]);
   const activeThread = threads.find(t => t.id === activeThreadId) ?? null;
 
@@ -220,8 +234,8 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
               {[
                 { l: "Khẩn cấp", v: queue.filter(q => q.level === "Khẩn cấp").length, c: "bg-rose-50 text-rose-700" },
                 { l: "Đang chờ", v: queue.length, c: "bg-amber-50 text-amber-700" },
-                { l: "Lịch sắp tới", v: todayAppts.length, c: "bg-sky-50 text-sky-700" },
-                { l: "Đã khám hôm nay", v: appointments.filter(a => a.status === "Hoàn thành").length, c: "bg-emerald-50 text-emerald-700" },
+                { l: "Lịch sắp tới", v: todayUpcoming.length, c: "bg-sky-50 text-sky-700" },
+                { l: "Đã khám hôm nay", v: todayAppts.filter(a => a.status === "Hoàn thành").length, c: "bg-emerald-50 text-emerald-700" },
               ].map((s, i) => (
                 <Card key={i} className="p-4">
                   <div className={`inline-flex px-2 py-0.5 rounded-md text-xs ${s.c}`}>{s.l}</div>
@@ -234,12 +248,12 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
           <Card className="p-4 h-fit xl:sticky xl:top-4">
             <div className="flex items-center justify-between mb-3">
               <h4 className="tracking-tight">Lịch hẹn hôm nay</h4>
-              <Badge variant="secondary">{todayAppts.length}</Badge>
+              <Badge variant="secondary">{todayUpcoming.length}</Badge>
             </div>
             <div className="space-y-2">
-              {todayAppts.length === 0 ? (
+              {todayUpcoming.length === 0 ? (
                 <div className="py-6 text-center text-sm text-muted-foreground">Không có lịch hẹn</div>
-              ) : todayAppts.slice(0, 8).map(p => (
+              ) : todayUpcoming.slice(0, 8).map(p => (
                 <Card key={p.id} className="p-3 hover:shadow transition">
                   <div className="min-w-0">
                     <div className="text-sm truncate">{p.patientName}</div>
@@ -264,37 +278,119 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
 
       {active === "schedule" && (
         <Card className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="tracking-tight">Lịch khám của tôi</h4>
-            <Badge>Tổng: {appointments.length}</Badge>
+          <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+            <div>
+              <h4 className="tracking-tight">Lịch khám hôm nay</h4>
+              <p className="text-xs text-muted-foreground mt-0.5">Ngày {TODAY} • Sắp xếp theo giờ khám</p>
+            </div>
+            <div className="flex gap-2 items-center">
+              <Select value={scheduleLevelFilter} onValueChange={setScheduleLevelFilter}>
+                <SelectTrigger className="w-44"><Filter className="w-3.5 h-3.5 mr-1" /><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả mức độ</SelectItem>
+                  <SelectItem value="Khẩn cấp">Khẩn cấp</SelectItem>
+                  <SelectItem value="Cao">Cao</SelectItem>
+                  <SelectItem value="Trung bình">Trung bình</SelectItem>
+                  <SelectItem value="Thấp">Thấp</SelectItem>
+                </SelectContent>
+              </Select>
+              <Badge variant="secondary">{filteredSchedule.length} ca</Badge>
+            </div>
           </div>
-          <div className="space-y-2">
-            {appointments.length === 0 ? (
-              <div className="py-10 text-center text-muted-foreground">Chưa có lịch khám.</div>
-            ) : appointments.map(p => (
-              <div key={p.id} className="flex items-center justify-between p-3 border rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-16 text-center">
-                    <Clock className="w-4 h-4 mx-auto text-muted-foreground" />
-                    <div className="text-sm">{p.time}</div>
-                  </div>
-                  <div>
-                    <div>{p.patientName}</div>
-                    <div className="text-sm text-muted-foreground">{p.date} • {p.clinic}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={p.status === "Hoàn thành" ? "default" : p.status === "Đã hủy" ? "outline" : "secondary"}>{p.status}</Badge>
-                  {p.status === "Sắp tới" && (
-                    <Button size="sm" onClick={() => {
-                      store.updateAppointment(p.id, { status: "Hoàn thành" });
-                      toast.success("Đã đánh dấu hoàn thành");
-                    }}><CheckCircle2 className="w-4 h-4 mr-1" />Hoàn thành</Button>
-                  )}
-                </div>
-              </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            {[
+              { l: "Khẩn cấp", v: todayAppts.filter(a => a.level === "Khẩn cấp").length, c: "bg-rose-50 text-rose-700 border-rose-200" },
+              { l: "Cao", v: todayAppts.filter(a => a.level === "Cao").length, c: "bg-orange-50 text-orange-700 border-orange-200" },
+              { l: "Trung bình", v: todayAppts.filter(a => a.level === "Trung bình").length, c: "bg-amber-50 text-amber-700 border-amber-200" },
+              { l: "Thấp", v: todayAppts.filter(a => a.level === "Thấp").length, c: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+            ].map((s, i) => (
+              <Card key={i} className={`p-3 border ${s.c}`}>
+                <div className="text-xs">{s.l}</div>
+                <div className="mt-1 text-xl tracking-tight">{s.v}</div>
+              </Card>
             ))}
           </div>
+
+          {filteredSchedule.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground">Không có lịch khám hôm nay.</div>
+          ) : (
+            <div className="overflow-x-auto -mx-5">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-xs text-muted-foreground">
+                  <tr className="text-left">
+                    <th className="px-5 py-2.5 font-medium">Giờ</th>
+                    <th className="px-3 py-2.5 font-medium">Mức độ</th>
+                    <th className="px-3 py-2.5 font-medium">Bệnh nhân</th>
+                    <th className="px-3 py-2.5 font-medium">Triệu chứng</th>
+                    <th className="px-3 py-2.5 font-medium">Sinh hiệu</th>
+                    <th className="px-3 py-2.5 font-medium">Trạng thái</th>
+                    <th className="px-5 py-2.5 font-medium text-right">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredSchedule.map(a => (
+                    <tr key={a.id} className="border-t hover:bg-slate-50 transition">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                          <span className="font-medium">{a.time}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3">{a.level && <LevelBadge level={a.level} />}</td>
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <Avatar className="w-8 h-8"><AvatarFallback className="bg-violet-100 text-violet-700 text-xs">{a.patientName[0]}</AvatarFallback></Avatar>
+                          <div>
+                            <div>{a.patientName}</div>
+                            <div className="text-xs text-muted-foreground">{a.age ? `${a.age} tuổi • ${a.clinic}` : a.clinic}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-muted-foreground max-w-xs truncate">{a.symptoms || "—"}</td>
+                      <td className="px-3 py-3">
+                        {a.vitals ? (
+                          <div className="text-xs space-y-0.5">
+                            <div>HA: {a.vitals.bp}</div>
+                            <div className="text-muted-foreground">Mạch: {a.vitals.hr} • SpO2: {a.vitals.spo2}</div>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3">
+                        <Badge variant={a.status === "Hoàn thành" ? "default" : a.status === "Đã hủy" ? "outline" : "secondary"}>{a.status}</Badge>
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <div className="flex gap-1.5 justify-end">
+                          <Button size="sm" variant="outline" onClick={() => setApptDetail(a)}>
+                            Chi tiết
+                          </Button>
+                          {a.status === "Sắp tới" && (
+                            <Button size="sm" className="bg-slate-900 hover:bg-slate-800" onClick={() => {
+                              const triage = queue.find(q => q.patient === a.patientName) ?? {
+                                id: a.id,
+                                level: a.level || "Trung bình",
+                                patient: a.patientName,
+                                age: a.age || 40,
+                                symptoms: a.symptoms || "Khám theo lịch hẹn",
+                                waited: "—",
+                                vitals: a.vitals || { bp: "120/80", hr: "75", temp: "36.7°C", spo2: "98%" }
+                              } as Triage;
+                              setConsultPatient(triage);
+                              toast.success(`Bắt đầu khám ${a.patientName}`);
+                            }}>
+                              Bắt đầu khám
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Card>
       )}
 
@@ -331,23 +427,82 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
 
       {active === "records" && (
         <Card className="p-5">
-          <h4 className="tracking-tight mb-3">Hồ sơ và đơn thuốc gần đây</h4>
-          <div className="space-y-2">
-            {[
-              { p: "Nguyễn Minh Khoa", d: "2026-05-05", t: "Đơn thuốc tim mạch", m: "Amlodipine 5mg • Atorvastatin 10mg" },
-              { p: "Trần Thu Hà", d: "2026-05-04", t: "Hồ sơ khám", m: "Khám định kỳ, kết quả ổn định" },
-              { p: "Lê Văn Tú", d: "2026-05-02", t: "Đơn thuốc tái khám", m: "Bisoprolol 2.5mg • Aspirin 81mg" },
-            ].map((r, i) => (
-              <div key={i} className="p-3 border rounded-xl flex justify-between items-start">
-                <div>
-                  <div>{r.t} - <span className="text-muted-foreground">{r.p}</span></div>
-                  <div className="text-sm text-muted-foreground">{r.d}</div>
-                  <div className="text-sm mt-1">{r.m}</div>
-                </div>
-                <Button size="sm" variant="outline" onClick={() => setRecordView(r)}>Xem</Button>
-              </div>
-            ))}
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h4 className="tracking-tight">Hồ sơ và đơn thuốc</h4>
+              <p className="text-xs text-muted-foreground mt-0.5">Quản lý đơn thuốc và hồ sơ khám bệnh</p>
+            </div>
+            <Button onClick={() => setNewRecord(true)} className="bg-violet-600 hover:bg-violet-700">
+              <FileText className="w-4 h-4 mr-1" /> Tạo mới
+            </Button>
           </div>
+
+          <Tabs defaultValue="all" className="mb-3">
+            <TabsList>
+              <TabsTrigger value="all">Tất cả ({records.length})</TabsTrigger>
+              <TabsTrigger value="prescription">Đơn thuốc ({records.filter(r => r.t.includes("Đơn thuốc")).length})</TabsTrigger>
+              <TabsTrigger value="record">Hồ sơ khám ({records.filter(r => r.t.includes("Hồ sơ")).length})</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="all" className="space-y-2 mt-3">
+              {records.length === 0 ? (
+                <div className="py-12 text-center text-muted-foreground">Chưa có hồ sơ hoặc đơn thuốc.</div>
+              ) : records.map((r, i) => (
+                <div key={i} className="p-3 border rounded-xl flex justify-between items-start hover:bg-slate-50 transition">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <Badge variant={r.t.includes("Đơn thuốc") ? "default" : "secondary"} className="shrink-0">
+                        {r.t.includes("Đơn thuốc") ? "Đơn thuốc" : "Hồ sơ"}
+                      </Badge>
+                      <span className="font-medium truncate">{r.p}</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">{r.d}</div>
+                    <div className="text-sm mt-1">{r.m}</div>
+                  </div>
+                  <div className="flex gap-1.5 shrink-0">
+                    <Button size="sm" variant="outline" onClick={() => setRecordView(r)}>Xem</Button>
+                    <Button size="sm" variant="outline" onClick={() => toast.success("Đã gửi cho bệnh nhân")}>Gửi</Button>
+                  </div>
+                </div>
+              ))}
+            </TabsContent>
+
+            <TabsContent value="prescription" className="space-y-2 mt-3">
+              {records.filter(r => r.t.includes("Đơn thuốc")).length === 0 ? (
+                <div className="py-12 text-center text-muted-foreground">Chưa có đơn thuốc.</div>
+              ) : records.filter(r => r.t.includes("Đơn thuốc")).map((r, i) => (
+                <div key={i} className="p-3 border rounded-xl flex justify-between items-start hover:bg-slate-50 transition">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{r.p}</div>
+                    <div className="text-sm text-muted-foreground mt-1">{r.d}</div>
+                    <div className="text-sm mt-1">{r.m}</div>
+                  </div>
+                  <div className="flex gap-1.5 shrink-0">
+                    <Button size="sm" variant="outline" onClick={() => setRecordView(r)}>Xem</Button>
+                    <Button size="sm" variant="outline" onClick={() => toast.success("Đã gửi cho bệnh nhân")}>Gửi</Button>
+                  </div>
+                </div>
+              ))}
+            </TabsContent>
+
+            <TabsContent value="record" className="space-y-2 mt-3">
+              {records.filter(r => r.t.includes("Hồ sơ")).length === 0 ? (
+                <div className="py-12 text-center text-muted-foreground">Chưa có hồ sơ khám.</div>
+              ) : records.filter(r => r.t.includes("Hồ sơ")).map((r, i) => (
+                <div key={i} className="p-3 border rounded-xl flex justify-between items-start hover:bg-slate-50 transition">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{r.p}</div>
+                    <div className="text-sm text-muted-foreground mt-1">{r.d}</div>
+                    <div className="text-sm mt-1">{r.m}</div>
+                  </div>
+                  <div className="flex gap-1.5 shrink-0">
+                    <Button size="sm" variant="outline" onClick={() => setRecordView(r)}>Xem</Button>
+                    <Button size="sm" variant="outline" onClick={() => toast.success("Đã gửi cho bệnh nhân")}>Gửi</Button>
+                  </div>
+                </div>
+              ))}
+            </TabsContent>
+          </Tabs>
         </Card>
       )}
 
@@ -522,6 +677,123 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={newRecord} onOpenChange={(open) => {
+        setNewRecord(open);
+        if (!open) {
+          setNewRecordPatient("");
+          setNewRecordContent("");
+          setNewRecordType("prescription");
+        }
+      }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader className="text-left">
+            <DialogTitle>Tạo {newRecordType === "prescription" ? "đơn thuốc" : "hồ sơ khám"} mới</DialogTitle>
+            <DialogDescription>Nhập thông tin đầy đủ trước khi lưu</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Loại</label>
+              <Select value={newRecordType} onValueChange={(v: "prescription" | "record") => setNewRecordType(v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="prescription">Đơn thuốc</SelectItem>
+                  <SelectItem value="record">Hồ sơ khám</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Bệnh nhân</label>
+              <Select value={newRecordPatient} onValueChange={setNewRecordPatient}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn bệnh nhân..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from(new Set(appointments.map(a => a.patientName))).map(name => (
+                    <SelectItem key={name} value={name}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-medium">Nội dung</label>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowRecordTemplate(true)}
+                >
+                  <FileText className="w-3.5 h-3.5 mr-1" /> Chọn template
+                </Button>
+              </div>
+              <Textarea
+                className="min-h-[200px] resize-none"
+                placeholder={newRecordType === "prescription" ? "Nhập đơn thuốc: tên thuốc, liều lượng, cách dùng..." : "Nhập kết quả khám, chẩn đoán, khuyến nghị..."}
+                value={newRecordContent}
+                onChange={e => setNewRecordContent(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNewRecord(false)}>Hủy</Button>
+            <Button
+              className="bg-violet-600 hover:bg-violet-700"
+              onClick={() => {
+                if (!newRecordPatient.trim()) {
+                  toast.error("Vui lòng chọn bệnh nhân");
+                  return;
+                }
+                if (!newRecordContent.trim()) {
+                  toast.error("Vui lòng nhập nội dung");
+                  return;
+                }
+
+                const today = new Date().toISOString().split('T')[0];
+                const newRec = {
+                  p: newRecordPatient,
+                  d: "2026-05-13",
+                  t: newRecordType === "prescription" ? "Đơn thuốc mới" : "Hồ sơ khám mới",
+                  m: newRecordContent,
+                };
+                setRecords(prev => [newRec, ...prev]);
+                toast.success(`Đã tạo ${newRecordType === "prescription" ? "đơn thuốc" : "hồ sơ"} cho ${newRecordPatient}`);
+                setNewRecord(false);
+                setNewRecordPatient("");
+                setNewRecordContent("");
+              }}
+            >
+              <Save className="w-4 h-4 mr-1" /> Lưu
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showRecordTemplate} onOpenChange={() => setShowRecordTemplate(false)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Chọn template</DialogTitle></DialogHeader>
+          <div className="space-y-2">
+            {NOTE_TEMPLATES.map(t => (
+              <Card key={t.name} className="p-3 hover:bg-slate-50 cursor-pointer" onClick={() => {
+                setNewRecordContent(prev => (prev ? prev + "\n\n" : "") + t.body);
+                setShowRecordTemplate(false);
+                toast.success(`Đã chèn template: ${t.name}`);
+              }}>
+                <div className="text-sm">{t.name}</div>
+                <div className="text-xs text-muted-foreground mt-1 whitespace-pre-line line-clamp-3">{t.body}</div>
+              </Card>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRecordTemplate(false)}>Đóng</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </AppShell>
@@ -783,3 +1055,5 @@ function ConsultationRoom({
     </div>
   );
 }
+
+
