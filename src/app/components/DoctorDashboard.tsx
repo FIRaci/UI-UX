@@ -410,7 +410,7 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
                       <div className="flex gap-2 mt-3">
                         <Button size="sm" variant="outline" onClick={() => setPatientFile(name)}>Hồ sơ</Button>
                         <Button size="sm" onClick={() => {
-                          const triage = queue.find(q => q.patient === name) ?? { id: -1, level: "Trung bình", patient: name, age: 40, symptoms: "Tái khám định kỳ", waited: "—", vitals: { bp: "120/80", hr: 75, temp: 36.7, spo2: 98 } } as Triage;
+                          const triage = queue.find(q => q.patient === name) ?? { id: -1, level: "Trung bình", patient: name, age: 40, symptoms: "Tái khám định kỳ", waited: "—", vitals: { bp: "120/80", hr: "75", temp: "36.7", spo2: "98" } } as Triage;
                           setConsultPatient(triage);
                           toast.success(`Đã mở phiên hội chẩn với ${name}`);
                         }}>Hội chẩn</Button>
@@ -670,7 +670,7 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
               <DialogFooter>
                 <Button variant="outline" onClick={() => { toast.success("Đã gọi nhắc lịch"); }}>Gọi nhắc</Button>
                 <Button onClick={() => {
-                  const triage = queue.find(q => q.patient === apptDetail.patientName) ?? { id: -1, level: "Trung bình", patient: apptDetail.patientName, age: 40, symptoms: apptDetail.doctorSpec, waited: "—", vitals: { bp: "120/80", hr: 75, temp: 36.7, spo2: 98 } } as Triage;
+                  const triage = queue.find(q => q.patient === apptDetail.patientName) ?? { id: -1, level: "Trung bình", patient: apptDetail.patientName, age: 40, symptoms: apptDetail.doctorSpec, waited: "—", vitals: { bp: "120/80", hr: "75", temp: "36.7", spo2: "98" } } as Triage;
                   setConsultPatient(triage);
                   setApptDetail(null);
                 }}>Bắt đầu khám</Button>
