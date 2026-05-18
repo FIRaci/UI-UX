@@ -588,73 +588,95 @@ export function ExpertEmergencyView({
       
       {/* Top Patient Header */}
       <div style={{
-        padding: "12px 20px", backgroundColor: C.bgCard, borderBottom: `1px solid ${C.border}`,
-        display: "flex", alignItems: "center", justifyBetween: "space-between", flexShrink: 0
+        padding: "10px 16px", backgroundColor: C.bgCard, borderBottom: `1px solid ${C.border}`,
+        display: "flex", alignItems: "center", gap: 16, flexShrink: 0, minHeight: 64
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <Btn variant="secondary" onClick={() => setPatientName("all")} style={{ padding: "6px 8px" }}><ArrowLeft size={16} /> Quay lại</Btn>
-          <div style={{ width: 1, height: 24, backgroundColor: C.border }} />
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-                <select
-                  value={patientName}
-                  onChange={(e) => {
-                    const name = e.target.value;
-                    setPatientName(name);
-                    toast.info(`Chuyển sang bệnh nhân: ${name}`);
-                  }}
-                  style={{
-                    backgroundColor: "transparent",
-                    color: C.text1,
-                    border: "none",
-                    fontWeight: 700,
-                    fontSize: 16,
-                    fontFamily: C.font,
-                    outline: "none",
-                    cursor: "pointer",
-                    paddingRight: 20
-                  }}
-                >
-                  {Object.keys(PATIENTS).map(k => (
-                    <option key={k} value={k} style={{ color: "#000" }}>{k}</option>
-                  ))}
-                </select>
-                <div style={{ position: "absolute", right: 2, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: C.text3 }}>▼</div>
-              </div>
-              <Badge variant={patient.tag === "NGUY KỊCH" ? "critical" : "warning"} style={{ fontSize: 9, padding: "2px 6px" }}>
-                {patient.tag}
-              </Badge>
-              <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 8 }}>
-                <span style={{ fontSize: 10, color: C.text3, fontFamily: C.font }}>Thời gian vàng can thiệp:</span>
-                <span style={{ fontSize: 11, fontWeight: 700, fontFamily: C.mono, color: C.critical }}>
-                  {patient.countdown}
-                </span>
-              </div>
+        {/* Back Button */}
+        <Btn variant="secondary" onClick={() => setPatientName("all")} style={{ padding: "6px 12px", flexShrink: 0 }}>
+          <ArrowLeft size={15} /> Quay lại
+        </Btn>
+
+        <div style={{ width: 1, height: 28, backgroundColor: C.border, flexShrink: 0 }} />
+
+        {/* Patient Info — takes all remaining space */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            {/* Patient name select */}
+            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+              <select
+                value={patientName}
+                onChange={(e) => {
+                  const name = e.target.value;
+                  setPatientName(name);
+                  toast.info(`Chuyển sang bệnh nhân: ${name}`);
+                }}
+                style={{
+                  backgroundColor: "transparent", color: C.text1, border: "none",
+                  fontWeight: 700, fontSize: 16, fontFamily: C.font,
+                  outline: "none", cursor: "pointer", paddingRight: 22, appearance: "none"
+                }}
+              >
+                {Object.keys(PATIENTS).map(k => (
+                  <option key={k} value={k} style={{ color: "#000" }}>{k}</option>
+                ))}
+              </select>
+              <div style={{ position: "absolute", right: 2, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: C.text3, fontSize: 11 }}>▼</div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
-              <span style={{ fontSize: 11, color: C.text2, fontFamily: C.font }}>{patient.age} tuổi · {patient.gender} · Mã BN: <strong>{patient.id}</strong></span>
-              <span style={{ fontSize: 10, color: C.text3 }}>•</span>
-              <span style={{ fontSize: 11, fontWeight: 600, color: C.text2, fontFamily: C.font }}>Vị trí: {patient.room}</span>
-            </div>
+
+            <Badge variant={patient.tag === "NGUY KỊCH" ? "critical" : "warning"} style={{ fontSize: 10, padding: "2px 8px", flexShrink: 0 }}>
+              {patient.tag}
+            </Badge>
+          </div>
+
+          {/* Second row: age, gender, id, room */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+            <span style={{ fontSize: 12, color: C.text2, fontFamily: C.font }}>
+              {patient.age} tuổi · {patient.gender} · <strong>{patient.id}</strong>
+            </span>
+            <span style={{ color: C.text4, fontSize: 10 }}>·</span>
+            <span style={{ fontSize: 12, color: C.text3, fontFamily: C.font }}>📍 {patient.room}</span>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", marginRight: 4 }}>
-            <span style={{ fontSize: 8, color: C.text3, fontFamily: C.font }}>CHẨN ĐOÁN XÁC ĐỊNH BỞI AI:</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: C.critical, fontFamily: C.font }}>{patient.diagnosis}</span>
-          </div>
+        {/* Right side: Alert Button + Diagnosis + Golden Time (Framed) — never shrinks */}
+        <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+          {/* Báo động đỏ */}
           <button
             onClick={triggerIntervention}
             className="pulse-red-glow-btn btn-glow-danger"
             style={{
-              padding: "8px 12px", borderRadius: 8, border: "none", cursor: "pointer",
-              fontFamily: C.font, fontWeight: 700, fontSize: 12, color: "#fff", display: "flex", alignItems: "center", gap: 6
+              padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer",
+              fontFamily: C.font, fontWeight: 700, fontSize: 12, color: "#fff",
+              display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap"
             }}
           >
-            <ShieldAlert size={14} /> KÍCH HOẠT BÁO ĐỘNG ĐỎ
+            <ShieldAlert size={14} /> BÁO ĐỘNG ĐỎ
           </button>
+
+          <div style={{ width: 1, height: 28, backgroundColor: C.border }} />
+
+          {/* Chẩn đoán AI */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+            <span style={{ fontSize: 9, color: C.text3, fontFamily: C.font, textTransform: "uppercase", letterSpacing: "0.04em" }}>Chẩn đoán AI xác định</span>
+            <span style={{ fontSize: 14, fontWeight: 800, color: C.critical, fontFamily: C.font, whiteSpace: "nowrap" }}>{patient.diagnosis}</span>
+          </div>
+
+          <div style={{ width: 1, height: 28, backgroundColor: C.border }} />
+
+          {/* Thời gian vàng (đóng khung nổi bật) */}
+          <div style={{
+            display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2,
+            backgroundColor: "rgba(239, 68, 68, 0.12)", border: "1px solid #EF4444",
+            padding: "6px 12px", borderRadius: 8, boxShadow: "0 0 12px rgba(239, 68, 68, 0.25)"
+          }}>
+            <span style={{ fontSize: 9, color: "#FCA5A5", fontFamily: C.font, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Thời gian vàng</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, color: C.critical }}>
+              <Clock size={16} style={{ animation: "pulse 1.5s infinite" }} />
+              <span style={{ fontSize: 16, fontWeight: 900, fontFamily: C.mono, letterSpacing: 1.5 }}>
+                {patient.countdown}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -667,7 +689,7 @@ export function ExpertEmergencyView({
             {/* PACS Scan Header Control */}
             <div style={{
               padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.08)",
-              display: "flex", justifyBetween: "space-between", alignItems: "center", flexShrink: 0
+              display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.8)", fontFamily: C.font }}>HÌNH ẢNH HỌC PHÂN GIẢI CAO (PACS SCANNER)</span>
@@ -747,11 +769,11 @@ export function ExpertEmergencyView({
         {/* Right Side: EMR Details, Team, Vitals and Action Panel */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16, height: "100%", overflowY: "auto" }}>
           
-          {/* Patient Vitals and ECG with Interactive Simulation Sliders */}
+          {/* Patient Vitals and ECG with Interactive Sliders */}
           <Card className="hover-lift" style={{ padding: 14, transition: "all 0.25s" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 10 }}>
               <Activity size={14} color={C.critical} />
-              <span style={{ fontFamily: C.font, fontSize: 12, fontWeight: 700, color: C.text1 }}>Sinh hiệu & Chỉ số sinh học (Giả lập)</span>
+              <span style={{ fontFamily: C.font, fontSize: 12, fontWeight: 700, color: C.text1 }}>Sinh hiệu & Chỉ số sinh học</span>
             </div>
             
             {/* Vitals Grid */}
@@ -788,7 +810,7 @@ export function ExpertEmergencyView({
               {/* INTERACTIVE CLINICAL VITALS SLIDERS (Thanh kéo điều hòa HR & SpO2) */}
               <div style={{ gridColumn: "span 2", padding: "10px 12px", borderRadius: 8, backgroundColor: "rgba(59, 130, 246, 0.05)", border: `1px dashed ${C.primary}`, marginTop: 4 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: C.primary, fontFamily: C.font }}>GIẢ LẬP LÂM SÀNG (ĐIỀU HÒA TẦN SỐ TIM)</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: C.primary, fontFamily: C.font }}>ĐIỀU HÒA TẦN SỐ TIM LÂM SÀNG</span>
                   <span style={{ fontSize: 9, fontFamily: C.mono, color: C.text2, fontWeight: 600 }}>{currentHr} bpm</span>
                 </div>
                 <input
@@ -854,7 +876,7 @@ export function ExpertEmergencyView({
 
             {/* ECG Heart Rate Line Chart */}
             <div style={{ padding: "8px 6px", borderRadius: 8, backgroundColor: "#090E17", border: "1px solid #1E293B", flexShrink: 0 }}>
-              <div style={{ display: "flex", justifyBetween: "space-between", alignItems: "center", marginBottom: 4, padding: "0 4px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, padding: "0 4px" }}>
                 <span style={{ fontSize: 8, fontFamily: C.mono, color: C.success }}>EKG - LEAD II (LIVE SENSOR)</span>
                 <span style={{ fontSize: 8, fontFamily: C.mono, color: "rgba(255,255,255,0.4)" }}>25 mm/s · 10 mm/mV</span>
               </div>
@@ -889,9 +911,9 @@ export function ExpertEmergencyView({
               <Users size={14} color={C.primary} />
               <span style={{ fontFamily: C.font, fontSize: 12, fontWeight: 700, color: C.text1 }}>Đoàn hội chẩn từ xa</span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 180, overflowY: "auto" }}>
               {patient.team.map(member => (
-                <div key={member.name} style={{ display: "flex", justifyBetween: "space-between", alignItems: "center", padding: "6px 10px", borderRadius: 8, backgroundColor: C.bgMuted, border: `1px solid ${C.border}` }}>
+                <div key={member.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 10px", borderRadius: 8, backgroundColor: C.bgMuted, border: `1px solid ${C.border}` }}>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 600, color: C.text1 }}>{member.name}</div>
                     <div style={{ fontSize: 9, color: C.text3 }}>{member.role}</div>
@@ -911,10 +933,10 @@ export function ExpertEmergencyView({
               <Mic size={14} color={C.primary} />
               <span style={{ fontFamily: C.font, fontSize: 12, fontWeight: 700, color: C.text1 }}>Nhật ký hội thoại & Lệnh AI</span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, maxH: 150, overflowY: "auto" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 150, overflowY: "auto" }}>
               {patient.audioLog.map((log, li) => (
                 <div key={li} style={{ display: "flex", flexDirection: "column", gap: 2, padding: "6px 10px", borderRadius: 8, backgroundColor: C.bgMuted, border: `1px solid ${C.border}` }}>
-                  <div style={{ display: "flex", justifyBetween: "space-between", fontSize: 9, fontWeight: 600, color: log.speaker.includes("AI") ? C.primary : C.text2 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontWeight: 600, color: log.speaker.includes("AI") ? C.primary : C.text2 }}>
                     <span>{log.speaker}</span>
                     <span style={{ color: C.text3 }}>{log.time}</span>
                   </div>
