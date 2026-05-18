@@ -10,6 +10,7 @@ import { ExpertAIView } from "./ExpertAIView";
 
 export function ExpertDashboard({ onLogout }: { onLogout: () => void }) {
   const [activeView, setActiveView] = useState<"emergency" | "knowledge" | "aimgmt" | "analytics">("analytics");
+  const [selectedPatient, setSelectedPatient] = useState("James Harrington");
 
   const navItems = [
     { key: "analytics", label: "Phân tích lâm sàng", icon: LayoutDashboard },
@@ -57,21 +58,30 @@ export function ExpertDashboard({ onLogout }: { onLogout: () => void }) {
       onLogout={onLogout}
       nav={navItems}
     >
-      {activeView === "analytics" && (
-        <ExpertAnalyticsView onNavigate={setActiveView} />
-      )}
+      <div style={{ height: "calc(100vh - 112px)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {activeView === "analytics" && (
+          <ExpertAnalyticsView onNavigate={(view, pName) => {
+            if (pName) setSelectedPatient(pName);
+            setActiveView(view);
+          }} />
+        )}
 
-      {activeView === "emergency" && (
-        <ExpertEmergencyView onBack={() => setActiveView("analytics")} />
-      )}
+        {activeView === "emergency" && (
+          <ExpertEmergencyView
+            selectedPatientName={selectedPatient}
+            onSelectPatientName={setSelectedPatient}
+            onBack={() => setActiveView("analytics")}
+          />
+        )}
 
-      {activeView === "knowledge" && (
-        <ExpertKnowledgeView />
-      )}
+        {activeView === "knowledge" && (
+          <ExpertKnowledgeView />
+        )}
 
-      {activeView === "aimgmt" && (
-        <ExpertAIView />
-      )}
+        {activeView === "aimgmt" && (
+          <ExpertAIView />
+        )}
+      </div>
     </AppShell>
   );
 }

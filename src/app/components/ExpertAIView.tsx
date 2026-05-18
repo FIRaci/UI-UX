@@ -21,66 +21,244 @@ interface NodeItem {
   conditions: { text: string; nextNode: string }[];
 }
 
+const SCENARIO_NODES: Record<string, { title: string; version: string; nodes: NodeItem[] }> = {
+  "sc-1": {
+    title: "SƠ ĐỒ LUỒNG PHÂN LOẠI CẤP CỨU TIM MẠCH",
+    version: "v2.4.0 (Live)",
+    nodes: [
+      {
+        id: "NODE-START",
+        type: "Start",
+        label: "Bắt đầu Sàng lọc",
+        responseText: "Chào bạn, tôi là trợ lý AI y tế. Tôi có thể giúp bạn kiểm tra các triệu chứng ban đầu.",
+        conditions: [{ text: "Kích hoạt", nextNode: "NODE-001" }]
+      },
+      {
+        id: "NODE-001",
+        type: "Question",
+        label: "Có đau ngực dữ dội không?",
+        responseText: "Hiện tại bạn có đang trải qua cảm giác đau thắt ngực hoặc đè nén dữ dội ở lồng ngực không?",
+        conditions: [
+          { text: "Có", nextNode: "NODE-002" },
+          { text: "Không", nextNode: "NODE-003" }
+        ]
+      },
+      {
+        id: "NODE-002",
+        type: "Question",
+        label: "Khó thở & vã mồ hôi?",
+        responseText: "Cơn đau ngực có đi kèm triệu chứng khó thở, vã mồ hôi lạnh, hoặc lan lên vai/hàm không?",
+        conditions: [
+          { text: "Có", nextNode: "NODE-ANS-CRITICAL" },
+          { text: "Không", nextNode: "NODE-ANS-HIGH" }
+        ]
+      },
+      {
+        id: "NODE-003",
+        type: "Question",
+        label: "Đau cơ xương khớp nhẹ?",
+        responseText: "Cơn đau ngực có thay đổi khi bạn thay đổi tư thế, hít thở sâu hoặc ấn vào thành ngực không?",
+        conditions: [
+          { text: "Có", nextNode: "NODE-ANS-LOW" },
+          { text: "Không", nextNode: "NODE-ANS-FOLLOW" }
+        ]
+      },
+      {
+        id: "NODE-ANS-CRITICAL",
+        type: "Answer",
+        label: "Báo động đỏ: Cấp cứu ngay lập tức!",
+        responseText: "Cảnh báo: Triệu chứng của bạn chỉ ra nguy cơ Nhồi máu cơ tim cấp. Hệ thống đang tự động kích hoạt cuộc gọi cấp cứu và điều động bác sĩ chuyên khoa khẩn cấp.",
+        conditions: []
+      },
+    ]
+  },
+  "sc-2": {
+    title: "LUỒNG SÀNG LỌC ĐỘT QUỴ NÃO CẤP (FAST)",
+    version: "v1.8.2 (Live)",
+    nodes: [
+      {
+        id: "NODE-START",
+        type: "Start",
+        label: "Khởi động FAST",
+        responseText: "Xin chào, tôi là trợ lý sàng lọc đột quỵ. Hãy thực hiện kiểm tra nhanh FAST.",
+        conditions: [{ text: "Kiểm tra ngay", nextNode: "NODE-F" }]
+      },
+      {
+        id: "NODE-F",
+        type: "Question",
+        label: "F - Méo miệng/Lệch mặt?",
+        responseText: "Yêu cầu bệnh nhân cười lớn. Một bên mặt hoặc khóe miệng có bị méo, xệ xuống không?",
+        conditions: [
+          { text: "Có méo miệng", nextNode: "NODE-A" },
+          { text: "Bình thường", nextNode: "NODE-A" }
+        ]
+      },
+      {
+        id: "NODE-A",
+        type: "Question",
+        label: "A - Yếu liệt tay chân?",
+        responseText: "Yêu cầu giơ cả hai tay lên. Một bên tay có bị rơi xuống hoặc không thể nâng lên được không?",
+        conditions: [
+          { text: "Yếu tay", nextNode: "NODE-S" },
+          { text: "Bình thường", nextNode: "NODE-S" }
+        ]
+      },
+      {
+        id: "NODE-S",
+        type: "Question",
+        label: "S - Khó nói/Đột ngột nói ngọng?",
+        responseText: "Yêu cầu bệnh nhân nói một câu đơn giản. Giọng nói có bị ngọng, líu lưỡi hoặc không nói được không?",
+        conditions: [
+          { text: "Nói ngọng/Khó nói", nextNode: "NODE-ANS-STROKE" },
+          { text: "Bình thường", nextNode: "NODE-ANS-STABLE" }
+        ]
+      },
+      {
+        id: "NODE-ANS-STROKE",
+        type: "Answer",
+        label: "Nghi ngờ Đột quỵ cấp - Chụp CT khẩn!",
+        responseText: "Báo động: Bệnh nhân có dấu hiệu đột quỵ cấp tính. Cần kích hoạt Code Stroke, vận chuyển đến phòng chụp CT sọ não không cản quang lập tức.",
+        conditions: []
+      }
+    ]
+  },
+  "sc-3": {
+    title: "LUỒNG SÀNG LỌC SỐT CAO CO GIẬT NHI KHOA",
+    version: "v0.9.1 (Draft)",
+    nodes: [
+      {
+        id: "NODE-START",
+        type: "Start",
+        label: "Bắt đầu Sàng lọc Nhi",
+        responseText: "Trợ lý nhi khoa MedAssist. Bắt đầu đánh giá ca sốt cao co giật.",
+        conditions: [{ text: "Bắt đầu", nextNode: "NODE-TEMP" }]
+      },
+      {
+        id: "NODE-TEMP",
+        type: "Question",
+        label: "Nhiệt độ cơ thể > 38.5°C?",
+        responseText: "Nhiệt độ đo được của trẻ hiện tại là bao nhiêu? Có vượt quá 38.5 độ C không?",
+        conditions: [
+          { text: "Có, Sốt cao", nextNode: "NODE-CONVULSION" },
+          { text: "Không, Sốt nhẹ", nextNode: "NODE-MONITOR" }
+        ]
+      },
+      {
+        id: "NODE-CONVULSION",
+        type: "Question",
+        label: "Có xuất hiện cơn co giật?",
+        responseText: "Trẻ có biểu hiện gồng cứng người, trợn mắt, mất ý thức hoặc giật cơ mặt/tay chân không?",
+        conditions: [
+          { text: "Có co giật", nextNode: "NODE-ANS-URGENT" },
+          { text: "Chỉ sốt nóng", nextNode: "NODE-ANS-ANTIPYRETIC" }
+        ]
+      },
+      {
+        id: "NODE-ANS-URGENT",
+        type: "Answer",
+        label: "Báo động: Sốt cao co giật phức hợp",
+        responseText: "Khẩn cấp: Trẻ bị sốt cao co giật. Cần nằm nghiêng an toàn, đặt đường truyền tĩnh mạch và chuẩn bị Diazepam bơm hậu môn nếu cơn giật kéo dài > 5 phút.",
+        conditions: []
+      }
+    ]
+  },
+  "sc-4": {
+    title: "SÀNG LỌC NHANH DỊ ỨNG & DỊ ỨNG THUỐC",
+    version: "v3.1.0 (Live)",
+    nodes: [
+      {
+        id: "NODE-START",
+        type: "Start",
+        label: "Khởi động Sàng lọc Da liễu",
+        responseText: "MedAssist Da liễu. Đánh giá phát ban, mẩn ngứa và dị ứng thuốc cấp tính.",
+        conditions: [{ text: "Bắt đầu", nextNode: "NODE-SHOCK" }]
+      },
+      {
+        id: "NODE-SHOCK",
+        type: "Question",
+        label: "Có dấu hiệu Phản vệ / Khó thở?",
+        responseText: "Bệnh nhân có cảm thấy nghẹn họng, khó thở, tức ngực, chóng mặt hoặc tụt huyết áp không?",
+        conditions: [
+          { text: "Có (Phản vệ)", nextNode: "NODE-ANS-ANAPHYLAXIS" },
+          { text: "Không", nextNode: "NODE-RASH" }
+        ]
+      },
+      {
+        id: "NODE-RASH",
+        type: "Question",
+        label: "Phát ban diện rộng trên 30% da?",
+        responseText: "Vùng ban đỏ hoặc phồng rộp có lan rộng, kèm bong tróc da, tổn thương niêm mạc miệng hay sốt không?",
+        conditions: [
+          { text: "Có (Stevens-Johnson?)", nextNode: "NODE-ANS-SJS" },
+          { text: "Dị ứng mề đay nhẹ", nextNode: "NODE-ANS-ANTIHISTAMINE" }
+        ]
+      },
+      {
+        id: "NODE-ANS-ANAPHYLAXIS",
+        type: "Answer",
+        label: "Khẩn cấp: Tiêm ngay Adrenalin!",
+        responseText: "Cảnh báo đỏ: Sốc phản vệ cấp tính. Tiêm bắp ngay lập tức Adrenaline 1/2 ống (0.5mg) đối với người lớn. Đặt bệnh nhân nằm đầu thấp, thở oxy.",
+        conditions: []
+      }
+    ]
+  },
+  "sc-5": {
+    title: "LUỒNG ĐÁNH GIÁ DINH DƯỠNG LÂM SÀNG",
+    version: "v1.2.0 (Draft)",
+    nodes: [
+      {
+        id: "NODE-START",
+        type: "Start",
+        label: "Đánh giá Dinh dưỡng",
+        responseText: "MedAssist Nutrition. Đánh giá nhanh tình trạng suy dinh dưỡng của bệnh nhân nội trú.",
+        conditions: [{ text: "Bắt đầu", nextNode: "NODE-BMI" }]
+      },
+      {
+        id: "NODE-BMI",
+        type: "Question",
+        label: "BMI < 18.5 hoặc giảm cân nhanh?",
+        responseText: "Chỉ số BMI của bệnh nhân dưới 18.5 hoặc sụt cân ngoài ý muốn > 10% trọng lượng cơ thể trong 3 tháng qua?",
+        conditions: [
+          { text: "Có", nextNode: "NODE-EATING" },
+          { text: "Không", nextNode: "NODE-ANS-STABLE" }
+        ]
+      },
+      {
+        id: "NODE-EATING",
+        type: "Question",
+        label: "Không ăn uống được > 5 ngày?",
+        responseText: "Bệnh nhân có gặp khó khăn khi nuốt, nôn ói kéo dài hoặc không thể ăn uống bình thường quá 5 ngày qua?",
+        conditions: [
+          { text: "Có", nextNode: "NODE-ANS-SUPPORT" },
+          { text: "Không", nextNode: "NODE-ANS-MONITOR" }
+        ]
+      },
+      {
+        id: "NODE-ANS-SUPPORT",
+        type: "Answer",
+        label: "Chỉ định dinh dưỡng nhân tạo",
+        responseText: "Khuyến nghị: Bệnh nhân có nguy cơ suy dinh dưỡng nặng. Cân nhắc đặt ống thông dạ dày (NG tube) hoặc nuôi ăn tĩnh mạch toàn phần (TPN).",
+        conditions: []
+      }
+    ]
+  }
+};
+
 export function ExpertAIView() {
   const [scenarios, setScenarios] = useState<Scenario[]>([
-    { id: "sc-1", name: "Triage Tim mạch", status: "Live", nodes: 14 },
-    { id: "sc-2", name: "Tầm soát Đột quỵ", status: "Live", nodes: 8 },
-    { id: "sc-3", name: "Khám sơ bộ Nhi khoa", status: "Draft", nodes: 12 },
-    { id: "sc-4", name: "Chẩn đoán Da liễu", status: "Live", nodes: 6 },
-    { id: "sc-5", name: "Sàng lọc Dinh dưỡng", status: "Draft", nodes: 5 },
+    { id: "sc-1", name: "Triage Tim mạch", status: "Live", nodes: 5 },
+    { id: "sc-2", name: "Tầm soát Đột quỵ", status: "Live", nodes: 5 },
+    { id: "sc-3", name: "Khám sơ bộ Nhi khoa", status: "Draft", nodes: 4 },
+    { id: "sc-4", name: "Sàng lọc Dị ứng", status: "Live", nodes: 4 },
+    { id: "sc-5", name: "Đánh giá Dinh dưỡng", status: "Draft", nodes: 4 },
   ]);
   const [selectedScenario, setSelectedScenario] = useState("sc-1");
   const [search, setSearch] = useState("");
 
-  // Triage scenario nodes
-  const [nodes, setNodes] = useState<NodeItem[]>([
-    {
-      id: "NODE-START",
-      type: "Start",
-      label: "Bắt đầu Sàng lọc",
-      responseText: "Chào bạn, tôi là trợ lý AI y tế. Tôi có thể giúp bạn kiểm tra các triệu chứng ban đầu.",
-      conditions: [{ text: "Kích hoạt", nextNode: "NODE-001" }]
-    },
-    {
-      id: "NODE-001",
-      type: "Question",
-      label: "Có đau ngực dữ dội không?",
-      responseText: "Hiện tại bạn có đang trải qua cảm giác đau thắt ngực hoặc đè nén dữ dội ở lồng ngực không?",
-      conditions: [
-        { text: "Có", nextNode: "NODE-002" },
-        { text: "Không", nextNode: "NODE-003" }
-      ]
-    },
-    {
-      id: "NODE-002",
-      type: "Question",
-      label: "Khó thở & vã mồ hôi?",
-      responseText: "Cơn đau ngực có đi kèm triệu chứng khó thở, vã mồ hôi lạnh, hoặc lan lên vai/hàm không?",
-      conditions: [
-        { text: "Có", nextNode: "NODE-ANS-CRITICAL" },
-        { text: "Không", nextNode: "NODE-ANS-HIGH" }
-      ]
-    },
-    {
-      id: "NODE-003",
-      type: "Question",
-      label: "Đau cơ xương khớp nhẹ?",
-      responseText: "Cơn đau ngực có thay đổi khi bạn thay đổi tư thế, hít thở sâu hoặc ấn vào thành ngực không?",
-      conditions: [
-        { text: "Có", nextNode: "NODE-ANS-LOW" },
-        { text: "Không", nextNode: "NODE-ANS-FOLLOW" }
-      ]
-    },
-    {
-      id: "NODE-ANS-CRITICAL",
-      type: "Answer",
-      label: "Báo động đỏ: Cấp cứu ngay lập tức!",
-      responseText: "Cảnh báo: Triệu chứng của bạn chỉ ra nguy cơ Nhồi máu cơ tim cấp. Hệ thống đang tự động kích hoạt cuộc gọi cấp cứu và điều động bác sĩ chuyên khoa khẩn cấp.",
-      conditions: []
-    },
-  ]);
+  const currentScenarioData = SCENARIO_NODES[selectedScenario] || SCENARIO_NODES["sc-1"];
 
-  const [selectedNodeId, setSelectedNodeId] = useState("NODE-002");
+  const [nodes, setNodes] = useState<NodeItem[]>(SCENARIO_NODES["sc-1"].nodes);
+  const [selectedNodeId, setSelectedNodeId] = useState("NODE-001");
   const selectedNode = nodes.find(n => n.id === selectedNodeId) || nodes[0];
 
   const handleUpdateNode = (updated: Partial<NodeItem>) => {
@@ -150,6 +328,10 @@ export function ExpertAIView() {
                 key={sc.id}
                 onClick={() => {
                   setSelectedScenario(sc.id);
+                  const data = SCENARIO_NODES[sc.id] || SCENARIO_NODES["sc-1"];
+                  setNodes(data.nodes);
+                  const firstNonStart = data.nodes.find(n => n.type !== "Start") || data.nodes[0];
+                  setSelectedNodeId(firstNonStart.id);
                   toast.info(`Mở kịch bản: ${sc.name}`);
                 }}
                 style={{
@@ -171,19 +353,21 @@ export function ExpertAIView() {
       </div>
 
       {/* 2. Middle Editor Canvas */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "100%", backgroundColor: "#F8FAFC", overflow: "hidden" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "100%", backgroundColor: "#F8FAFC", overflow: "hidden", minWidth: 0 }}>
         
         {/* Editor Controls Header */}
         <div style={{
           padding: "12px 16px", backgroundColor: C.bgCard, borderBottom: `1px solid ${C.border}`,
-          display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0
+          display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: 12
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: C.text1, fontFamily: C.font }}>SƠ ĐỒ LUỒNG PHÂN LOẠI CẤP CỨU TIM MẠCH</span>
-            <Badge variant="blue">v2.4.0 (Live)</Badge>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: C.text1, fontFamily: C.font, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {currentScenarioData.title}
+            </span>
+            <Badge variant="blue" style={{ flexShrink: 0 }}>{currentScenarioData.version}</Badge>
           </div>
 
-          <div style={{ display: "flex", gap: 6 }}>
+          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
             <Btn variant="outline" size="sm" onClick={handleRunSimulation} style={{ color: C.teal, borderColor: "#A5F3FC" }}>
               <Play size={13} /> Chạy Mô Phỏng
             </Btn>
