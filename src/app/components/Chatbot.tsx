@@ -42,13 +42,13 @@ export function Chatbot({ role }: { role: string }) {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-sky-500 to-emerald-500 text-white shadow-2xl flex items-center justify-center hover:scale-105 transition-transform z-50"
+          className="fixed bottom-20 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-sky-500 to-emerald-500 text-white shadow-2xl flex items-center justify-center hover:scale-105 transition-transform z-50"
         >
           <Bot className="w-6 h-6" />
         </button>
       )}
       {open && (
-        <Card className="fixed bottom-6 right-6 w-[380px] h-[540px] shadow-2xl flex flex-col z-50 overflow-hidden p-0">
+        <Card className="fixed bottom-20 right-6 w-[380px] h-[540px] shadow-2xl flex flex-col z-50 overflow-hidden p-0">
           <div className="bg-gradient-to-br from-sky-500 to-emerald-500 text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">

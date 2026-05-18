@@ -221,7 +221,10 @@ export function ExpertKnowledgeView() {
             </div>
           </Card>
 
+          {/* Bottom spacer to prevent overlap with floating chatbot button */}
+          <div style={{ height: 48, flexShrink: 0 }} />
         </div>
+
       </div>
     </div>
   );

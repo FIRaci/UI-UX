@@ -153,7 +153,7 @@ function MiniLineChart({ data }: { data: any[] }) {
   );
 }
 
-export function ExpertAnalyticsView({ onNavigate }: { onNavigate: (view: "emergency" | "knowledge" | "aimgmt") => void }) {
+export function ExpertAnalyticsView({ onNavigate }: { onNavigate: (view: "emergency" | "knowledge" | "aimgmt", patientName?: string) => void }) {
   const [activeTab, setActiveTab] = useState(0);
   const [period, setPeriod] = useState(0);
   const kbTabs = ["Gần đây", "Thuốc", "Xét nghiệm", "Hướng dẫn"];
@@ -205,7 +205,7 @@ export function ExpertAnalyticsView({ onNavigate }: { onNavigate: (view: "emerge
                     <Clock size={11} color={C.text3} />
                     <span style={{ fontFamily: C.font, fontSize: 11, color: C.text3 }}>{r.time}</span>
                   </div>
-                  <Btn variant={isJames ? "primary" : "outline"} size="sm" onClick={() => onNavigate("emergency")}>
+                  <Btn variant={isJames ? "primary" : "outline"} size="sm" onClick={() => onNavigate("emergency", r.name)}>
                     Hội chẩn {isJames && "ngay"}
                   </Btn>
                 </div>
@@ -215,7 +215,7 @@ export function ExpertAnalyticsView({ onNavigate }: { onNavigate: (view: "emerge
         </div>
         <div style={{ padding: "9px 16px", borderTop: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: C.bgMuted, flexShrink: 0 }}>
           <span style={{ fontFamily: C.font, fontSize: 11, color: C.text3 }}>Vừa cập nhật</span>
-          <button onClick={() => onNavigate("emergency")} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+          <button onClick={() => onNavigate("emergency", "all")} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
             <span style={{ fontFamily: C.font, fontSize: 11, fontWeight: 500, color: C.primary }}>Xem tất cả ca bệnh</span>
             <ArrowUpRight size={12} color={C.primary} />
           </button>
@@ -369,6 +369,8 @@ export function ExpertAnalyticsView({ onNavigate }: { onNavigate: (view: "emerge
               <Btn variant="ghost" size="sm" style={{ padding: "3px 8px", fontSize: 11 }} onClick={() => onNavigate("aimgmt")}>Xem xét</Btn>
             </div>
           ))}
+          {/* Bottom spacer to prevent overlap with floating chatbot button */}
+          <div style={{ height: 48, flexShrink: 0 }} />
         </div>
       </Card>
     </div>
