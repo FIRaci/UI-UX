@@ -413,32 +413,38 @@ function Overview({ onJump, appts, threads }: any) {
   const upcoming = appts.find((a: Appointment) => a.status === "Sắp tới");
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard label="Lịch hẹn sắp tới" value={appts.filter((a: Appointment) => a.status === "Sắp tới").length.toString()} color="bg-sky-50 text-sky-700" />
-        <StatCard label="Đã khám" value={appts.filter((a: Appointment) => a.status === "Hoàn thành").length.toString()} color="bg-emerald-50 text-emerald-700" />
-        <StatCard label="Tin nhắn" value={threads.length.toString()} color="bg-violet-50 text-violet-700" />
-        <StatCard label="Điểm sức khỏe" value="86/100" color="bg-amber-50 text-amber-700" />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in">
+        <StatCard label="Lịch hẹn sắp tới" value={appts.filter((a: Appointment) => a.status === "Sắp tới").length.toString()} color="bg-sky-50 text-sky-700 border-sky-100" />
+        <StatCard label="Đã khám" value={appts.filter((a: Appointment) => a.status === "Hoàn thành").length.toString()} color="bg-emerald-50 text-emerald-700 border-emerald-100" />
+        <StatCard label="Tin nhắn" value={threads.length.toString()} color="bg-violet-50 text-violet-700 border-violet-100" />
+        <StatCard label="Điểm sức khỏe" value="86/100" color="bg-amber-50 text-amber-700 border-amber-100" />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="p-5 lg:col-span-2 bg-gradient-to-br from-sky-500 to-emerald-500 text-white">
-          <div className="text-sm opacity-90">Lịch khám sắp tới</div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <Card className="p-6 lg:col-span-2 bg-gradient-to-br from-sky-600 via-sky-700 to-emerald-700 text-white shadow-md relative overflow-hidden animate-fade-in" style={{ borderRadius: "20px" }}>
+          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="text-xs font-semibold opacity-90 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Lịch hẹn khám gần nhất</div>
           {upcoming ? (
             <>
-              <h2 className="mt-1 tracking-tight">{upcoming.doctorName}</h2>
-              <p className="opacity-90 mt-1">{upcoming.doctorSpec} • {upcoming.date} lúc {upcoming.time}</p>
-              <div className="mt-4 flex gap-2">
-                <Button variant="secondary" onClick={() => onJump("appointments")}>Xem chi tiết</Button>
-                <Button variant="outline" className="bg-white/10 text-white border-white/30 hover:bg-white/20" onClick={() => onJump("messages")}>Nhắn bác sĩ</Button>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight">{upcoming.doctorName}</h2>
+              <p className="opacity-95 mt-1 text-sm font-medium">{upcoming.doctorSpec} • {upcoming.date} lúc {upcoming.time} • {upcoming.clinic}</p>
+              <div className="mt-5 flex gap-2.5">
+                <Button variant="secondary" className="rounded-xl text-xs px-4" onClick={() => onJump("appointments")}>Xem chi tiết</Button>
+                <Button variant="outline" className="bg-white/10 text-white border-white/20 hover:bg-white/20 rounded-xl text-xs px-4" onClick={() => onJump("messages")}>Nhắn tin bác sĩ</Button>
               </div>
             </>
-          ) : <p className="mt-2 opacity-90">Bạn không có lịch nào sắp tới.</p>}
+          ) : (
+            <div className="mt-4">
+              <p className="opacity-90 text-sm">Bạn không có lịch hẹn khám nào sắp tới.</p>
+              <Button variant="secondary" className="rounded-xl text-xs px-4 mt-3" onClick={() => onJump("search")}>Đặt lịch ngay</Button>
+            </div>
+          )}
         </Card>
-        <Card className="p-5">
-          <h4 className="tracking-tight">Hành động nhanh</h4>
-          <div className="mt-3 grid gap-2">
-            <Button variant="outline" onClick={() => onJump("search")}><Search className="w-4 h-4 mr-2" /> Tìm bác sĩ</Button>
-            <Button variant="outline" onClick={() => onJump("messages")}><MessagesSquare className="w-4 h-4 mr-2" /> Tin nhắn bác sĩ</Button>
-            <Button variant="outline" onClick={() => onJump("records")}><FileHeart className="w-4 h-4 mr-2" /> Xem hồ sơ</Button>
+        <Card className="p-5 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
+          <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-4">Hành động nhanh</h4>
+          <div className="grid gap-2.5">
+            <Button variant="outline" className="rounded-xl justify-start text-xs border-slate-200 text-slate-700 hover:bg-slate-50" onClick={() => onJump("search")}><Search className="w-4 h-4 mr-2.5 text-slate-400" /> Tìm bác sĩ chuyên khoa</Button>
+            <Button variant="outline" className="rounded-xl justify-start text-xs border-slate-200 text-slate-700 hover:bg-slate-50" onClick={() => onJump("messages")}><MessagesSquare className="w-4 h-4 mr-2.5 text-slate-400" /> Hỏi đáp bác sĩ trực tuyến</Button>
+            <Button variant="outline" className="rounded-xl justify-start text-xs border-slate-200 text-slate-700 hover:bg-slate-50" onClick={() => onJump("records")}><FileHeart className="w-4 h-4 mr-2.5 text-slate-400" /> Tra cứu hồ sơ bệnh án</Button>
           </div>
         </Card>
       </div>
@@ -448,9 +454,9 @@ function Overview({ onJump, appts, threads }: any) {
 
 function StatCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <Card className="p-4">
-      <div className={`inline-flex px-2 py-0.5 rounded-md text-xs ${color}`}>{label}</div>
-      <div className="mt-2 tracking-tight text-2xl">{value}</div>
+    <Card className="p-4 bg-white border border-slate-100 shadow-sm animate-fade-in" style={{ borderRadius: "16px" }}>
+      <div className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-semibold ${color}`}>{label}</div>
+      <div className="mt-3 text-3xl font-bold text-slate-800 tracking-tight">{value}</div>
     </Card>
   );
 }
@@ -458,48 +464,48 @@ function StatCard({ label, value, color }: { label: string; value: string; color
 function SearchSection({ search, setSearch, specFilter, setSpecFilter, doctors, onPick, onBook }: any) {
   return (
     <div className="space-y-4">
-      <Card className="p-4">
+      <Card className="p-4 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "16px" }}>
         <div className="flex flex-col md:flex-row gap-3">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input className="pl-9" placeholder="Tìm theo tên bác sĩ, triệu chứng..." value={search} onChange={(e: any) => setSearch(e.target.value)} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input className="pl-9 rounded-xl border-slate-200 bg-slate-50/50 text-sm focus:bg-white focus:ring-1 focus:ring-sky-500" placeholder="Tìm theo tên bác sĩ, chuyên khoa..." value={search} onChange={(e: any) => setSearch(e.target.value)} />
           </div>
           <Select value={specFilter} onValueChange={setSpecFilter}>
-            <SelectTrigger className="md:w-56"><SelectValue placeholder="Chuyên khoa" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả chuyên khoa</SelectItem>
-              {SPECIALTIES.map((s: string) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            <SelectTrigger className="md:w-56 h-10 rounded-xl border-slate-200 bg-slate-50 text-slate-600 text-xs font-medium"><SelectValue placeholder="Chuyên khoa" /></SelectTrigger>
+            <SelectContent className="rounded-xl border-slate-100 shadow-lg">
+              <SelectItem value="all" className="text-xs">Tất cả chuyên khoa</SelectItem>
+              {SPECIALTIES.map((s: string) => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
       </Card>
 
       {doctors.length === 0 ? (
-        <Card className="p-10 text-center">
-          <p className="text-muted-foreground">Không tìm thấy bác sĩ phù hợp.</p>
-          <p className="text-sm text-muted-foreground mt-1">Hãy thử từ khóa khác hoặc bỏ bộ lọc.</p>
+        <Card className="p-10 text-center bg-white border-slate-100" style={{ borderRadius: "16px" }}>
+          <p className="text-slate-400 font-medium">Không tìm thấy bác sĩ phù hợp.</p>
+          <p className="text-xs text-slate-400 mt-1">Hãy thử tìm với từ khóa khác hoặc xóa bộ lọc.</p>
         </Card>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
           {doctors.map((d: any) => (
-            <Card key={d.id} className="p-4 hover:shadow-lg transition">
-              <div className="flex items-start gap-3">
-                <Avatar className="w-14 h-14"><AvatarFallback className="bg-sky-100 text-sky-700">{d.name.split(" ").pop()[0]}</AvatarFallback></Avatar>
+            <Card key={d.id} className="p-5 hover:shadow-md transition-all duration-300 bg-white border border-slate-100 hover:border-sky-100" style={{ borderRadius: "16px" }}>
+              <div className="flex items-start gap-4">
+                <Avatar className="w-14 h-14 border border-slate-100 shadow-sm"><AvatarFallback className="bg-gradient-to-br from-sky-500 to-indigo-600 text-white font-bold text-lg">{d.name.split(" ").pop()[0]}</AvatarFallback></Avatar>
                 <div className="flex-1">
                   <div className="flex justify-between items-start">
                     <div>
-                      <div className="tracking-tight">{d.name}</div>
-                      <Badge variant="secondary" className="mt-0.5">{d.spec}</Badge>
+                      <div className="font-bold text-slate-800 text-base tracking-tight">{d.name}</div>
+                      <span className="inline-flex px-2 py-0.5 mt-1 rounded-md bg-sky-50 text-sky-700 text-[10px] font-semibold tracking-wide border border-sky-100">{d.spec}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-amber-500"><Star className="w-4 h-4 fill-current" />{d.rating}</div>
+                    <div className="flex items-center gap-1 text-amber-500 font-semibold text-sm bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100"><Star className="w-3.5 h-3.5 fill-current" />{d.rating}</div>
                   </div>
-                  <div className="text-sm text-muted-foreground mt-2 flex items-center gap-3">
-                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {d.clinic}</span>
-                    <span className="text-emerald-600">{d.fee}</span>
+                  <div className="text-xs text-slate-500 mt-3 flex items-center gap-3.5">
+                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-slate-400" /> {d.clinic}</span>
+                    <span className="font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">{d.fee}</span>
                   </div>
-                  <div className="flex gap-2 mt-3">
-                    <Button size="sm" variant="outline" onClick={() => onPick(d)}>Xem chi tiết</Button>
-                    <Button size="sm" onClick={() => onBook(d)}>Đặt lịch</Button>
+                  <div className="flex gap-2.5 mt-4">
+                    <Button size="sm" variant="outline" className="rounded-xl flex-1 text-xs" onClick={() => onPick(d)}>Chi tiết</Button>
+                    <Button size="sm" className="rounded-xl flex-1 text-xs bg-slate-900 hover:bg-slate-800" onClick={() => onBook(d)}>Đặt lịch</Button>
                   </div>
                 </div>
               </div>
@@ -513,40 +519,42 @@ function SearchSection({ search, setSearch, specFilter, setSpecFilter, doctors, 
 
 function Appointments({ appointments, onCancel, onEdit }: any) {
   return (
-    <Card className="p-0 overflow-hidden">
+    <Card className="p-0 overflow-hidden bg-white border border-slate-100 shadow-sm animate-fade-in" style={{ borderRadius: "20px" }}>
       <Tabs defaultValue="upcoming" className="w-full">
-        <div className="border-b px-4 pt-4">
-          <TabsList>
-            <TabsTrigger value="upcoming">Sắp tới</TabsTrigger>
-            <TabsTrigger value="past">Đã khám</TabsTrigger>
-            <TabsTrigger value="cancelled">Đã hủy</TabsTrigger>
+        <div className="border-b border-slate-100 px-5 pt-4 bg-slate-50/50">
+          <TabsList className="bg-slate-100 rounded-xl p-1 h-10 border border-slate-200/50">
+            <TabsTrigger value="upcoming" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Sắp tới</TabsTrigger>
+            <TabsTrigger value="past" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Đã khám</TabsTrigger>
+            <TabsTrigger value="cancelled" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Đã hủy</TabsTrigger>
           </TabsList>
         </div>
         {(["Sắp tới", "Hoàn thành", "Đã hủy"] as const).map((s, i) => (
-          <TabsContent key={s} value={["upcoming", "past", "cancelled"][i]} className="p-4 space-y-3 m-0">
+          <TabsContent key={s} value={["upcoming", "past", "cancelled"][i]} className="p-5 space-y-3.5 m-0 bg-white">
             {appointments.filter((a: Appointment) => a.status === s).length === 0 ? (
-              <div className="py-10 text-center text-muted-foreground">Không có lịch hẹn.</div>
+              <div className="py-12 text-center text-slate-400 text-sm">Không có lịch hẹn ở trạng thái này.</div>
             ) : appointments.filter((a: Appointment) => a.status === s).map((a: Appointment) => (
-              <div key={a.id} className="flex items-center justify-between p-4 border rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center"><Stethoscope className="w-5 h-5" /></div>
+              <div key={a.id} className="flex items-center justify-between p-4.5 border border-slate-100 rounded-xl hover:shadow-sm transition-all" style={{ borderRadius: "16px" }}>
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center border border-sky-100 shrink-0"><Stethoscope className="w-5 h-5" /></div>
                   <div>
-                    <div>{a.doctorName}</div>
-                    <div className="text-sm text-muted-foreground flex items-center gap-3">
-                      <span>{a.doctorSpec}</span>
-                      <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {a.date} • {a.time}</span>
-                      <span>{a.clinic}</span>
+                    <div className="font-bold text-slate-800 text-sm">{a.doctorName}</div>
+                    <div className="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-2">
+                      <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold">{a.doctorSpec}</span>
+                      <span className="text-slate-300">•</span>
+                      <span className="flex items-center gap-1 font-medium text-slate-600"><Clock className="w-3.5 h-3.5 text-slate-400" /> {a.date} • {a.time}</span>
+                      <span className="text-slate-300">•</span>
+                      <span className="font-medium text-slate-600">{a.clinic}</span>
                     </div>
                   </div>
                 </div>
                 {s === "Sắp tới" && (
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => onEdit(a)}><Pencil className="w-3.5 h-3.5 mr-1" />Sửa</Button>
-                    <Button size="sm" variant="outline" className="text-rose-600" onClick={() => onCancel(a.id)}><X className="w-3.5 h-3.5 mr-1" />Hủy</Button>
+                  <div className="flex gap-2 shrink-0">
+                    <Button size="sm" variant="outline" className="h-8 rounded-xl text-xs px-3 border-slate-200 text-slate-700 hover:bg-slate-50" onClick={() => onEdit(a)}><Pencil className="w-3.5 h-3.5 mr-1 text-slate-400" />Sửa</Button>
+                    <Button size="sm" variant="outline" className="h-8 rounded-xl text-xs px-3 text-rose-600 border-rose-100 hover:bg-rose-50/50" onClick={() => onCancel(a.id)}><X className="w-3.5 h-3.5 mr-1" />Hủy</Button>
                   </div>
                 )}
-                {s === "Hoàn thành" && <Badge className="bg-emerald-100 text-emerald-700 border border-emerald-200">Hoàn thành</Badge>}
-                {s === "Đã hủy" && <Badge variant="secondary">Đã hủy</Badge>}
+                {s === "Hoàn thành" && <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-100 shrink-0">Đã hoàn thành</span>}
+                {s === "Đã hủy" && <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 text-[10px] font-bold border border-slate-200 shrink-0">Đã hủy</span>}
               </div>
             ))}
           </TabsContent>
@@ -574,53 +582,53 @@ function Records() {
   };
 
   return (
-    <Card className="p-0 overflow-hidden">
+    <Card className="p-0 overflow-hidden bg-white border border-slate-100 shadow-sm animate-fade-in" style={{ borderRadius: "20px" }}>
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <div className="border-b px-4 pt-4">
-          <TabsList>
-            <TabsTrigger value="benhan">Bệnh án</TabsTrigger>
-            <TabsTrigger value="ketqua">Kết quả xét nghiệm</TabsTrigger>
-            <TabsTrigger value="donthuoc">Đơn thuốc</TabsTrigger>
+        <div className="border-b border-slate-100 px-5 pt-4 bg-slate-50/50">
+          <TabsList className="bg-slate-100 rounded-xl p-1 h-10 border border-slate-200/50">
+            <TabsTrigger value="benhan" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Bệnh án</TabsTrigger>
+            <TabsTrigger value="ketqua" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Kết quả xét nghiệm</TabsTrigger>
+            <TabsTrigger value="donthuoc" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Đơn thuốc</TabsTrigger>
           </TabsList>
         </div>
         {(["benhan", "ketqua", "donthuoc"] as const).map(k => (
-          <TabsContent key={k} value={k} className="p-4 space-y-3 m-0">
+          <TabsContent key={k} value={k} className="p-5 space-y-3.5 m-0 bg-white">
             {items[k].map((it: any) => (
-              <div key={it.id} className="p-4 border rounded-xl flex justify-between items-start">
+              <div key={it.id} className="p-4.5 border border-slate-100 rounded-xl flex justify-between items-start hover:shadow-sm transition-all" style={{ borderRadius: "16px" }}>
                 <div>
-                  <div>{it.title}</div>
-                  <div className="text-sm text-muted-foreground">{it.date} • {it.doctor}</div>
-                  <div className="text-sm mt-1.5">{it.note}</div>
+                  <div className="font-bold text-slate-800 text-sm">{it.title}</div>
+                  <div className="text-xs text-slate-400 mt-1 font-semibold">{it.date} • {it.doctor}</div>
+                  <div className="text-xs text-slate-600 mt-2 leading-relaxed bg-slate-50 px-3 py-2 rounded-lg font-medium">{it.note}</div>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => setOpenItem(it)}>Xem</Button>
+                <Button size="sm" variant="outline" className="h-8 rounded-xl text-xs px-3 border-slate-200 text-slate-700 hover:bg-slate-50 shrink-0 ml-3" onClick={() => setOpenItem(it)}>Xem chi tiết</Button>
               </div>
             ))}
           </TabsContent>
         ))}
       </Tabs>
       <Dialog open={!!openItem} onOpenChange={() => setOpenItem(null)}>
-        <DialogContent>
+        <DialogContent className="rounded-2xl">
           {openItem && (
             <>
               <DialogHeader className="text-left">
-                <DialogTitle>{openItem.title}</DialogTitle>
-                <DialogDescription>{openItem.date} • {openItem.doctor}</DialogDescription>
+                <DialogTitle className="font-bold text-slate-800 text-lg">{openItem.title}</DialogTitle>
+                <DialogDescription className="text-xs font-semibold">{openItem.date} • {openItem.doctor}</DialogDescription>
               </DialogHeader>
-              <section className="p-3 rounded-lg bg-slate-50 border">
-                <div className="text-xs text-muted-foreground mb-1">Ghi chú của bác sĩ</div>
-                <p className="text-sm text-slate-800">{openItem.note}</p>
+              <section className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Chẩn đoán từ Bác sĩ</div>
+                <p className="text-sm font-semibold text-slate-700 leading-relaxed">{openItem.note}</p>
               </section>
-              <section>
-                <div className="text-sm tracking-tight mb-1">Hướng dẫn chăm sóc</div>
-                <ul className="text-sm text-slate-700 space-y-0.5">
-                  <li>• Dùng thuốc đúng liều, không tự ý ngưng.</li>
-                  <li>• Uống đủ 2 lít nước/ngày, nghỉ ngơi hợp lý.</li>
-                  <li>• Tái khám hoặc liên hệ bác sĩ nếu triệu chứng nặng hơn.</li>
+              <section className="space-y-1">
+                <div className="text-xs font-bold text-slate-800 tracking-tight">Hướng dẫn & Lưu ý chăm sóc</div>
+                <ul className="text-xs text-slate-500 space-y-1">
+                  <li className="flex items-center gap-1.5">• Dùng thuốc đúng liều lượng chỉ định, không tự ý tăng/giảm liều.</li>
+                  <li className="flex items-center gap-1.5">• Duy trì uống đủ 2 - 2.5 lít nước mỗi ngày, nghỉ ngơi khoa học.</li>
+                  <li className="flex items-center gap-1.5">• Tái khám đúng hẹn hoặc liên hệ hotline phòng khám ngay khi triệu chứng trở nặng.</li>
                 </ul>
               </section>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => toast.success("Đã tải PDF")}>Tải PDF</Button>
-                <Button onClick={() => setOpenItem(null)}>Đóng</Button>
+              <DialogFooter className="gap-2.5">
+                <Button variant="outline" className="rounded-xl text-xs h-9 border-slate-200 text-slate-700 hover:bg-slate-50" onClick={() => toast.success("Đã tải tệp PDF thành công")}>Tải PDF</Button>
+                <Button onClick={() => setOpenItem(null)} className="rounded-xl text-xs h-9 bg-slate-900 hover:bg-slate-800">Đóng</Button>
               </DialogFooter>
             </>
           )}
@@ -632,51 +640,54 @@ function Records() {
 
 function Tracking({ onBook }: { onBook: () => void }) {
   return (
-    <div className="grid md:grid-cols-2 gap-4">
-      <Card className="p-5">
-        <h4 className="tracking-tight">Chỉ số sức khỏe</h4>
-        <div className="space-y-4 mt-3">
+    <div className="grid md:grid-cols-2 gap-5 animate-fade-in">
+      <Card className="p-5 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
+        <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-4">Theo dõi sinh hiệu lâm sàng</h4>
+        <div className="space-y-4">
           {[
-            { label: "Huyết áp", value: "120/80 mmHg", p: 75 },
-            { label: "Nhịp tim", value: "72 bpm", p: 65 },
-            { label: "Đường huyết", value: "5.4 mmol/L", p: 80 },
-            { label: "BMI", value: "22.4", p: 70 },
+            { label: "Huyết áp", value: "120/80 mmHg", p: 75, c: "bg-sky-500" },
+            { label: "Nhịp tim", value: "72 bpm", p: 65, c: "bg-rose-500" },
+            { label: "Đường huyết", value: "5.4 mmol/L", p: 80, c: "bg-amber-500" },
+            { label: "Chỉ số cơ thể (BMI)", value: "22.4", p: 70, c: "bg-emerald-500" },
           ].map(m => (
-            <div key={m.label}>
-              <div className="flex justify-between text-sm">
-                <span>{m.label}</span>
-                <span className="text-muted-foreground">{m.value}</span>
+            <div key={m.label} className="space-y-1">
+              <div className="flex justify-between text-xs font-semibold">
+                <span className="text-slate-600">{m.label}</span>
+                <span className="text-slate-800 font-bold">{m.value}</span>
               </div>
-              <Progress value={m.p} className="mt-1" />
+              <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div className={`h-full ${m.c}`} style={{ width: `${m.p}%` }} />
+              </div>
             </div>
           ))}
         </div>
       </Card>
-      <Card className="p-5 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
-        <h4 className="tracking-tight">Nhắc lịch tái khám</h4>
-        <p className="text-sm text-muted-foreground mt-1">Bác sĩ Nguyễn Văn An đề nghị tái khám sau 1 tháng.</p>
-        <Card className="p-3 mt-3 bg-white">
-          <div className="text-sm">Bác sĩ điều trị: <b>BS. Nguyễn Văn An</b></div>
-          <div className="text-sm text-muted-foreground">Chuyên khoa Tim mạch • Lần khám gần nhất: 2026-04-10</div>
+      <Card className="p-5 bg-gradient-to-br from-amber-50/50 to-orange-50/30 border border-orange-100 shadow-sm relative overflow-hidden" style={{ borderRadius: "20px" }}>
+        <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-orange-200/10 rounded-full blur-2xl pointer-events-none" />
+        <h4 className="font-bold text-orange-800 text-sm tracking-tight">Nhắc lịch tái khám định kỳ</h4>
+        <p className="text-xs text-orange-700 mt-1 font-medium leading-relaxed">BS. Nguyễn Văn An đề nghị thực hiện tái khám tầm soát định kỳ sau 1 tháng.</p>
+        <Card className="p-3.5 mt-3.5 bg-white/80 border border-orange-100/50" style={{ borderRadius: "12px" }}>
+          <div className="text-xs font-bold text-slate-700">Bác sĩ phụ trách: <b>BS. Nguyễn Văn An</b></div>
+          <div className="text-[11px] text-slate-400 mt-1 font-semibold">Chuyên khoa Tim mạch • Khám gần nhất: 2026-04-10</div>
         </Card>
-        <div className="flex gap-2 mt-3">
-          <Button onClick={onBook}>Đặt lịch tái khám</Button>
-          <Button variant="outline" onClick={() => toast.info("Đã bỏ qua nhắc nhở")}>Bỏ qua</Button>
+        <div className="flex gap-2.5 mt-4">
+          <Button onClick={onBook} className="rounded-xl text-xs h-9 bg-orange-600 hover:bg-orange-700 text-white shadow-sm shrink-0">Đặt lịch tái khám</Button>
+          <Button variant="outline" className="rounded-xl text-xs h-9 border-orange-200 bg-transparent text-orange-700 hover:bg-orange-50/50" onClick={() => toast.info("Đã tạm hoãn nhắc nhở")}>Bỏ qua</Button>
         </div>
       </Card>
-      <Card className="p-5 md:col-span-2">
-        <h4 className="tracking-tight">Lịch sử điều trị</h4>
-        <div className="mt-3 relative pl-6 space-y-4 before:absolute before:left-2 before:top-1 before:bottom-1 before:w-0.5 before:bg-slate-200">
+      <Card className="p-5 md:col-span-2 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
+        <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-4">Lịch sử quá trình khám & điều trị</h4>
+        <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-1 before:bottom-1 before:w-0.5 before:bg-slate-100">
           {[
-            { d: "2026-04-22", t: "Khám tổng quát", n: "Sức khỏe ổn định" },
-            { d: "2026-02-10", t: "Viêm họng cấp", n: "Đã điều trị, hồi phục" },
-            { d: "2025-11-15", t: "Khám tim mạch", n: "Theo dõi định kỳ" },
+            { d: "2026-04-22", t: "Khám tổng quát sức khỏe", n: "Sức khỏe lâm sàng hoàn toàn ổn định" },
+            { d: "2026-02-10", t: "Điều trị viêm họng cấp", n: "Điều trị bằng thuốc kháng sinh, bệnh nhân hồi phục hoàn toàn" },
+            { d: "2025-11-15", t: "Tầm soát tim mạch chuyên khoa", n: "Theo dõi nhịp tim và huyết áp định kỳ tại nhà" },
           ].map((e, i) => (
-            <div key={i} className="relative">
-              <div className="absolute -left-[1.4rem] top-1 w-3 h-3 rounded-full bg-sky-500 ring-4 ring-sky-100" />
-              <div className="text-sm text-muted-foreground">{e.d}</div>
-              <div>{e.t}</div>
-              <div className="text-sm text-muted-foreground">{e.n}</div>
+            <div key={i} className="relative animate-fade-in">
+              <div className="absolute -left-[1.38rem] top-1.5 w-2 h-2 rounded-full bg-sky-500 ring-4 ring-sky-100" />
+              <div className="text-[10px] text-slate-400 font-bold">{e.d}</div>
+              <div className="text-sm font-bold text-slate-800 mt-0.5">{e.t}</div>
+              <div className="text-xs text-slate-500 mt-0.5 font-medium">{e.n}</div>
             </div>
           ))}
         </div>

@@ -462,48 +462,51 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
 function Overview() {
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-fade-in">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { l: "Doanh thu tháng", v: "380M", c: "text-emerald-600" },
-          { l: "Lượt khám tuần", v: "945", c: "text-sky-600" },
-          { l: "Bệnh nhân", v: "12,840", c: "text-violet-600" },
-          { l: "Bác sĩ", v: "32", c: "text-amber-600" },
+          { l: "Doanh thu tháng", v: "380M", c: "text-emerald-600 bg-emerald-50/50 border-emerald-100/50" },
+          { l: "Lượt khám tuần", v: "945", c: "text-sky-600 bg-sky-50/50 border-sky-100/50" },
+          { l: "Bệnh nhân mới", v: "12,840", c: "text-violet-600 bg-violet-50/50 border-violet-100/50" },
+          { l: "Đội ngũ Bác sĩ", v: "32", c: "text-amber-600 bg-amber-50/50 border-amber-100/50" },
         ].map((s, i) => (
-          <Card key={i} className="p-4">
-            <div className="text-sm text-muted-foreground">{s.l}</div>
-            <div className={`mt-1 text-2xl tracking-tight ${s.c}`}>{s.v}</div>
+          <Card key={i} className="p-4 bg-white border border-slate-100 shadow-sm animate-fade-in" style={{ borderRadius: "16px" }}>
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">{s.l}</div>
+            <div className={`mt-2.5 text-3xl font-extrabold tracking-tight ${s.c.split(" ")[0]}`}>{s.v}</div>
+            <div className="mt-2 text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+              <span className={`inline-flex px-1.5 py-0.5 rounded font-bold ${s.c.split(" ").slice(1).join(" ")} border`}>+12.4%</span> so với tháng trước
+            </div>
           </Card>
         ))}
       </div>
-      <div className="grid lg:grid-cols-3 gap-4">
-        <Card className="p-5 lg:col-span-2">
-          <h4 className="tracking-tight">Doanh thu 6 tháng (triệu VNĐ)</h4>
-          <div className="h-72 mt-3">
+      <div className="grid lg:grid-cols-3 gap-5">
+        <Card className="p-5 lg:col-span-2 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
+          <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-4">Biểu đồ doanh thu 6 tháng qua (triệu VNĐ)</h4>
+          <div className="h-72">
             <BarChartSimple data={REVENUE} labelKey="m" />
           </div>
         </Card>
-        <Card className="p-5">
-          <h4 className="tracking-tight">Theo chuyên khoa</h4>
-          <div className="h-72 mt-3 flex items-center gap-4">
-            <div className="w-40 h-40 shrink-0">
-              <ResponsiveContainer>
+        <Card className="p-5 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
+          <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-4">Cơ cấu bệnh nhân theo chuyên khoa</h4>
+          <div className="h-72 flex flex-col justify-center gap-4">
+            <div className="w-full h-40 flex justify-center">
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={SPECS} dataKey="value" nameKey="name" innerRadius={38} outerRadius={70} paddingAngle={2} stroke="white" strokeWidth={2}>
+                  <Pie data={SPECS} dataKey="value" nameKey="name" innerRadius={42} outerRadius={68} paddingAngle={3} stroke="white" strokeWidth={2}>
                     {SPECS.map((entry, i) => <Cell key={`cell-${entry.name}`} fill={COLORS[i]} />)}
                   </Pie>
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <ul className="flex-1 space-y-1.5">
+            <ul className="grid grid-cols-2 gap-2 mt-2">
               {(() => {
                 const total = SPECS.reduce((s, x) => s + x.value, 0);
                 return SPECS.map((s, i) => (
-                  <li key={s.name} className="flex items-center gap-2 text-sm">
-                    <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: COLORS[i] }} />
+                  <li key={s.name} className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: COLORS[i] }} />
                     <span className="flex-1 truncate">{s.name}</span>
-                    <span className="tabular-nums text-muted-foreground">{Math.round((s.value / total) * 100)}%</span>
+                    <span className="tabular-nums text-slate-800 font-bold">{Math.round((s.value / total) * 100)}%</span>
                   </li>
                 ));
               })()}
@@ -530,30 +533,30 @@ function BarChartSimple({ data, labelKey }: { data: any[]; labelKey: string }) {
   const top = ticks[ticks.length - 1];
   return (
     <div className="h-full w-full flex">
-      <div className="flex flex-col justify-between py-2 pr-2 text-[11px] text-muted-foreground tabular-nums text-right">
-        {[...ticks].reverse().map(t => <span key={t}>{t}</span>)}
+      <div className="flex flex-col justify-between py-2 pr-3 text-[10px] text-slate-400 font-bold tabular-nums text-right">
+        {[...ticks].reverse().map(t => <span key={t}>{t}M</span>)}
       </div>
       <div className="flex-1 flex flex-col">
         <div className="flex-1 relative">
           {ticks.map((t, idx) => (
             <div
               key={t}
-              className="absolute left-0 right-0 border-t border-dashed border-slate-200"
+              className="absolute left-0 right-0 border-t border-slate-100"
               style={{ bottom: `${(idx / (ticks.length - 1)) * 100}%` }}
             />
           ))}
-          <div className="absolute inset-0 flex items-end gap-3 px-1">
+          <div className="absolute inset-0 flex items-end gap-5 px-3">
             {data.map((d, i) => {
               const h = (d.v / top) * 100;
               return (
                 <div key={`${d[labelKey]}-${i}`} className="flex-1 h-full flex flex-col justify-end items-center group relative">
-                  <div className="absolute -top-1 opacity-0 group-hover:opacity-100 transition pointer-events-none">
-                    <div className="px-2 py-1 rounded-md bg-slate-900 text-white text-[11px] tabular-nums shadow-lg whitespace-nowrap">
-                      {d.v}
+                  <div className="absolute -top-6 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none transform translate-y-1 group-hover:translate-y-0">
+                    <div className="px-2 py-0.5 rounded-lg bg-slate-900 text-white text-[10px] font-bold shadow-md whitespace-nowrap">
+                      {d.v}M
                     </div>
                   </div>
                   <div
-                    className="w-full max-w-12 rounded-t-md bg-gradient-to-t from-sky-600 to-sky-400 hover:from-sky-700 hover:to-sky-500 transition-all shadow-sm"
+                    className="w-full max-w-10 rounded-t-lg bg-gradient-to-t from-sky-600 via-sky-500 to-sky-400 hover:from-sky-700 hover:to-sky-500 transition-all duration-300 shadow-sm"
                     style={{ height: `${h}%` }}
                   />
                 </div>
@@ -561,9 +564,9 @@ function BarChartSimple({ data, labelKey }: { data: any[]; labelKey: string }) {
             })}
           </div>
         </div>
-        <div className="flex gap-3 px-1 mt-1.5">
+        <div className="flex gap-5 px-3 mt-2 border-t border-slate-100 pt-1.5">
           {data.map((d, i) => (
-            <span key={`${d[labelKey]}-${i}`} className="flex-1 text-center text-xs text-muted-foreground">{d[labelKey]}</span>
+            <span key={`${d[labelKey]}-${i}`} className="flex-1 text-center text-[10px] text-slate-400 font-bold">{d[labelKey]}</span>
           ))}
         </div>
       </div>
@@ -576,7 +579,7 @@ function LineChartSimple({ data, labelKey }: { data: any[]; labelKey: string }) 
   const minVal = Math.min(...data.map(d => d.v));
   const ticks = niceTicks(maxVal, 4);
   const top = ticks[ticks.length - 1];
-  const W = 600, H = 220, padL = 8, padR = 8, padT = 12, padB = 8;
+  const W = 600, H = 220, padL = 12, padR = 12, padT = 16, padB = 8;
   const innerW = W - padL - padR;
   const innerH = H - padT - padB;
   const step = innerW / Math.max(1, data.length - 1);
@@ -586,7 +589,7 @@ function LineChartSimple({ data, labelKey }: { data: any[]; labelKey: string }) 
 
   return (
     <div className="h-full w-full flex">
-      <div className="flex flex-col justify-between py-1 pr-2 text-[11px] text-muted-foreground tabular-nums text-right">
+      <div className="flex flex-col justify-between py-1 pr-3 text-[10px] text-slate-400 font-bold tabular-nums text-right">
         {[...ticks].reverse().map(t => <span key={t}>{t}</span>)}
       </div>
       <div className="flex-1 flex flex-col">
@@ -594,32 +597,32 @@ function LineChartSimple({ data, labelKey }: { data: any[]; labelKey: string }) 
           <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full overflow-visible">
             <defs>
               <linearGradient id="lineFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+                <stop offset="0%" stopColor="#10b981" stopOpacity="0.2" />
                 <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
               </linearGradient>
             </defs>
             {ticks.map((t, idx) => {
               const yy = padT + (1 - idx / (ticks.length - 1)) * innerH;
-              return <line key={t} x1={padL} x2={padL + innerW} y1={yy} y2={yy} stroke="#e2e8f0" strokeDasharray="3 3" />;
+              return <line key={t} x1={padL} x2={padL + innerW} y1={yy} y2={yy} stroke="#f1f5f9" strokeDasharray="3 3" strokeWidth="1" />;
             })}
             <polygon points={area} fill="url(#lineFill)" />
-            <polyline fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" points={points} />
+            <polyline fill="none" stroke="#10b981" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" points={points} />
             {data.map((d, i) => (
               <g key={`${d[labelKey]}-${i}`} className="group">
-                <circle cx={padL + i * step} cy={y(d.v)} r="4" fill="white" stroke="#10b981" strokeWidth="2" />
-                <circle cx={padL + i * step} cy={y(d.v)} r="10" fill="transparent" className="cursor-pointer">
+                <circle cx={padL + i * step} cy={y(d.v)} r="5" fill="white" stroke="#10b981" strokeWidth="3" />
+                <circle cx={padL + i * step} cy={y(d.v)} r="12" fill="transparent" className="cursor-pointer">
                   <title>{`${d[labelKey]}: ${d.v}`}</title>
                 </circle>
               </g>
             ))}
           </svg>
         </div>
-        <div className="flex mt-1">
+        <div className="flex mt-2 border-t border-slate-100 pt-1.5">
           {data.map((d, i) => (
-            <span key={`${d[labelKey]}-${i}`} className="flex-1 text-center text-xs text-muted-foreground">{d[labelKey]}</span>
+            <span key={`${d[labelKey]}-${i}`} className="flex-1 text-center text-[10px] text-slate-400 font-bold">{d[labelKey]}</span>
           ))}
         </div>
-        <div className="text-[11px] text-muted-foreground mt-1 text-right">Min: {minVal} • Max: {maxVal}</div>
+        <div className="text-[9px] font-bold text-slate-400 mt-1 text-right uppercase tracking-wider">Tối thiểu: {minVal} • Tối đa: {maxVal}</div>
       </div>
     </div>
   );

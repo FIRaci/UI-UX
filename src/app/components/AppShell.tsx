@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
-import { LogOut, HeartPulse, Bell, CheckCheck, CalendarClock, MessageSquare, RefreshCw, Trash2 } from "lucide-react";
+import { LogOut, HeartPulse, Bell, CheckCheck, CalendarClock, MessageSquare, RefreshCw, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 
 type NotifKind = "appointment" | "message" | "reminder";
@@ -63,19 +63,29 @@ export function AppShell({
   const unread = notifs.filter(n => !n.read).length;
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex" style={{ fontFamily: "'Inter', -apple-system, sans-serif" }}>
       {/* Sidebar */}
-      <aside className="w-64 shrink-0 bg-white border-r flex flex-col">
-        <div className="p-5 border-b flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-emerald-500 flex items-center justify-center text-white">
-            <HeartPulse className="w-5 h-5" />
+      <aside className="w-64 shrink-0 flex flex-col" style={{
+        background: "linear-gradient(180deg, #0C1A35 0%, #0F2244 100%)",
+        color: "#fff",
+        boxShadow: "4px 0 24px rgba(15, 34, 68, 0.15)",
+        zIndex: 10,
+      }}>
+        {/* Brand Header */}
+        <div className="p-5 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white" style={{
+            boxShadow: "0 4px 12px rgba(59,130,246,0.4)"
+          }}>
+            <HeartPulse className="w-5.5 h-5.5" />
           </div>
           <div>
-            <div className="tracking-tight leading-tight">MediCare AI</div>
-            <div className="text-[11px] text-muted-foreground">{roleLabel}</div>
+            <div className="tracking-tight leading-tight font-bold text-white text-base">MediCare AI</div>
+            <div className="text-[10px] uppercase font-bold tracking-wider mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>{roleLabel}</div>
           </div>
         </div>
-        <nav className="p-2 flex-1 space-y-0.5 overflow-auto">
+
+        {/* Navigation Items */}
+        <nav className="p-3 flex-1 space-y-1.5 overflow-auto">
           {nav.map(item => {
             const Icon = item.icon;
             const isActive = active === item.key;
@@ -83,47 +93,94 @@ export function AppShell({
               <button
                 key={item.key}
                 onClick={() => onNav(item.key)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left ${
-                  isActive ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-100"
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left outline-none ${
+                  isActive ? "text-white" : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
+                style={{
+                  background: isActive ? "linear-gradient(135deg, #3B82F6, #2563EB)" : "transparent",
+                  boxShadow: isActive ? "0 4px 12px rgba(59,130,246,0.3)" : "none",
+                  fontWeight: isActive ? 600 : 400,
+                }}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className={`w-4.5 h-4.5 ${isActive ? "text-white" : "text-slate-400"}`} />
                 {item.label}
               </button>
             );
           })}
         </nav>
-        <div className="p-3 border-t">
-          <Button variant="outline" size="sm" className="w-full" onClick={onLogout}>
-            <LogOut className="w-4 h-4 mr-2" /> Đăng xuất
-          </Button>
+
+        {/* Logout area */}
+        <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all outline-none"
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              color: "rgba(255,255,255,0.75)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              cursor: "pointer",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = "rgba(239, 68, 68, 0.15)";
+              e.currentTarget.style.color = "#FEF2F2";
+              e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.3)";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+              e.currentTarget.style.color = "rgba(255,255,255,0.75)";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+            }}
+          >
+            <LogOut className="w-4 h-4" /> Đăng xuất
+          </button>
         </div>
       </aside>
 
-      {/* Main */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b bg-white flex items-center justify-between px-6">
+        {/* Premium Header */}
+        <header className="h-16 bg-white flex items-center justify-between px-6" style={{
+          borderBottom: "1px solid #E2E8F0",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.04)"
+        }}>
           <div>
-            <h3 className="tracking-tight leading-tight">{title}</h3>
-            <p className="text-xs text-muted-foreground">{subtitle}</p>
+            <h3 className="tracking-tight leading-tight font-bold text-slate-800 text-base">{title}</h3>
+            <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
           </div>
-          <div className="flex items-center gap-3">
+
+          {/* Middle Mock Search bar */}
+          <div className="hidden md:flex flex-1 max-w-sm mx-6 relative items-center">
+            <Search className="absolute left-3 w-4 h-4 text-slate-400 pointer-events-none" />
+            <input
+              readOnly
+              placeholder="Tìm bệnh nhân, phác đồ, chẩn đoán..."
+              className="w-full h-9 pl-9 pr-12 border border-slate-200 rounded-xl text-xs bg-slate-50 text-slate-700 outline-none transition-all"
+            />
+            <div className="absolute right-3 px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[10px] text-slate-400 font-medium select-none">
+              ⌘K
+            </div>
+          </div>
+
+          {/* Right Utilities */}
+          <div className="flex items-center gap-4">
             <Popover>
-              <PopoverTrigger className="relative size-9 rounded-md inline-flex items-center justify-center hover:bg-accent transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50">
-                <Bell className="w-5 h-5" />
+              <PopoverTrigger className="relative size-9 rounded-xl inline-flex items-center justify-center hover:bg-slate-100 transition-all outline-none border border-slate-200">
+                <Bell className="w-4.5 h-4.5 text-slate-600" />
                 {unread > 0 && (
-                  <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">
+                  <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center" style={{
+                    boxShadow: "0 2px 4px rgba(239,68,68,0.4)"
+                  }}>
                     {unread}
                   </span>
                 )}
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 p-0">
-                <div className="p-3 border-b flex items-center justify-between">
-                  <span className="tracking-tight">Thông báo</span>
+              <PopoverContent align="end" className="w-80 p-0 border border-slate-200 shadow-xl rounded-2xl overflow-hidden mt-1">
+                <div className="p-3 bg-slate-50 border-b flex items-center justify-between">
+                  <span className="tracking-tight font-semibold text-slate-700 text-sm">Thông báo</span>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 text-xs"
+                    className="h-7 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50/50"
                     onClick={() => {
                       setNotifs(prev => prev.map(n => ({ ...n, read: true })));
                       toast.success("Đã đánh dấu tất cả là đã đọc");
@@ -151,19 +208,19 @@ export function AppShell({
                             setNotifs(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x));
                             setOpenNotif(n);
                           }}
-                          className={`w-full text-left p-3 border-b hover:bg-slate-50 transition flex items-start gap-3 ${!n.read ? "bg-sky-50/40" : ""}`}
+                          className={`w-full text-left p-3 border-b hover:bg-slate-50/80 transition flex items-start gap-3 ${!n.read ? "bg-blue-50/20" : ""}`}
                         >
                           <div className={`w-9 h-9 rounded-xl ${meta.bg} ${meta.fg} flex items-center justify-center shrink-0`}>
                             <Icon className="w-4.5 h-4.5" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm tracking-tight truncate">{n.title}</span>
-                              {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />}
+                              <span className="text-sm font-medium text-slate-700 truncate">{n.title}</span>
+                              {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 animate-pulse" />}
                             </div>
                             <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.desc}</div>
-                            <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1.5">
-                              <span className={`px-1.5 py-0.5 rounded ${meta.bg} ${meta.fg}`}>{meta.label}</span>
+                            <div className="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-1.5">
+                              <span className={`px-1.5 py-0.5 rounded-md font-medium text-[9px] ${meta.bg} ${meta.fg}`}>{meta.label}</span>
                               <span>•</span>
                               <span>{n.time}</span>
                             </div>
@@ -173,11 +230,11 @@ export function AppShell({
                     })
                   )}
                 </div>
-                <div className="p-2 border-t">
+                <div className="p-2 border-t bg-slate-50">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full text-xs"
+                    className="w-full text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100"
                     onClick={() => {
                       setNotifs([]);
                       toast.success("Đã xóa toàn bộ thông báo");
@@ -188,13 +245,26 @@ export function AppShell({
                 </div>
               </PopoverContent>
             </Popover>
-            <Badge className={roleColor}>{roleLabel}</Badge>
-            <Avatar className="w-9 h-9">
-              <AvatarFallback className="bg-slate-900 text-white">{initials}</AvatarFallback>
-            </Avatar>
+
+            {/* Custom Premium Role Badge */}
+            <span className="px-2.5 py-1 rounded-lg text-xs font-semibold tracking-wide border transition-all" style={{
+              backgroundColor: roleLabel === "Bác sĩ" ? "#F5F3FF" : roleLabel === "Quản lý" ? "#FFF1F2" : roleLabel === "Chuyên gia" ? "#FDF2F8" : "#ECFDF5",
+              color: roleLabel === "Bác sĩ" ? "#6D28D9" : roleLabel === "Quản lý" ? "#E11D48" : roleLabel === "Chuyên gia" ? "#DB2777" : "#047857",
+              borderColor: roleLabel === "Bác sĩ" ? "#DDD6FE" : roleLabel === "Quản lý" ? "#FECDD3" : roleLabel === "Chuyên gia" ? "#FBCFE8" : "#A7F3D0",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.02)"
+            }}>
+              {roleLabel}
+            </span>
+
+            {/* Premium Avatar block */}
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 text-white flex items-center justify-center font-bold text-xs tracking-wide shadow-sm border border-slate-200">
+              {initials}
+            </div>
           </div>
         </header>
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+
+        {/* Upgrade Content Container to elegant Slate Page Background */}
+        <main className="flex-1 overflow-auto p-6" style={{ backgroundColor: "#F0F4F8" }}>{children}</main>
       </div>
 
       <Dialog open={!!openNotif} onOpenChange={() => setOpenNotif(null)}>

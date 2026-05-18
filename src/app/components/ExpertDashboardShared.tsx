@@ -76,6 +76,7 @@ export function SharedSidebar() {
       display: "flex", flexDirection: "column", alignItems: "center",
       padding: "14px 0 12px",
     }}>
+      <GlobalStyle />
       {/* Logo */}
       <div style={{
         width: 42, height: 42, borderRadius: 10,
@@ -161,9 +162,9 @@ export function SharedSidebar() {
 
 // ── Common Components ────────────────────────────────────────
 
-export function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+export function Card({ children, style, className }: { children: React.ReactNode; style?: React.CSSProperties; className?: string }) {
   return (
-    <div style={{
+    <div className={className} style={{
       backgroundColor: C.bgCard, borderRadius: 14,
       boxShadow: C.shadowCard, border: `1px solid ${C.border}`,
       display: "flex", flexDirection: "column", height: "100%",
@@ -209,6 +210,15 @@ export function Btn({ children, variant = "primary", size = "md", onClick, style
   onClick?: () => void;
   style?: React.CSSProperties;
 }) {
+  const classNames = {
+    primary: "btn-glow-primary",
+    secondary: "btn-glow-secondary",
+    danger: "btn-glow-danger",
+    success: "btn-glow-success",
+    ghost: "",
+    outline: "btn-glow-outline",
+  };
+  
   const variants = {
     primary:   { bg: C.primary,    color: "#fff",    border: C.primary,    hover: C.primaryDark },
     secondary: { bg: C.bgSection,  color: C.text2,   border: C.border,     hover: C.border },
@@ -225,12 +235,12 @@ export function Btn({ children, variant = "primary", size = "md", onClick, style
   const v = variants[variant];
   const s = sizes[size];
   return (
-    <button onClick={onClick} style={{
+    <button onClick={onClick} className={classNames[variant]} style={{
       display: "inline-flex", alignItems: "center", gap: 5,
       padding: s.padding, borderRadius: 8, fontSize: s.fontSize,
-      fontWeight: 500, fontFamily: C.font, backgroundColor: v.bg,
+      fontWeight: 600, fontFamily: C.font, backgroundColor: v.bg,
       color: v.color, border: `1px solid ${v.border}`,
-      cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap",
+      cursor: "pointer", transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)", whiteSpace: "nowrap",
       outline: "none", ...style,
     }}>
       {children}
@@ -280,5 +290,154 @@ export function TopNav({ children, style }: { children: React.ReactNode; style?:
     }}>
       {children}
     </div>
+  );
+}
+
+export function GlobalStyle() {
+  return (
+    <style dangerouslySetInnerHTML={{ __html: `
+      @keyframes pulse-glow-red {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+        70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+      }
+      @keyframes pulse-glow-blue {
+        0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+        70% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+      }
+      @keyframes pulse-glow-green {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+        70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+      }
+      @keyframes pulse-border-red {
+        0%, 100% { border-color: rgba(239, 68, 68, 0.8); box-shadow: 0 0 8px rgba(239, 68, 68, 0.3); }
+        50% { border-color: rgba(239, 68, 68, 0.2); box-shadow: 0 0 0px rgba(239, 68, 68, 0); }
+      }
+      @keyframes heart-beat-pulse {
+        0% { transform: scale(1); }
+        14% { transform: scale(1.08); }
+        28% { transform: scale(1); }
+        42% { transform: scale(1.08); }
+        70% { transform: scale(1); }
+      }
+      
+      .hover-lift {
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+      .hover-lift:hover {
+        transform: translateY(-3px) !important;
+        box-shadow: 0 12px 24px rgba(12, 26, 53, 0.08) !important;
+      }
+      
+      .btn-glow-primary {
+        background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
+        border: none !important;
+        box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3) !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+      .btn-glow-primary:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45) !important;
+        filter: brightness(1.05) !important;
+      }
+      .btn-glow-primary:active {
+        transform: translateY(1px) !important;
+      }
+      
+      .btn-glow-danger {
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+        border: none !important;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35) !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+      .btn-glow-danger:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5) !important;
+        filter: brightness(1.05) !important;
+      }
+      .btn-glow-danger:active {
+        transform: translateY(1px) !important;
+      }
+
+      .btn-glow-success {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+        border: none !important;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3) !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+      .btn-glow-success:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45) !important;
+        filter: brightness(1.05) !important;
+      }
+      .btn-glow-success:active {
+        transform: translateY(1px) !important;
+      }
+
+      .btn-glow-outline {
+        border: 1.5px solid #3B82F6 !important;
+        color: #3B82F6 !important;
+        background: transparent !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+      .btn-glow-outline:hover {
+        transform: translateY(-2px) !important;
+        background: rgba(59, 130, 246, 0.06) !important;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15) !important;
+      }
+      .btn-glow-outline:active {
+        transform: translateY(1px) !important;
+      }
+
+      .btn-glow-secondary {
+        border: 1.5px solid #E2E8F0 !important;
+        color: #475569 !important;
+        background: #F8FAFC !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+      .btn-glow-secondary:hover {
+        transform: translateY(-2px) !important;
+        background: #F1F5F9 !important;
+        box-shadow: 0 4px 12px rgba(148, 163, 184, 0.12) !important;
+      }
+      .btn-glow-secondary:active {
+        transform: translateY(1px) !important;
+      }
+
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(8px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+      }
+
+      .smooth-glow-alert {
+        animation: pulse-border-red 2s infinite !important;
+      }
+
+      .heart-beat-effect {
+        animation: heart-beat-pulse 1.2s infinite ease-in-out !important;
+      }
+
+      .interactive-node {
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+      .interactive-node:hover {
+        transform: translateY(-2.5px) scale(1.025) !important;
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2) !important;
+        border-color: #3B82F6 !important;
+      }
+
+      .pulse-red-glow-btn {
+        animation: pulse-glow-red 2s infinite !important;
+      }
+      .pulse-blue-glow-btn {
+        animation: pulse-glow-blue 2.5s infinite !important;
+      }
+      .pulse-green-glow-btn {
+        animation: pulse-glow-green 2s infinite !important;
+      }
+    ` }} />
   );
 }

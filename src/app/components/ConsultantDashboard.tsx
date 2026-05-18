@@ -248,31 +248,34 @@ export function ConsultantDashboard({ onLogout }: { onLogout: () => void }) {
           </Card>
 
           {filtered.length === 0 ? (
-            <Card className="p-10 text-center text-muted-foreground">Không tìm thấy chuyên gia phù hợp.</Card>
+            <Card className="p-10 text-center text-muted-foreground bg-white border-slate-100" style={{ borderRadius: "16px" }}>Không tìm thấy chuyên gia phù hợp.</Card>
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
               {filtered.map(e => (
-                <Card key={e.id} className="p-4 hover:shadow-lg transition">
-                  <div className="flex items-start gap-3">
+                <Card key={e.id} className="p-5 hover:shadow-md transition-all duration-300 bg-white border border-slate-100 hover:border-blue-100" style={{ borderRadius: "16px" }}>
+                  <div className="flex items-start gap-4">
                     <div className="relative">
-                      <Avatar className="w-14 h-14"><AvatarFallback className="bg-emerald-100 text-emerald-700">{e.name.split(" ").pop()?.[0]}</AvatarFallback></Avatar>
-                      {e.online && <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white" />}
+                      <Avatar className="w-14 h-14 border border-slate-100 shadow-sm"><AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold text-lg">{e.name.split(" ").pop()?.[0]}</AvatarFallback></Avatar>
+                      {e.online && <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse" />}
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
                         <div>
-                          <div className="tracking-tight">{e.name}</div>
-                          <Badge variant="secondary" className="mt-0.5">{e.spec}</Badge>
+                          <div className="font-bold text-slate-800 text-base tracking-tight">{e.name}</div>
+                          <span className="inline-flex px-2 py-0.5 mt-1 rounded-md bg-blue-50 text-blue-700 text-[10px] font-semibold tracking-wide border border-blue-100">{e.spec}</span>
                         </div>
-                        <div className="flex items-center gap-1 text-amber-500"><Star className="w-4 h-4 fill-current" />{e.rating}</div>
+                        <div className="flex items-center gap-1 text-amber-500 font-semibold text-sm bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100"><Star className="w-3.5 h-3.5 fill-current" />{e.rating}</div>
                       </div>
-                      <div className="text-sm text-muted-foreground mt-2 flex items-center gap-3">
-                        <span className="text-emerald-600">{e.fee}</span>
-                        <span className={e.online ? "text-emerald-600" : "text-muted-foreground"}>{e.online ? "● Đang online" : "○ Offline"}</span>
+                      <div className="text-xs text-slate-500 mt-3.5 flex items-center gap-3">
+                        <span className="font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">{e.fee}</span>
+                        <span className={`flex items-center gap-1 font-medium ${e.online ? "text-emerald-600" : "text-slate-400"}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${e.online ? "bg-emerald-500 animate-pulse" : "bg-slate-300"}`} />
+                          {e.online ? "Trực tuyến" : "Ngoại tuyến"}
+                        </span>
                       </div>
-                      <div className="flex gap-2 mt-3">
-                        <Button size="sm" variant="outline" onClick={() => setProfileExpert(e)}>Xem hồ sơ</Button>
-                        <Button size="sm" onClick={() => { setRequesting(e); setReqTopic(e.spec); }}>Gửi yêu cầu tư vấn</Button>
+                      <div className="flex gap-2.5 mt-4">
+                        <Button size="sm" variant="outline" className="rounded-xl flex-1 text-xs" onClick={() => setProfileExpert(e)}>Hồ sơ</Button>
+                        <Button size="sm" className="rounded-xl flex-1 text-xs bg-slate-900 hover:bg-slate-800" onClick={() => { setRequesting(e); setReqTopic(e.spec); }}>Đặt tư vấn</Button>
                       </div>
                     </div>
                   </div>
@@ -284,73 +287,114 @@ export function ConsultantDashboard({ onLogout }: { onLogout: () => void }) {
       )}
 
       {active === "chats" && (
-        <Card className="p-0 overflow-hidden h-[calc(100vh-12rem)]">
+        <Card className="p-0 overflow-hidden h-[calc(100vh-12rem)] bg-white border border-slate-100 shadow-lg animate-fade-in" style={{ borderRadius: "20px" }}>
           <div className="grid grid-cols-[300px_1fr] h-full">
-            <div className="border-r overflow-auto">
-              <div className="p-3 border-b flex items-center justify-between">
-                <span className="text-sm">Cuộc tư vấn ({sessions.length})</span>
-                <Button size="sm" variant="outline" onClick={() => setActive("find")}><Plus className="w-3.5 h-3.5 mr-1" />Mới</Button>
+            <div className="border-r border-slate-100 overflow-auto bg-slate-50/50 flex flex-col">
+              <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+                <span className="font-bold text-slate-800 text-sm tracking-tight">Kênh tư vấn ({sessions.length})</span>
+                <Button size="sm" variant="outline" className="h-8 rounded-xl px-2.5 text-xs text-blue-600 border-blue-100 hover:bg-blue-50/40" onClick={() => setActive("find")}><Plus className="w-3.5 h-3.5 mr-1" />Mới</Button>
               </div>
-              {sessions.map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => setActiveChatId(s.id)}
-                  className={`w-full p-3 flex items-start gap-3 border-b hover:bg-slate-50 text-left ${activeChat?.id === s.id ? "bg-emerald-50" : ""}`}
-                >
-                  <Avatar><AvatarFallback className="bg-emerald-100 text-emerald-700">{s.staffName.split(" ").pop()?.[0]}</AvatarFallback></Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center gap-2">
-                      <span className="truncate">{s.staffName}</span>
-                      <Badge variant="outline" className="text-[10px]">{s.status}</Badge>
-                    </div>
-                    <div className="text-xs text-muted-foreground">{s.topic} • {formatRelative(s.updatedAt)}</div>
-                    <div className="text-sm text-muted-foreground truncate mt-0.5">{s.last}</div>
-                  </div>
-                </button>
-              ))}
-              {sessions.length === 0 && <div className="p-6 text-center text-muted-foreground text-sm">Chưa có cuộc tư vấn</div>}
+              <div className="divide-y divide-slate-100 overflow-y-auto flex-1 bg-white">
+                {sessions.map(s => {
+                  const isSel = activeChat?.id === s.id;
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => setActiveChatId(s.id)}
+                      className={`w-full p-4 flex items-start gap-3 transition-all text-left outline-none ${isSel ? "bg-blue-50/20 shadow-sm border-l-4 border-l-blue-500" : "hover:bg-slate-50/50"}`}
+                    >
+                      <Avatar className="w-10 h-10 border border-slate-100 shrink-0">
+                        <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white font-semibold text-sm">
+                          {s.staffName.split(" ").pop()?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center gap-2">
+                          <span className="font-bold text-slate-700 text-sm truncate">{s.staffName}</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md shrink-0" style={{
+                            backgroundColor: s.status === "Đang diễn ra" ? "#ECFDF5" : s.status === "Chờ phản hồi" ? "#FFFBEB" : "#F1F5F9",
+                            color: s.status === "Đang diễn ra" ? "#059669" : s.status === "Chờ phản hồi" ? "#D97706" : "#475569",
+                          }}>{s.status}</span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 mt-1 flex justify-between">
+                          <span className="font-medium text-slate-500">{s.topic}</span>
+                          <span>{formatRelative(s.updatedAt)}</span>
+                        </div>
+                        <div className="text-xs text-slate-500 truncate mt-1.5">{s.last}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+                {sessions.length === 0 && <div className="p-8 text-center text-slate-400 text-sm">Chưa có cuộc tư vấn</div>}
+              </div>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col bg-white">
               {activeChat ? (
                 <>
-                  <div className="border-b p-3 flex items-center justify-between">
+                  <div className="border-b border-slate-100 p-4 flex items-center justify-between bg-white shadow-sm z-10">
                     <div className="flex items-center gap-3">
-                      <Avatar><AvatarFallback className="bg-emerald-100 text-emerald-700">{activeChat.staffName.split(" ").pop()?.[0]}</AvatarFallback></Avatar>
+                      <Avatar className="w-10 h-10 border border-slate-100 shadow-sm"><AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white font-bold text-sm">{activeChat.staffName.split(" ").pop()?.[0]}</AvatarFallback></Avatar>
                       <div>
-                        <div>{activeChat.staffName}</div>
-                        <div className="text-xs text-muted-foreground">{activeChat.staffSpec} • {activeChat.status}</div>
+                        <div className="font-bold text-slate-800 text-sm">{activeChat.staffName}</div>
+                        <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5">
+                          <span className="px-1.5 py-0.5 rounded-md bg-slate-100 font-medium text-slate-600">{activeChat.staffSpec}</span>
+                          <span>•</span>
+                          <span>Trạng thái: {activeChat.status}</span>
+                        </div>
                       </div>
                     </div>
                     {activeChat.status !== "Đã kết thúc" && (
-                      <Button size="sm" variant="outline" onClick={() => {
+                      <Button size="sm" variant="outline" className="rounded-xl text-rose-600 border-rose-100 hover:bg-rose-50/50" onClick={() => {
                         store.setThreadStatus(activeChat.id, "Đã kết thúc");
                         toast.success("Đã kết thúc cuộc tư vấn");
                       }}>Kết thúc</Button>
                     )}
                   </div>
-                  <ScrollArea className="flex-1 p-4">
-                    <div className="space-y-2">
-                      {activeChat.msgs.map((m, i) => (
-                        <div key={i} className={`flex ${m.f === "user" ? "justify-end" : "justify-start"}`}>
-                          <div className={`max-w-[70%] px-3 py-2 rounded-2xl text-sm ${m.f === "user" ? "bg-emerald-500 text-white rounded-br-sm" : "bg-slate-100 rounded-bl-sm"}`}>
-                            {m.txt}
-                            {m.t && <div className={`text-[10px] mt-0.5 ${m.f === "user" ? "text-white/70" : "text-muted-foreground"}`}>{m.t}</div>}
+                  <ScrollArea className="flex-1 p-4 bg-slate-50/30">
+                    <div className="space-y-4">
+                      {activeChat.msgs.map((m, i) => {
+                        const isMe = m.f === "user";
+                        return (
+                          <div key={i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                            <div className={`max-w-[70%] px-4 py-3 rounded-2xl text-sm shadow-sm ${
+                              isMe
+                                ? "bg-gradient-to-br from-teal-600 to-emerald-700 text-white rounded-tr-none"
+                                : "bg-white text-slate-700 border border-slate-100 rounded-tl-none"
+                            }`}>
+                              <p className="leading-relaxed font-medium">{m.txt}</p>
+                              {m.t && (
+                                <div className={`text-[9px] mt-1.5 font-medium text-right ${isMe ? "text-white/60" : "text-slate-400"}`}>
+                                  {m.t}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </ScrollArea>
                   {activeChat.status !== "Đã kết thúc" ? (
-                    <div className="p-3 border-t flex gap-2">
-                      <Input placeholder="Nhập tin nhắn..." value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMessage()} />
-                      <Button size="icon" onClick={sendMessage}><Send className="w-4 h-4" /></Button>
+                    <div className="p-4 border-t border-slate-100 flex gap-2.5 bg-white shrink-0">
+                      <Input
+                        placeholder="Nhập tin nhắn tư vấn của bạn..."
+                        value={input}
+                        onChange={e => setInput(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && sendMessage()}
+                        className="rounded-xl border-slate-200 bg-slate-50/50 text-sm focus:bg-white focus:ring-1 focus:ring-blue-500"
+                      />
+                      <Button size="icon" onClick={sendMessage} className="rounded-xl bg-slate-900 hover:bg-slate-800 shadow-sm shrink-0"><Send className="w-4.5 h-4.5" /></Button>
                     </div>
                   ) : (
-                    <div className="p-3 border-t text-center text-sm text-muted-foreground">Cuộc tư vấn đã kết thúc</div>
+                    <div className="p-4 border-t border-slate-100 text-center text-xs font-semibold text-slate-400 bg-slate-50/40 shrink-0">
+                      🔒 Phiên tư vấn này đã kết thúc. Bạn có thể mở phiên mới để tiếp tục.
+                    </div>
                   )}
                 </>
               ) : (
-                <div className="flex-1 flex items-center justify-center text-muted-foreground">Chọn một cuộc tư vấn để bắt đầu</div>
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-2 bg-slate-50/20">
+                  <MessagesSquare className="w-12 h-12 text-slate-300 stroke-[1.5]" />
+                  <span className="text-sm font-medium">Chọn một cuộc tư vấn ở danh sách để bắt đầu</span>
+                </div>
               )}
             </div>
           </div>
@@ -358,19 +402,19 @@ export function ConsultantDashboard({ onLogout }: { onLogout: () => void }) {
       )}
 
       {active === "library" && (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {ARTICLES.map((a, i) => (
-            <Card key={i} className="overflow-hidden hover:shadow-md transition cursor-pointer group" onClick={() => setReadingArticle(a)}>
-              <div className="h-28 relative" style={{ background: a.cover }}>
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition" />
-                <Badge variant="secondary" className="absolute top-3 left-3 bg-white/90 backdrop-blur">{a.c}</Badge>
+            <Card key={i} className="overflow-hidden bg-white border border-slate-100 hover:border-blue-100 hover:shadow-md transition-all duration-300 cursor-pointer group" style={{ borderRadius: "20px" }} onClick={() => setReadingArticle(a)}>
+              <div className="h-32 relative transition-all duration-500 group-hover:scale-[1.02]" style={{ background: a.cover }}>
+                <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition" />
+                <span className="absolute top-3.5 left-3.5 px-2.5 py-0.5 rounded-lg bg-white/90 backdrop-blur text-[10px] font-bold text-slate-700 border border-white/20 shadow-sm">{a.c}</span>
               </div>
               <div className="p-4">
-                <h4 className="tracking-tight">{a.t}</h4>
-                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{a.lead}</p>
-                <div className="text-xs text-muted-foreground mt-3 flex items-center justify-between">
-                  <span>{a.author}</span>
-                  <span>{a.d}</span>
+                <h4 className="font-bold text-slate-800 text-sm tracking-tight group-hover:text-blue-600 transition-colors line-clamp-1">{a.t}</h4>
+                <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">{a.lead}</p>
+                <div className="text-[11px] text-slate-400 mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between font-semibold">
+                  <span className="text-slate-600">{a.author}</span>
+                  <span className="text-slate-400 bg-slate-50 px-2 py-0.5 rounded">{a.d}</span>
                 </div>
               </div>
             </Card>
