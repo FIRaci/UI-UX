@@ -110,6 +110,22 @@ export function ConsultantDashboard({ onLogout }: { onLogout: () => void }) {
     if (!activeChatId && sessions[0]) setActiveChatId(sessions[0].id);
   }, [sessions, activeChatId]);
 
+  useEffect(() => {
+    const handleNavigate = (e: Event) => {
+      const raw = (e as CustomEvent<string>).detail;
+      if (!raw) return;
+      let view = raw;
+      try { const p = JSON.parse(raw); if (p.view) view = p.view; } catch {}
+      const map: Record<string, string> = {
+        search: "find", appointments: "chats", overview: "overview",
+        find: "find", chats: "chats", library: "library",
+      };
+      if (map[view]) setActive(map[view]);
+    };
+    window.addEventListener("app:navigate", handleNavigate);
+    return () => window.removeEventListener("app:navigate", handleNavigate);
+  }, []);
+
   const [input, setInput] = useState("");
   const [requesting, setRequesting] = useState<typeof EXPERTS[0] | null>(null);
   const [topicFilter, setTopicFilter] = useState("all");

@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 import { Card } from "./ui/card";
-import { Bot, X, Send, Sparkles, AlertTriangle, Calendar, Search } from "lucide-react";
+import { Bot, X, Send, Sparkles, AlertTriangle, Calendar, Search, Users, FileText, MessagesSquare, LayoutDashboard, BookOpen, BarChart3, Bell, Briefcase, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { store } from "../store";
 
@@ -32,6 +32,8 @@ export function Chatbot({ role }: { role: string }) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { from: "bot", text: "Xin chào! Tôi là trợ lý chuyên gia AI MediCare. Tôi có thể phân tích triệu chứng và giúp bạn thao tác nhanh trên hệ thống. Bạn đang cảm thấy thế nào?" },
   ]);
@@ -42,14 +44,126 @@ export function Chatbot({ role }: { role: string }) {
     }
   }, [messages, open]);
 
+  const navigate = (detail: string) => {
+    window.dispatchEvent(new CustomEvent("app:navigate", { detail }));
+    setOpen(false);
+  };
+
   const processIntent = (t: string): Omit<Message, "from"> => {
     const text = t.toLowerCase();
-    
+
+    if (role === "bacsi") {
+      if (text.includes("lịch") || text.includes("khám")) {
+        return {
+          text: "Bạn có một lịch khám hôm nay. Hãy xem danh sách bệnh nhân và quản lý ca khám trực tiếp từ bảng điều khiển.",
+          actions: [
+            { label: "Lịch khám hôm nay", icon: <Calendar className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("schedule") },
+            { label: "Bệnh nhân chờ", icon: <LayoutDashboard className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("overview") },
+          ]
+        };
+      }
+      if (text.includes("bệnh nhân") || text.includes("hồ sơ")) {
+        return {
+          text: "Danh sách bệnh nhân đang chờ và hồ sơ y tế sẵn sàng để bạn tra cứu.",
+          actions: [
+            { label: "Danh sách bệnh nhân", icon: <Users className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("patients") },
+            { label: "Hồ sơ & đơn thuốc", icon: <FileText className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("records") },
+          ]
+        };
+      }
+      if (text.includes("tin nhắn") || text.includes("tư vấn")) {
+        return {
+          text: "Bạn có tin nhắn tư vấn từ bệnh nhân. Hãy kiểm tra và phản hồi.",
+          actions: [
+            { label: "Tin nhắn tư vấn", icon: <MessagesSquare className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("consult") },
+          ]
+        };
+      }
+    }
+
+    if (role === "chuyengia") {
+      if (text.includes("tài liệu") || text.includes("nghiên cứu") || text.includes("phác đồ")) {
+        return {
+          text: "Thư viện phác đồ SOP và tài liệu nghiên cứu y khoa đã sẵn sàng để tra cứu.",
+          actions: [
+            { label: "So khớp phác đồ (SOP)", icon: <BookOpen className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("knowledge") },
+            { label: "Phân tích lâm sàng", icon: <LayoutDashboard className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("analytics") },
+          ]
+        };
+      }
+      if (text.includes("hội chẩn") || text.includes("cấp cứu")) {
+        return {
+          text: "Có ca cấp cứu đang chờ hội chẩn. Hãy vào phòng hội chẩn khẩn cấp ngay.",
+          actions: [
+            { variant: "destructive", label: "Hội chẩn cấp cứu", icon: <AlertTriangle className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("emergency") },
+          ]
+        };
+      }
+      if (text.includes("ai") || text.includes("kịch bản")) {
+        return {
+          text: "Bạn có thể quản lý các kịch bản AI và luồng tư vấn tự động cho chatbot.",
+          actions: [
+            { label: "Quản lý kịch bản AI", icon: <Bot className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("aimgmt") },
+          ]
+        };
+      }
+    }
+
+    if (role === "tuvan") {
+      if (text.includes("tư vấn") || text.includes("tâm lý") || text.includes("chuyên gia")) {
+        return {
+          text: "Bạn có thể tìm chuyên gia phù hợp và bắt đầu cuộc tư vấn ngay.",
+          actions: [
+            { label: "Tìm chuyên gia", icon: <Search className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("find") },
+            { label: "Cuộc tư vấn của tôi", icon: <MessagesSquare className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("chats") },
+          ]
+        };
+      }
+      if (text.includes("dinh dưỡng") || text.includes("tài liệu") || text.includes("kiến thức")) {
+        return {
+          text: "Thư viện kiến thức sức khỏe với nhiều bài viết chuyên sâu từ các chuyên gia.",
+          actions: [
+            { label: "Thư viện kiến thức", icon: <BookOpen className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("library") },
+          ]
+        };
+      }
+    }
+
+    if (role === "quanly") {
+      if (text.includes("doanh thu") || text.includes("báo cáo") || text.includes("thống kê")) {
+        return {
+          text: "Báo cáo doanh thu và thống kê vận hành phòng khám sẵn sàng để xem.",
+          actions: [
+            { label: "Báo cáo & thống kê", icon: <BarChart3 className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("reports") },
+            { label: "Tổng quan", icon: <LayoutDashboard className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("overview") },
+          ]
+        };
+      }
+      if (text.includes("lịch") || text.includes("khám")) {
+        return {
+          text: "Lịch khám hệ thống và quản lý bệnh nhân đang sẵn sàng.",
+          actions: [
+            { label: "Lịch khám hệ thống", icon: <Calendar className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("schedule") },
+            { label: "Quản lý bệnh nhân", icon: <Users className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("patients") },
+          ]
+        };
+      }
+      if (text.includes("thông báo") || text.includes("nhân sự")) {
+        return {
+          text: "Thông báo hệ thống và quản lý nhân sự đang chờ xử lý.",
+          actions: [
+            { label: "Thông báo", icon: <Bell className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("notify") },
+            { label: "Lịch làm việc BS", icon: <Briefcase className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("doctors") },
+          ]
+        };
+      }
+    }
+
     if (text.includes("đau đầu") || text.includes("chóng mặt") || text.includes("đau lưng")) {
       return {
         text: "Dựa trên hồ sơ của bạn và dữ liệu y khoa, triệu chứng này có thể do căng thẳng hoặc thay đổi huyết áp. Tuy nhiên, AI không thể thay thế chẩn đoán y khoa. Hãy đặt lịch khám ngay với bác sĩ chuyên khoa để được tư vấn chính xác nhất.",
         actions: [
-          { label: "Tìm bác sĩ", icon: <Search className="w-3.5 h-3.5 mr-1.5" />, onClick: () => { window.dispatchEvent(new CustomEvent("app:navigate", { detail: "search" })); setOpen(false); } }
+          { label: "Tìm bác sĩ", icon: <Search className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("search") }
         ]
       };
     }
@@ -59,12 +173,13 @@ export function Chatbot({ role }: { role: string }) {
         text: "⚠️ Hệ thống AI nhận thấy các từ khóa nguy cơ cao. Đây có thể là dấu hiệu cảnh báo khẩn cấp về tim mạch hoặc hô hấp. Tôi đã chuẩn bị sẵn lệnh gửi thông báo khẩn cấp đến bác sĩ phụ trách của bạn (BS. Nguyễn Văn An). Bạn có muốn gửi ngay không?",
         actions: [
           { variant: "destructive", label: "Gửi báo động cho Bác sĩ", icon: <AlertTriangle className="w-3.5 h-3.5 mr-1.5" />, onClick: () => {
-              store.addThread({
+              const id = store.addThread({
                 staffId: 2, staffName: "BS. Nguyễn Văn An", staffSpec: "Tim mạch",
                 userRole: "benhnhan", userName: "Nguyễn Minh Khoa", topic: "CẢNH BÁO SỨC KHỎE",
                 status: "Chờ phản hồi", last: "Bệnh nhân báo cáo: " + t,
                 msgs: [{ f: "user", txt: `Tôi cảm thấy không ổn: ${t}`, t: "Vừa xong" }]
               });
+              window.dispatchEvent(new CustomEvent("app:navigate", { detail: JSON.stringify({ view: "messages", threadId: id }) }));
               toast.error("Đã gửi cảnh báo khẩn cấp đến Bác sĩ phụ trách!");
               setOpen(false);
           }}
@@ -76,8 +191,8 @@ export function Chatbot({ role }: { role: string }) {
       return {
         text: "Bạn có thể quản lý lịch hẹn hiện tại hoặc đặt lịch hẹn mới tại các phòng khám của chúng tôi. Bạn muốn thực hiện thao tác nào?",
         actions: [
-          { label: "Lịch hẹn của tôi", icon: <Calendar className="w-3.5 h-3.5 mr-1.5" />, onClick: () => { window.dispatchEvent(new CustomEvent("app:navigate", { detail: "appointments" })); setOpen(false); } },
-          { label: "Đặt lịch mới", icon: <Search className="w-3.5 h-3.5 mr-1.5" />, onClick: () => { window.dispatchEvent(new CustomEvent("app:navigate", { detail: "search" })); setOpen(false); } }
+          { label: "Lịch hẹn của tôi", icon: <Calendar className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("appointments") },
+          { label: "Đặt lịch mới", icon: <Search className="w-3.5 h-3.5 mr-1.5" />, onClick: () => navigate("search") }
         ]
       };
     }
@@ -130,7 +245,10 @@ export function Chatbot({ role }: { role: string }) {
             </button>
           </div>
 
-          <ScrollArea className="flex-1 p-4 bg-slate-50/50">
+          <ScrollArea className="flex-1 p-4 bg-slate-50/50" ref={scrollAreaRef} onScroll={e => {
+            const el = e.currentTarget;
+            setShowScrollTop(el.scrollTop > 150);
+          }}>
             <div className="space-y-4">
               {messages.map((m, i) => (
                 <div key={i} className={`flex flex-col gap-2 ${m.from === "me" ? "items-end" : "items-start"}`}>
@@ -170,6 +288,14 @@ export function Chatbot({ role }: { role: string }) {
               ))}
               <div ref={scrollRef} />
             </div>
+            {showScrollTop && (
+              <button
+                onClick={() => scrollAreaRef.current?.scrollTo({ top: 0, behavior: "smooth" })}
+                className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white shadow-md border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-all z-10"
+              >
+                <ChevronUp className="w-4 h-4 text-slate-600" />
+              </button>
+            )}
           </ScrollArea>
 
           <div className="px-3 pb-2 pt-2 bg-white flex gap-1.5 flex-wrap border-t border-slate-100">

@@ -107,6 +107,21 @@ export const useStore = <T,>(selector: (s: State) => T): T => selector(useStoreS
 export const store = {
   // Threads
   addThread: (t: Omit<Thread, "id" | "updatedAt">) => {
+    const existing = state.threads.find(
+      th => th.staffId === t.staffId && th.userName === t.userName && th.userRole === t.userRole
+        && th.status !== "Đã kết thúc"
+    );
+    if (existing) {
+      setState(s => ({
+        ...s,
+        threads: s.threads.map(th =>
+          th.id === existing.id
+            ? { ...th, msgs: [...th.msgs, ...t.msgs], last: t.last, updatedAt: Date.now(), status: "Chờ phản hồi" as const }
+            : th
+        ),
+      }));
+      return existing.id;
+    }
     const id = Date.now();
     setState(s => ({ ...s, threads: [{ ...t, id, updatedAt: Date.now() }, ...s.threads] }));
     return id;

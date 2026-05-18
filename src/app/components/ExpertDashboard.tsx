@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertCircle, BookOpen, Bot, LayoutDashboard
 } from "lucide-react";
@@ -11,6 +11,22 @@ import { ExpertAIView } from "./ExpertAIView";
 export function ExpertDashboard({ onLogout }: { onLogout: () => void }) {
   const [activeView, setActiveView] = useState<"emergency" | "knowledge" | "aimgmt" | "analytics">("analytics");
   const [selectedPatient, setSelectedPatient] = useState("James Harrington");
+
+  useEffect(() => {
+    const handleNavigate = (e: Event) => {
+      const raw = (e as CustomEvent<string>).detail;
+      if (!raw) return;
+      let view = raw;
+      try { const p = JSON.parse(raw); if (p.view) view = p.view; } catch {}
+      const validViews: Record<string, "emergency" | "knowledge" | "aimgmt" | "analytics"> = {
+        analytics: "analytics", emergency: "emergency", knowledge: "knowledge",
+        aimgmt: "aimgmt",
+      };
+      if (validViews[view]) setActiveView(validViews[view]);
+    };
+    window.addEventListener("app:navigate", handleNavigate);
+    return () => window.removeEventListener("app:navigate", handleNavigate);
+  }, []);
 
   const navItems = [
     { key: "analytics", label: "Phân tích lâm sàng", icon: LayoutDashboard },

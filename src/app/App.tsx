@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Toaster } from "./components/ui/sonner";
 import { LoginScreen, type Role } from "./components/LoginScreen";
-import { PatientDashboard } from "./components/PatientDashboard";
-import { DoctorDashboard } from "./components/DoctorDashboard";
-import { ExpertDashboard } from "./components/ExpertDashboard";
-import { ConsultantDashboard } from "./components/ConsultantDashboard";
-import { AdminDashboard } from "./components/AdminDashboard";
 import { Chatbot } from "./components/Chatbot";
 import { SEO } from "./components/SEO";
+
+const PatientDashboard = lazy(() => import("./components/PatientDashboard").then(m => ({ default: m.PatientDashboard })));
+const DoctorDashboard = lazy(() => import("./components/DoctorDashboard").then(m => ({ default: m.DoctorDashboard })));
+const ExpertDashboard = lazy(() => import("./components/ExpertDashboard").then(m => ({ default: m.ExpertDashboard })));
+const ConsultantDashboard = lazy(() => import("./components/ConsultantDashboard").then(m => ({ default: m.ConsultantDashboard })));
+const AdminDashboard = lazy(() => import("./components/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
 
 const ROLE_SEO: Record<string, { title: string; description: string }> = {
   benhnhan: {
@@ -41,11 +42,13 @@ export default function App() {
     <div className="size-full min-h-screen bg-slate-50">
       <SEO {...(role ? ROLE_SEO[role] : {})} />
       {!role && <LoginScreen onLogin={setRole} />}
-      {role === "benhnhan" && <PatientDashboard onLogout={handleLogout} />}
-      {role === "bacsi" && <DoctorDashboard onLogout={handleLogout} />}
-      {role === "chuyengia" && <ExpertDashboard onLogout={handleLogout} />}
-      {role === "tuvan" && <ConsultantDashboard onLogout={handleLogout} />}
-      {role === "quanly" && <AdminDashboard onLogout={handleLogout} />}
+      <Suspense fallback={<div className="size-full flex items-center justify-center text-slate-400 text-sm">Đang tải...</div>}>
+        {role === "benhnhan" && <PatientDashboard onLogout={handleLogout} />}
+        {role === "bacsi" && <DoctorDashboard onLogout={handleLogout} />}
+        {role === "chuyengia" && <ExpertDashboard onLogout={handleLogout} />}
+        {role === "tuvan" && <ConsultantDashboard onLogout={handleLogout} />}
+        {role === "quanly" && <AdminDashboard onLogout={handleLogout} />}
+      </Suspense>
       {role && <Chatbot role={role} />}
       <Toaster position="top-right" richColors />
     </div>

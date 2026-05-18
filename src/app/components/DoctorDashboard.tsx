@@ -84,6 +84,23 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
     { p: "Lê Văn Tú", d: "2026-05-02", t: "Đơn thuốc tái khám", m: "Bisoprolol 2.5mg • Aspirin 81mg" },
   ]);
   useEffect(() => { if (!activeThreadId && threads[0]) setActiveThreadId(threads[0].id); }, [threads, activeThreadId]);
+
+  useEffect(() => {
+    const handleNavigate = (e: Event) => {
+      const raw = (e as CustomEvent<string>).detail;
+      if (!raw) return;
+      let view = raw;
+      try { const p = JSON.parse(raw); if (p.view) view = p.view; } catch {}
+      const map: Record<string, string> = {
+        search: "schedule", appointments: "schedule", overview: "overview",
+        patients: "patients", records: "records", consult: "consult", schedule: "schedule",
+      };
+      if (map[view]) setActive(map[view]);
+    };
+    window.addEventListener("app:navigate", handleNavigate);
+    return () => window.removeEventListener("app:navigate", handleNavigate);
+  }, []);
+
   const activeThread = threads.find(t => t.id === activeThreadId) ?? null;
 
   const sendReply = () => {

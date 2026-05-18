@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "./AppShell";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
@@ -38,6 +38,23 @@ type Schedule = { id: number; doctor: string; date: string; time: string; clinic
 
 export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState("overview");
+
+  useEffect(() => {
+    const handleNavigate = (e: Event) => {
+      const raw = (e as CustomEvent<string>).detail;
+      if (!raw) return;
+      let view = raw;
+      try { const p = JSON.parse(raw); if (p.view) view = p.view; } catch {}
+      const map: Record<string, string> = {
+        search: "patients", appointments: "schedule", overview: "overview",
+        patients: "patients", reports: "reports", schedule: "schedule",
+        notify: "notify", doctors: "doctors",
+      };
+      if (map[view]) setActive(map[view]);
+    };
+    window.addEventListener("app:navigate", handleNavigate);
+    return () => window.removeEventListener("app:navigate", handleNavigate);
+  }, []);
 
   // Flow 1: Patients
   const [patients, setPatients] = useState<Patient[]>([

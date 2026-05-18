@@ -60,9 +60,13 @@ export function PatientDashboard({ onLogout }: { onLogout: () => void }) {
 
   useEffect(() => {
     const handleNavigate = (e: Event) => {
-      const customEvent = e as CustomEvent<string>;
-      if (customEvent.detail) {
-        setActive(customEvent.detail);
+      const raw = (e as CustomEvent<string>).detail;
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed.view) { setActive(parsed.view); if (parsed.threadId) setActiveThreadId(parsed.threadId); }
+      } catch {
+        setActive(raw);
       }
     };
     window.addEventListener("app:navigate", handleNavigate);
