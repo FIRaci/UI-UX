@@ -10,7 +10,7 @@ import { ExpertAIView } from "./ExpertAIView";
 
 export function ExpertDashboard({ onLogout }: { onLogout: () => void }) {
   const [activeView, setActiveView] = useState<"emergency" | "knowledge" | "aimgmt" | "analytics">("analytics");
-  const [selectedPatient, setSelectedPatient] = useState("James Harrington");
+  const [selectedPatient, setSelectedPatient] = useState("all");
 
   useEffect(() => {
     const handleNavigate = (e: Event) => {

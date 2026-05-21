@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
-  BookOpen, Search, ArrowRight, ShieldCheck,
-  Edit, CornerDownRight, Check, X, AlertCircle, Save, Reply,
+  BookOpen, Search, ShieldCheck, Check, X, AlertCircle, Save, Reply, FileText, User
 } from "lucide-react";
 import { C, Card, Badge, Btn } from "./ExpertDashboardShared";
 import { toast } from "sonner";
@@ -14,135 +13,331 @@ interface CompareItem {
   status: "match" | "differ" | "partial";
 }
 
+interface Protocol {
+  id: string;
+  name: string;
+  patient: string;
+  doctor: string;
+  status: "pending" | "approved" | "rejected";
+  checklist: CompareItem[];
+  comments: string;
+}
+
 export function ExpertKnowledgeView() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [comments, setComments] = useState("Vui lòng tăng liều nạp Ticagrelor lên 180mg và ưu tiên can thiệp mạch vành dưới 90 phút để đảm bảo an toàn tối đa cho bệnh nhân.");
-  
-  const [checklist, setChecklist] = useState<CompareItem[]>([
-    { id: 1, label: "Liều nạp Ticagrelor", proposed: "90mg ngậm", reference: "180mg ngậm", status: "differ" },
-    { id: 2, label: "Liều tải Heparin", proposed: "5.000 IU (Bolus tĩnh mạch)", reference: "5.000 IU (Bolus tĩnh mạch)", status: "match" },
-    { id: 3, label: "Thời gian can thiệp mạch vành (PCI)", proposed: "Trong vòng 120 phút", reference: "Trong vòng 90 phút", status: "partial" },
-    { id: 4, label: "Liều nạp Aspirin", proposed: "300mg ngậm", reference: "325mg ngậm", status: "match" },
-    { id: 5, label: "Theo dõi sinh hiệu sau can thiệp", proposed: "Mỗi 15 phút trong 1 giờ đầu", reference: "Mỗi 15 phút trong 1 giờ đầu", status: "match" },
+  const [selectedProtocolId, setSelectedProtocolId] = useState("stemi");
+
+  const [protocols, setProtocols] = useState<Protocol[]>([
+    {
+      id: "stemi",
+      name: "Phác đồ Nhồi máu cơ tim cấp",
+      patient: "James Harrington (STEMI)",
+      doctor: "Bs. Nguyễn Tiến Dũng",
+      status: "pending",
+      comments: "Vui lòng tăng liều nạp Ticagrelor lên 180mg và ưu tiên can thiệp mạch vành dưới 90 phút để đảm bảo an toàn tối đa cho bệnh nhân.",
+      checklist: [
+        { id: 1, label: "Liều nạp Ticagrelor", proposed: "90mg ngậm", reference: "180mg ngậm", status: "differ" },
+        { id: 2, label: "Liều tải Heparin", proposed: "5.000 IU (Bolus tĩnh mạch)", reference: "5.000 IU (Bolus tĩnh mạch)", status: "match" },
+        { id: 3, label: "Thời gian can thiệp mạch vành (PCI)", proposed: "Trong vòng 120 phút", reference: "Trong vòng 90 phút", status: "partial" },
+        { id: 4, label: "Liều nạp Aspirin", proposed: "300mg ngậm", reference: "325mg ngậm", status: "match" },
+        { id: 5, label: "Theo dõi sinh hiệu sau can thiệp", proposed: "Mỗi 15 phút trong 1 giờ đầu", reference: "Mỗi 15 phút trong 1 giờ đầu", status: "match" },
+      ]
+    },
+    {
+      id: "sepsis",
+      name: "Phác đồ Nhiễm khuẩn huyết nặng",
+      patient: "Nguyễn Văn Hải (Sepsis)",
+      doctor: "Bs. Lê Hoàng Nam",
+      status: "pending",
+      comments: "Cần đổi kháng sinh sang Meropenem + Vancomycin do bệnh nhân có dấu hiệu sốc nhiễm khuẩn nặng và tiền sử kháng thuốc cephalosporin thế hệ 3.",
+      checklist: [
+        { id: 1, label: "Kháng sinh phổ rộng ban đầu", proposed: "Ceftriaxone 2g IV", reference: "Meropenem 1g IV + Vancomycin 1g IV", status: "differ" },
+        { id: 2, label: "Bù dịch tĩnh mạch", proposed: "30 mL/kg dịch truyền tinh thể", reference: "30 mL/kg dịch truyền tinh thể", status: "match" },
+        { id: 3, label: "Thời gian dùng kháng sinh", proposed: "Trong vòng 3 giờ đầu", reference: "Trong vòng 1 giờ đầu tiên", status: "differ" },
+        { id: 4, label: "Kiểm soát huyết áp (Vận mạch)", proposed: "Noradrenaline duy trì MAP >= 65 mmHg", reference: "Noradrenaline duy trì MAP >= 65 mmHg", status: "match" },
+      ]
+    },
+    {
+      id: "stroke",
+      name: "Phác đồ Đột quỵ thiếu máu não cấp",
+      patient: "Trần Văn Hùng (Stroke)",
+      doctor: "Bs. Đỗ Minh Trí",
+      status: "pending",
+      comments: "Đã quá cửa sổ thời gian 4.5 giờ để dùng rtPA thông thường. Đề nghị hội chẩn can thiệp lấy huyết khối bằng dụng cụ cơ học khẩn cấp.",
+      checklist: [
+        { id: 1, label: "Thuốc tiêu sợi huyết (rtPA)", proposed: "Alteplase 0.6 mg/kg", reference: "Alteplase 0.9 mg/kg (Tối đa 90mg)", status: "differ" },
+        { id: 2, label: "Thời điểm dùng rtPA", proposed: "Giờ thứ 5 từ khi khởi phát", reference: "Trong vòng 4.5 giờ từ khi khởi phát", status: "differ" },
+        { id: 3, label: "Kiểm soát huyết áp trước rtPA", proposed: "Huyết áp 190/110 mmHg", reference: "Duy trì huyết áp < 185/110 mmHg", status: "partial" },
+        { id: 4, label: "Chụp CT/MRI sọ não", proposed: "Đã hoàn thành trong 20 phút", reference: "Thực hiện ngay khi nhập viện (< 25 phút)", status: "match" },
+      ]
+    },
+    {
+      id: "copd",
+      name: "Phác đồ Đợt cấp COPD",
+      patient: "Lê Văn Cường (COPD)",
+      doctor: "Bs. Phạm Thu Thảo",
+      status: "pending",
+      comments: "Liệu pháp thở oxy và corticoid đã tối ưu. Theo dõi sát khí máu động mạch sau 2 giờ.",
+      checklist: [
+        { id: 1, label: "Liệu pháp Oxy dòng cao", proposed: "Thở oxy gọng kính 2 L/phút", reference: "Duy trì SpO2 từ 88% - 92%", status: "match" },
+        { id: 2, label: "Thuốc giãn phế quản (SABA/SAMA)", proposed: "Khí dung Salbutamol + Ipratropium", reference: "Khí dung Salbutamol + Ipratropium mỗi 4-6 giờ", status: "match" },
+        { id: 3, label: "Corticosteroid đường toàn thân", proposed: "Methylprednisolone 40mg IV", reference: "Methylprednisolone 40mg IV mỗi 24 giờ", status: "match" },
+        { id: 4, label: "Chỉ định dùng Kháng sinh", proposed: "Không dùng kháng sinh", reference: "Chỉ dùng khi có ít nhất 2 triệu chứng tăng nặng hoặc đờm mủ", status: "match" },
+      ]
+    }
   ]);
 
-  const toggleStatus = (id: number) => {
-    setChecklist(prev => prev.map(item => {
-      if (item.id === id) {
-        const order: ("match" | "differ" | "partial")[] = ["match", "differ", "partial"];
-        const nextIdx = (order.indexOf(item.status) + 1) % order.length;
-        const nextStatus = order[nextIdx];
-        toast.info(`Thay đổi đánh giá "${item.label}" sang: ${nextStatus === "match" ? "Khớp" : nextStatus === "differ" ? "Mâu thuẫn" : "Khớp một phần"}`);
-        return { ...item, status: nextStatus };
+  const selectedProtocol = protocols.find(p => p.id === selectedProtocolId) || protocols[0];
+
+  const handleUpdateComment = (val: string) => {
+    setProtocols(prev => prev.map(p => {
+      if (p.id === selectedProtocolId) {
+        return { ...p, comments: val };
       }
-      return item;
+      return p;
+    }));
+  };
+
+  const toggleStatus = (itemId: number) => {
+    setProtocols(prev => prev.map(p => {
+      if (p.id === selectedProtocolId) {
+        const updatedChecklist = p.checklist.map(item => {
+          if (item.id === itemId) {
+            const order: ("match" | "differ" | "partial")[] = ["match", "differ", "partial"];
+            const nextIdx = (order.indexOf(item.status) + 1) % order.length;
+            const nextStatus = order[nextIdx];
+            toast.info(`Thay đổi đánh giá "${item.label}" sang: ${nextStatus === "match" ? "Khớp" : nextStatus === "differ" ? "Mâu thuẫn" : "Khớp một phần"}`);
+            return { ...item, status: nextStatus };
+          }
+          return item;
+        });
+        return { ...p, checklist: updatedChecklist };
+      }
+      return p;
     }));
   };
 
   const handleApproveSync = () => {
+    setProtocols(prev => prev.map(p => {
+      if (p.id === selectedProtocolId) {
+        return { ...p, status: "approved" };
+      }
+      return p;
+    }));
     toast.success("PHÊ DUYỆT & ĐỒNG BỘ THÀNH CÔNG!", {
-      description: "Phác đồ đã được đồng bộ với hệ thống bệnh án điện tử EHR và cập nhật hồ sơ điều trị.",
+      description: `Phác đồ "${selectedProtocol.name}" đã được đồng bộ với hệ thống bệnh án điện tử EHR.`,
       duration: 4000,
     });
   };
 
   const handleReject = () => {
-    toast.error("ĐÃ TỪ CHỐI VÀ GỬI PHẢN HỒI!", {
-      description: "Đề xuất đã được trả về cho bác sĩ điều trị để điều chỉnh liều lượng và thời gian can thiệp.",
+    setProtocols(prev => prev.map(p => {
+      if (p.id === selectedProtocolId) {
+        return { ...p, status: "rejected" };
+      }
+      return p;
+    }));
+    toast.error("ĐÃ TỪ CHỐI VÀ YÊU CẦU ĐIỀU CHỈNH!", {
+      description: `Đề xuất đã được gửi trả về cho ${selectedProtocol.doctor} chỉnh sửa lại.`,
       duration: 4000,
     });
   };
 
+  const filteredProtocols = protocols.filter(p =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.patient.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.doctor.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+    <div style={{ flex: 1, display: "flex", height: "100%", overflow: "hidden", backgroundColor: C.bgPage }}>
       
-      {/* Top Search SOPs bar */}
+      {/* LEFT SIDEBAR: Protocol Queue List */}
       <div style={{
-        padding: "12px 20px", backgroundColor: C.bgCard, borderBottom: `1px solid ${C.border}`,
-        display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0
+        width: 320,
+        backgroundColor: C.bgCard,
+        borderRight: `1px solid ${C.border}`,
+        display: "flex",
+        flexDirection: "column",
+        flexShrink: 0
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, maxWidth: 600 }}>
-          <div style={{ position: "relative", width: "100%" }}>
+        {/* Search header */}
+        <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ fontFamily: C.font, fontSize: 13, fontWeight: 700, color: C.text1, marginBottom: 12 }}>
+            HÀNG ĐỢI SO KHỚP PHÁC ĐỒ
+          </div>
+          <div style={{ position: "relative" }}>
             <input
               type="text"
-              placeholder="Tìm kiếm phác đồ, hướng dẫn điều trị SOP, tài liệu khoa học chuẩn..."
+              placeholder="Tìm kiếm phác đồ, bác sĩ, bệnh nhân..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               style={{
                 width: "100%", height: 36, paddingLeft: 34, paddingRight: 12,
                 border: `1.5px solid ${C.border}`, borderRadius: 8,
-                fontSize: 12, fontFamily: C.font, color: C.text2,
+                fontSize: 11, fontFamily: C.font, color: C.text2,
                 backgroundColor: C.bgMuted, outline: "none",
               }}
             />
-            <Search size={14} color={C.text3} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+            <Search size={13} color={C.text3} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 8 }}>
-          <Btn variant="outline" size="sm" onClick={() => toast.info("Xem hàng đợi 4 phác đồ đang chờ duyệt")}>Hàng đợi duyệt (4)</Btn>
-          <Btn variant="primary" size="sm" onClick={() => toast.info("Mở kho tài liệu SOP chuẩn của bệnh viện")}>Kho SOP chuẩn</Btn>
+        {/* List items */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "12px 12px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {filteredProtocols.map(p => {
+              const isSelected = p.id === selectedProtocolId;
+              const matchesCount = p.checklist.filter(i => i.status === "match").length;
+              const differsCount = p.checklist.filter(i => i.status === "differ").length;
+              const partialCount = p.checklist.filter(i => i.status === "partial").length;
+              
+              let statusText = "Chờ duyệt";
+              let statusVar: "default" | "success" | "critical" = "default";
+              if (p.status === "approved") {
+                statusText = "Đã duyệt";
+                statusVar = "success";
+              } else if (p.status === "rejected") {
+                statusText = "Đã trả về";
+                statusVar = "critical";
+              }
+
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => setSelectedProtocolId(p.id)}
+                  style={{
+                    padding: "12px 14px",
+                    borderRadius: 10,
+                    border: `1.5px solid ${isSelected ? C.primary : C.border}`,
+                    backgroundColor: isSelected ? C.primaryLight : "#fff",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    boxShadow: isSelected ? C.shadowHover : "none",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 6 }}>
+                    <span style={{
+                      fontFamily: C.font,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: isSelected ? C.primaryDark : C.text1,
+                      lineHeight: 1.3
+                    }}>
+                      {p.name.replace("Phác đồ ", "")}
+                    </span>
+                    <Badge variant={statusVar} style={{ fontSize: 9, padding: "1px 5px" }}>{statusText}</Badge>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8, color: C.text2, fontSize: 11 }}>
+                    <User size={11} color={C.text3} />
+                    <span>{p.patient}</span>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, color: C.text3, fontSize: 10 }}>
+                    <FileText size={11} />
+                    <span>{p.doctor}</span>
+                  </div>
+
+                  {/* Summary match badges */}
+                  <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+                    {matchesCount > 0 && (
+                      <span style={{ fontSize: 9, color: C.successDark, backgroundColor: C.successLight, padding: "2px 6px", borderRadius: 4, fontWeight: 600 }}>
+                        {matchesCount} Khớp
+                      </span>
+                    )}
+                    {differsCount > 0 && (
+                      <span style={{ fontSize: 9, color: C.criticalDark, backgroundColor: C.criticalLight, padding: "2px 6px", borderRadius: 4, fontWeight: 600 }}>
+                        {differsCount} Lệch
+                      </span>
+                    )}
+                    {partialCount > 0 && (
+                      <span style={{ fontSize: 9, color: C.warningDark, backgroundColor: C.warningLight, padding: "2px 6px", borderRadius: 4, fontWeight: 600 }}>
+                        {partialCount} Lệch nhẹ
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {filteredProtocols.length === 0 && (
+              <div style={{ textAlign: "center", color: C.text3, fontSize: 11, padding: "24px 0" }}>
+                Không tìm thấy phác đồ phù hợp
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Main Review Workspace */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 16, gap: 16, minHeight: 0, overflow: "hidden" }}>
+      {/* RIGHT WORKSPACE: Comparison details & Action */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, height: "100%", overflow: "hidden" }}>
         
         {/* Title / Meta Block */}
         <div style={{
-          padding: "12px 16px", backgroundColor: C.bgCard, borderRadius: 12,
-          border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0
+          padding: "16px 24px",
+          backgroundColor: C.bgCard,
+          borderBottom: `1px solid ${C.border}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexShrink: 0
         }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontFamily: C.font, fontSize: 14, fontWeight: 700, color: C.text1 }}>ĐÁNH GIÁ SỰ PHÙ HỢP CỦA PHÁC ĐỒ</span>
-              <Badge variant="blue">Phác đồ Nhồi máu cơ tim cấp</Badge>
+              <span style={{ fontFamily: C.font, fontSize: 15, fontWeight: 700, color: C.text1 }}>ĐÁNH GIÁ SỰ PHÙ HỢP CỦA PHÁC ĐỒ</span>
+              <Badge variant="blue">{selectedProtocol.name}</Badge>
             </div>
-            <div style={{ fontFamily: C.font, fontSize: 11, color: C.text3, marginTop: 4 }}>
-              Được soạn thảo bởi: <b>Bs. Nguyễn Tiến Dũng</b> (Bác sĩ nội trú) • Ca lâm sàng: <b>James Harrington (STEMI)</b>
+            <div style={{ fontFamily: C.font, fontSize: 11, color: C.text2, marginTop: 6, display: "flex", gap: 14 }}>
+              <span>Bác sĩ điều trị: <b style={{ color: C.text1 }}>{selectedProtocol.doctor}</b></span>
+              <span style={{ color: C.borderDark }}>|</span>
+              <span>Ca bệnh: <b style={{ color: C.text1 }}>{selectedProtocol.patient}</b></span>
             </div>
           </div>
           
-          <div style={{ display: "flex", gap: 8 }}>
-            <Btn variant="outline" size="sm" onClick={handleReject} style={{ borderColor: C.criticalBorder, color: C.critical }}>
-              <Reply size={13} /> Trả về & Yêu cầu sửa
-            </Btn>
-            <Btn variant="success" size="sm" onClick={handleApproveSync}>
-              <ShieldCheck size={13} /> Duyệt & Đồng bộ ngay
-            </Btn>
+          <div style={{ display: "flex", gap: 10 }}>
+            {selectedProtocol.status === "approved" && (
+              <Badge variant="success" style={{ fontSize: 12, padding: "6px 12px" }}>✓ Đã duyệt & Đồng bộ EHR</Badge>
+            )}
+            {selectedProtocol.status === "rejected" && (
+              <Badge variant="critical" style={{ fontSize: 12, padding: "6px 12px" }}>✗ Đã yêu cầu chỉnh sửa</Badge>
+            )}
+            {selectedProtocol.status === "pending" && (
+              <Badge variant="default" style={{ fontSize: 12, padding: "6px 12px" }}>● Đang chờ thẩm định</Badge>
+            )}
           </div>
         </div>
 
-        {/* Comparison Layout Grid */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflowY: "auto", gap: 12 }}>
+        {/* Scrollable details list */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
           
           {/* Header of columns */}
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 80px 1.2fr", gap: 12, padding: "0 8px", flexShrink: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: C.text2, fontFamily: C.font }}>ĐỀ XUẤT ĐIỀU TRỊ CỦA BÁC SĨ</div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: C.text2, fontFamily: C.font, textAlign: "center" }}>SO KHỚP</div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: C.text2, fontFamily: C.font }}>TIÊU CHUẨN SOP KHUYẾN NGHỊ (AI DETECTED)</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 70px 1fr", gap: 16, padding: "0 8px", flexShrink: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: C.text3, fontFamily: C.font, letterSpacing: "0.05em" }}>ĐỀ XUẤT ĐIỀU TRỊ CỦA BÁC SĨ</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: C.text3, fontFamily: C.font, textAlign: "center", letterSpacing: "0.05em" }}>SO KHỚP</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: C.text3, fontFamily: C.font, letterSpacing: "0.05em" }}>TIÊU CHUẨN SOP KHUYẾN NGHỊ</div>
           </div>
 
           {/* Rows */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {checklist.map(item => {
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {selectedProtocol.checklist.map(item => {
               const bg = item.status === "match" ? C.successLight : item.status === "differ" ? C.criticalLight : C.warningLight;
               const text = item.status === "match" ? C.successDark : item.status === "differ" ? C.criticalDark : C.warningDark;
               const border = item.status === "match" ? C.successBorder : item.status === "differ" ? C.criticalBorder : C.warningBorder;
               const IconComp = item.status === "match" ? Check : item.status === "differ" ? X : AlertCircle;
 
               return (
-                <div key={item.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 80px 1.2fr", gap: 12, alignItems: "stretch" }}>
+                <div key={item.id} style={{ display: "grid", gridTemplateColumns: "1fr 70px 1fr", gap: 16, alignItems: "stretch" }}>
                   
                   {/* Left Column: Proposed */}
-                  <div className="hover-lift" style={{
-                    padding: 12, borderRadius: 10, backgroundColor: "#fff",
-                    border: `1px solid ${item.status === "differ" ? C.criticalBorder : C.border}`,
+                  <div style={{
+                    padding: "12px 16px", borderRadius: 10, backgroundColor: "#fff",
+                    border: `1.5px solid ${item.status === "differ" ? C.criticalBorder : C.border}`,
                     display: "flex", flexDirection: "column", justifyContent: "center",
-                    transition: "all 0.25s"
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.01)"
                   }}>
-                    <span style={{ fontSize: 10, color: C.text3, fontWeight: 600 }}>{item.label}</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: C.text1, marginTop: 4 }}>{item.proposed}</span>
+                    <span style={{ fontSize: 10, color: C.text3, fontWeight: 600, textTransform: "uppercase" }}>{item.label}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: C.text1, marginTop: 4 }}>{item.proposed}</span>
                   </div>
 
                   {/* Middle Column: Status trigger */}
@@ -150,11 +345,12 @@ export function ExpertKnowledgeView() {
                     <button
                       onClick={() => toggleStatus(item.id)}
                       className="interactive-node"
+                      title="Click để thay đổi nhanh đánh giá so khớp"
                       style={{
-                        width: 38, height: 38, borderRadius: 10, border: `1px solid ${border}`,
+                        width: 36, height: 36, borderRadius: 10, border: `1px solid ${border}`,
                         backgroundColor: bg, color: text, cursor: "pointer",
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        boxShadow: "0 2px 5px rgba(0,0,0,0.03)", transition: "all 0.25s"
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.03)"
                       }}
                     >
                       <IconComp size={16} strokeWidth={2.5} />
@@ -162,14 +358,14 @@ export function ExpertKnowledgeView() {
                   </div>
 
                   {/* Right Column: Reference */}
-                  <div className="hover-lift" style={{
-                    padding: 12, borderRadius: 10, backgroundColor: "#fff",
-                    border: `1px solid ${C.border}`,
+                  <div style={{
+                    padding: "12px 16px", borderRadius: 10, backgroundColor: "#fff",
+                    border: `1.5px solid ${C.border}`,
                     display: "flex", flexDirection: "column", justifyContent: "center",
-                    transition: "all 0.25s"
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.01)"
                   }}>
-                    <span style={{ fontSize: 10, color: C.primary, fontWeight: 600 }}>SOP Chuẩn Y văn</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: C.text1, marginTop: 4 }}>{item.reference}</span>
+                    <span style={{ fontSize: 10, color: C.primary, fontWeight: 600, textTransform: "uppercase" }}>SOP Chuẩn Y văn</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: C.text1, marginTop: 4 }}>{item.reference}</span>
                   </div>
 
                 </div>
@@ -177,52 +373,52 @@ export function ExpertKnowledgeView() {
             })}
           </div>
 
-          {/* Consultant Comments Block */}
-          <Card className="hover-lift" style={{ padding: 14, marginTop: 8, backgroundColor: C.bgMuted, flexShrink: 0, transition: "all 0.25s" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, borderBottom: `1px solid ${C.border}`, paddingBottom: 6, marginBottom: 10 }}>
-              <Edit size={14} color={C.primary} />
-              <span style={{ fontFamily: C.font, fontSize: 12, fontWeight: 700, color: C.text1 }}>Ý kiến đóng góp & Phản hồi của Chuyên gia</span>
+          {/* Consultant Comments Block - SIMPLIFIED */}
+          <Card style={{ padding: 18, marginTop: 6, backgroundColor: "#fff", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+              <span style={{ fontFamily: C.font, fontSize: 12, fontWeight: 700, color: C.text1 }}>
+                Ý KIẾN ĐÓNG GÓP & YÊU CẦU ĐIỀU CHỈNH
+              </span>
             </div>
 
-            {/* Simulated Rich Editor Toolbar */}
-            <div style={{
-              display: "flex", gap: 4, padding: "4px 8px", backgroundColor: "#fff",
-              border: `1px solid ${C.border}`, borderBottom: "none", borderRadius: "8px 8px 0 0",
-              alignItems: "center"
-            }}>
-              {["B", "I", "U", "H1", "H2", "• List", "Link"].map(tool => (
-                <button key={tool} onClick={() => toast.info(`Đã kích hoạt định dạng: ${tool}`)} style={{
-                  padding: "3px 8px", borderRadius: 4, border: "none", backgroundColor: "transparent",
-                  fontSize: 10, fontWeight: 600, color: C.text2, cursor: "pointer"
-                }} onMouseEnter={e => e.currentTarget.style.backgroundColor = C.bgSection} onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}>
-                  {tool}
-                </button>
-              ))}
-            </div>
-
+            {/* Clean input for comments without rich text tools */}
             <textarea
               rows={3}
-              value={comments}
-              onChange={e => setComments(e.target.value)}
+              value={selectedProtocol.comments}
+              onChange={e => handleUpdateComment(e.target.value)}
+              placeholder="Nhập ý kiến chuyên môn của bạn ở đây để gửi cho bác sĩ điều trị..."
               style={{
                 width: "100%", padding: 12, fontSize: 12, fontFamily: C.font, color: C.text1,
-                border: `1px solid ${C.border}`, borderRadius: "0 0 8px 8px", resize: "none",
-                outline: "none", backgroundColor: "#fff", lineHeight: 1.5
+                border: `1.5px solid ${C.border}`, borderRadius: 8, resize: "none",
+                outline: "none", backgroundColor: C.bgMuted, lineHeight: 1.5,
+                transition: "border-color 0.2s",
               }}
+              onFocus={e => e.currentTarget.style.borderColor = C.primary}
+              onBlur={e => e.currentTarget.style.borderColor = C.border}
             />
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10 }}>
-              <Btn variant="outline" size="sm" onClick={handleReject} style={{ color: C.critical, borderColor: C.criticalBorder }}>
-                <Reply size={13} /> Gửi trả & Yêu cầu sửa đổi
+            {/* Consolidated Action Buttons */}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 14 }}>
+              <Btn
+                variant="outline"
+                size="sm"
+                onClick={handleReject}
+                style={{ color: C.critical, borderColor: C.criticalBorder }}
+              >
+                <Reply size={13} /> Gửi trả & Yêu cầu sửa
               </Btn>
-              <Btn variant="primary" size="sm" onClick={handleApproveSync}>
-                <Save size={13} /> Lưu, Ký số & Đồng bộ EHR
+              <Btn
+                variant="success"
+                size="sm"
+                onClick={handleApproveSync}
+              >
+                <ShieldCheck size={13} /> Duyệt & Đồng bộ ngay
               </Btn>
             </div>
           </Card>
 
-          {/* Bottom spacer to prevent overlap with floating chatbot button */}
-          <div style={{ height: 48, flexShrink: 0 }} />
+          {/* Bottom spacer to prevent overlap with chatbot */}
+          <div style={{ height: 32, flexShrink: 0 }} />
         </div>
 
       </div>

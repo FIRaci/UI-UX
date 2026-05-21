@@ -770,7 +770,7 @@ export function ExpertEmergencyView({
         <div style={{ display: "flex", flexDirection: "column", gap: 16, height: "100%", overflowY: "auto" }}>
           
           {/* Patient Vitals and ECG with Interactive Sliders */}
-          <Card className="hover-lift" style={{ padding: 14, transition: "all 0.25s" }}>
+          <Card className="hover-lift" style={{ padding: 14, transition: "all 0.25s", height: "auto", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 10 }}>
               <Activity size={14} color={C.critical} />
               <span style={{ fontFamily: C.font, fontSize: 12, fontWeight: 700, color: C.text1 }}>Sinh hiệu & Chỉ số sinh học</span>
@@ -906,7 +906,7 @@ export function ExpertEmergencyView({
           </Card>
 
           {/* Consultation Team */}
-          <Card className="hover-lift" style={{ padding: 14, transition: "all 0.25s" }}>
+          <Card className="hover-lift" style={{ padding: 14, transition: "all 0.25s", height: "auto", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 8 }}>
               <Users size={14} color={C.primary} />
               <span style={{ fontFamily: C.font, fontSize: 12, fontWeight: 700, color: C.text1 }}>Đoàn hội chẩn từ xa</span>
@@ -928,7 +928,7 @@ export function ExpertEmergencyView({
           </Card>
 
           {/* Medical Audio Transcript Log */}
-          <Card className="hover-lift" style={{ padding: 14, transition: "all 0.25s" }}>
+          <Card className="hover-lift" style={{ padding: 14, transition: "all 0.25s", height: "auto", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 8 }}>
               <Mic size={14} color={C.primary} />
               <span style={{ fontFamily: C.font, fontSize: 12, fontWeight: 700, color: C.text1 }}>Nhật ký hội thoại & Lệnh AI</span>
@@ -947,7 +947,7 @@ export function ExpertEmergencyView({
           </Card>
 
           {/* Proposed Treatment Plan with Checklist & Rich Clinical Directives */}
-          <Card className="hover-lift" style={{ padding: 14, transition: "all 0.25s" }}>
+          <Card className="hover-lift" style={{ padding: 14, transition: "all 0.25s", height: "auto", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 8 }}>
               <ShieldAlert size={14} color={C.warningDark} />
               <span style={{ fontFamily: C.font, fontSize: 12, fontWeight: 700, color: C.text1 }}>Đề xuất phác đồ can thiệp khẩn cấp</span>
@@ -1139,11 +1139,28 @@ function EmergencyAlarmCenter({
       </div>
 
       {/* Grid of Alarm Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, flex: 1, minHeight: 0 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
         {filteredList.map(p => {
           const isCritical = p.tag === "NGUY KỊCH";
           return (
-            <Card key={p.name} className="hover-lift" style={{ padding: 16, border: `1.5px solid ${isCritical ? "rgba(239, 68, 68, 0.4)" : C.border}`, transition: "all 0.25s", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <Card
+              key={p.name}
+              className="hover-lift"
+              style={{
+                padding: 16,
+                border: `1.5px solid ${isCritical ? "rgba(239, 68, 68, 0.4)" : C.border}`,
+                transition: "all 0.25s",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                cursor: "pointer",
+                height: "auto"
+              }}
+              onClick={() => {
+                setPatientName(p.name);
+                toast.success(`Đã vào hội chẩn: Bệnh nhân ${p.name}`);
+              }}
+            >
               <div>
                 {/* Card Header */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${C.border}`, paddingBottom: 10, marginBottom: 12 }}>
@@ -1233,7 +1250,8 @@ function EmergencyAlarmCenter({
 
               {/* CTA Action */}
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setPatientName(p.name);
                   toast.success(`Đã vào hội chẩn: Bệnh nhân ${p.name}`);
                 }}
