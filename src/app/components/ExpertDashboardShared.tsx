@@ -162,14 +162,33 @@ export function SharedSidebar() {
 
 // ── Common Components ────────────────────────────────────────
 
-export function Card({ children, style, className }: { children: React.ReactNode; style?: React.CSSProperties; className?: string }) {
+export function Card({
+  children,
+  style,
+  className,
+  ...props
+}: {
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+  className?: string;
+  [key: string]: any;
+}) {
   return (
-    <div className={className} style={{
-      backgroundColor: C.bgCard, borderRadius: 14,
-      boxShadow: C.shadowCard, border: `1px solid ${C.border}`,
-      display: "flex", flexDirection: "column", height: "100%",
-      overflow: "hidden", ...style,
-    }}>
+    <div
+      className={className}
+      {...props}
+      style={{
+        backgroundColor: C.bgCard,
+        borderRadius: 14,
+        boxShadow: C.shadowCard,
+        border: `1px solid ${C.border}`,
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        overflow: "hidden",
+        ...style,
+      }}
+    >
       {children}
     </div>
   );
