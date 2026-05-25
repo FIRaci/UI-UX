@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "./AppShell";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
@@ -189,6 +189,18 @@ const ARTICLES: Article[] = [
 
 export function ConsultantDashboard({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState("dashboard");
+
+  useEffect(() => {
+    const handleNavigate = (e: Event) => {
+      const raw = (e as CustomEvent<string>).detail;
+      if (!raw) return;
+      let view = raw;
+      try { const p = JSON.parse(raw); if (p.view) view = p.view; } catch {}
+      if (["dashboard", "ai", "doctors", "appointments", "history", "library", "find", "chats"].includes(view)) setActive(view);
+    };
+    window.addEventListener("app:navigate", handleNavigate);
+    return () => window.removeEventListener("app:navigate", handleNavigate);
+  }, []);
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
