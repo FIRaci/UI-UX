@@ -6,7 +6,7 @@
 |-------|------|------|
 | Frontend | Vite + React 19 + TypeScript + shadcn/ui | 5173 |
 | Backend | Elysia (Bun) + Prisma + SQLite | 3000 |
-| AI Service | FastAPI (Python) + Gemini 1.5 Flash | 8000 |
+| AI Service | FastAPI (Python) + Gemini 3 Flash Preview | 8000 |
 | Auth | JWT (bearer token, localStorage) | — |
 | State | Zustand (module-level, no React setState) | — |
 
@@ -29,7 +29,7 @@
 │   ├── prisma/schema.prisma
 │   └── package.json
 ├── ai_service/
-│   ├── main.py                        # FastAPI: POST /api/chat → Gemini 1.5 Flash
+│   ├── main.py                        # FastAPI: POST /api/chat → Gemini 3 Flash Preview
 │   ├── requirements.txt
 │   └── .env                           # GEMINI_API_KEY (gitignored)
 ├── tests/e2e/                         # Playwright E2E tests (6 tests)

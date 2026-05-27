@@ -28,7 +28,7 @@ Three-tier architecture: React SPA ↔ Elysia REST API ↔ FastAPI AI service. A
 
 ┌──────────────────────────────────────────────────────────┐
 │           FastAPI AI Service (:8000)                      │
-│  POST /api/chat → Gemini 1.5 Flash → {text, actions[]}   │
+│  POST /api/chat → Gemini 3 Flash Preview → {text, actions[]}   │
 │  Fallback: keyword-matching local responses when offline  │
 └──────────────────────────────────────────────────────────┘
 ```

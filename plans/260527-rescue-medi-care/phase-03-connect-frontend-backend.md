@@ -26,8 +26,8 @@ ConsultantDashboard ──GET /api/painpoints──> PainPoint[]
 store.ts ──setToken() / getToken()──> localStorage + fetch headers
 
                               AI Service (FastAPI:8000)
-ChatView ──POST /api/chat──> Gemini 1.5 Flash ──> {text, actions[]}
-ConsultantDashboard ──POST /api/chat──> Gemini 1.5 Flash ──> insight extraction
+ChatView ──POST /api/chat──> Gemini 3 Flash Preview ──> {text, actions[]}
+ConsultantDashboard ──POST /api/chat──> Gemini 3 Flash Preview ──> insight extraction
 ```
 
 ## Key Differences from Original Plan
@@ -36,7 +36,7 @@ ConsultantDashboard ──POST /api/chat──> Gemini 1.5 Flash ──> insight
 | Backend framework | Express.js :3001 | **Elysia** (Bun) :3000 |
 | API wrapper | `lib/api.ts` | **Direct fetch** trong từng component + store |
 | Patients | GET /api/patients | **GET /api/records** (PatientRecord model) |
-| Chat | Stub | **Real Gemini 1.5 Flash** via FastAPI |
+| Chat | Stub | **Real Gemini 3 Flash Preview** via FastAPI |
 | AI URL | Hardcoded | **`VITE_AI_SERVICE_URL`** env var |
 | Fallback delay | 1000-1800ms | **300-700ms** |
 
@@ -71,7 +71,7 @@ ConsultantDashboard ──POST /api/chat──> Gemini 1.5 Flash ──> insight
 ## Success Criteria
 - [x] Login với "benhnhan/123456" → PatientDashboard
 - [x] Book appointment → persist qua refresh
-- [x] All roles → chat với Gemini 1.5 Flash
+- [x] All roles → chat với Gemini 3 Flash Preview
 - [x] AI offline → fallback local responses (300-700ms delay)
 - [x] AI actions → toast + navigate
 - [x] 401 → auto logout

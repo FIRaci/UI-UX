@@ -52,14 +52,14 @@ LoginScreen ──POST /api/auth/login──> JWT token               │
    ├──GET/POST/PATCH /api/appointments                         │
    ├──GET/POST /api/records                                    │
    ├──GET/POST /api/painpoints                                 │
-   └──POST /api/chat ──────────────────────────────────────> Gemini 1.5 Flash
+    └──POST /api/chat ──────────────────────────────────────> Gemini 3 Flash Preview
 ```
 
 ## Success Criteria
 - [x] Login with credentials stores real session (localStorage token + backend validation)
 - [x] Patient can browse doctors, book appointment, see it in list (survives refresh)
 - [x] Doctor can see booked appointments
-- [x] All roles can chat with AI (Gemini 1.5 Flash, fallback local when offline)
+- [x] All roles can chat with AI (Gemini 3 Flash Preview, fallback local when offline)
 - [x] AI responses include actionable `actions[]` (WARNING_RED, NAVIGATE_APPOINTMENT, etc.)
 - [x] All 37 unit tests + 6 E2E pass
 - [x] Can demo on localhost without Docker: `run.bat` starts all 3 services
