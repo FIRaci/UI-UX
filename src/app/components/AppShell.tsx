@@ -45,6 +45,7 @@ export function AppShell({
   children: ReactNode;
 }) {
   const [notifs, setNotifs] = useState<Notif[]>([]);
+  const [notifError, setNotifError] = useState(false);
   const [openNotif, setOpenNotif] = useState<Notif | null>(null);
   const [showMobile, setShowMobile] = useState(false);
   const notifiedSearch = useRef(false);
@@ -53,10 +54,11 @@ export function AppShell({
     const fetchNotifs = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!token) return;
         const res = await fetch(`${API}/api/notifications`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!res.ok) return;
+        if (!res.ok) { setNotifError(true); return; }
         const data: ApiNotif[] = await res.json();
         setNotifs(data.map((n, i) => ({
           id: i + 1,
@@ -68,7 +70,7 @@ export function AppShell({
           read: false,
         })));
       } catch {
-        // ignore
+        setNotifError(true);
       }
     };
     fetchNotifs();
@@ -227,7 +229,15 @@ export function AppShell({
                   </Button>
                 </div>
                 <div className="max-h-96 overflow-auto">
-                  {notifs.length === 0 ? (
+                  {notifError ? (
+                    <div className="p-8 text-center">
+                      <div className="w-12 h-12 mx-auto rounded-full bg-red-50 flex items-center justify-center">
+                        <Bell className="w-5 h-5 text-red-400" />
+                      </div>
+                      <p className="mt-2 text-sm text-red-500">Không thể tải thông báo</p>
+                      <button className="mt-2 text-xs text-blue-600 hover:underline" onClick={() => { setNotifError(false); window.location.reload(); }}>Thử lại</button>
+                    </div>
+                  ) : notifs.length === 0 ? (
                     <div className="p-8 text-center">
                       <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center">
                         <Bell className="w-5 h-5 text-slate-400" />

@@ -153,7 +153,14 @@ export function NotificationsPanel() {
             notifs.map((n) => (
               <div key={n.id} className="group p-3 border rounded-xl relative">
                 <div className="flex justify-between items-start gap-2">
-                  <div className="min-w-0 flex-1">
+                  <button
+                    onClick={() => handleDelete(n.id)}
+                    className="shrink-0 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-50 text-red-400 hover:text-red-600 transition-all mt-0.5"
+                    title="Xóa thông báo"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                  <div className="min-w-0 flex-1 order-first">
                     <span className="font-medium text-sm">{n.title}</span>
                     <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.content}</p>
                     <div className="text-xs text-muted-foreground mt-1.5">
@@ -162,12 +169,6 @@ export function NotificationsPanel() {
                   </div>
                   <Badge variant="secondary" className="shrink-0">{n.status === "sent" ? "Đã gửi" : n.status}</Badge>
                 </div>
-                <button
-                  onClick={() => handleDelete(n.id)}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-50 text-red-400 hover:text-red-600 transition-all"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
               </div>
             ))
           )}

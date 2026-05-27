@@ -68,17 +68,16 @@ describe('AppShell', () => {
     expect(onLogout).toHaveBeenCalledTimes(1);
   });
 
-  it('notification bell renders', () => {
+  it('notification bell icon is present', () => {
     renderShell();
-    expect(screen.getByText('Thông báo')).toBeInTheDocument();
+    const bell = document.querySelector('svg.lucide-bell');
+    expect(bell).toBeInTheDocument();
   });
 
   it('notification popover shows empty state when no notifications', () => {
     renderShell();
     const bell = document.querySelector('[class*="PopoverTrigger"]') || document.querySelector('button svg.lucide-bell')?.closest('button');
-    if (bell) {
-      fireEvent.click(bell);
-    }
+    if (bell) fireEvent.click(bell);
     const emptyTexts = screen.queryAllByText('Không có thông báo mới');
     expect(emptyTexts.length).toBeGreaterThanOrEqual(0);
   });

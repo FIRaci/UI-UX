@@ -23,7 +23,7 @@ model Notification {
   title     String
   content   String
   time      String   // scheduled time
-  status    String   @default("draft") // draft, sent, cancelled
+  status    String   @default("sent") // sent, cancelled
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

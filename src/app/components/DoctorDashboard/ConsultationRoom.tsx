@@ -164,7 +164,7 @@ export function ConsultationRoom({
             </div>
             {chatMode === "video" ? (
               <div className="flex-1 relative bg-slate-900 flex items-center justify-center">
-                <div className="text-white/60 text-sm">Tinh nang dang phat trien</div>
+                <div className="text-white/60 text-sm">Tính năng đang phát triển</div>
                 <div className="absolute bottom-3 right-3 w-32 h-20 bg-slate-700 rounded-lg border-2 border-white/30 flex items-center justify-center text-white/60 text-xs">Bạn</div>
                 <div className="absolute top-3 left-3 flex items-center gap-2">
                   <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] flex items-center gap-1">
@@ -217,7 +217,7 @@ export function ConsultationRoom({
               onChange={e => setNote(e.target.value)}
             />
             <div className="px-3 pb-3 flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => toast.info("Tinh nang dang phat trien")}>
+              <Button variant="outline" className="flex-1" onClick={() => toast.info("Tính năng đang phát triển")}>
                 <Mic className="w-4 h-4 mr-1" /> Ghi chu giong noi
               </Button>
               <Button className="flex-1 bg-slate-900 hover:bg-slate-800" onClick={saveAndFinish}>
