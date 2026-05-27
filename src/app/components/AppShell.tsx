@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useRef, type ComponentType } from "react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Badge } from "./ui/badge";
@@ -7,10 +7,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { LogOut, HeartPulse, Bell, CheckCheck, CalendarClock, MessageSquare, RefreshCw, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 
+
 type NotifKind = "appointment" | "message" | "reminder";
 type Notif = { id: number; kind: NotifKind; title: string; desc: string; body: string; time: string; read: boolean };
 
-const KIND_META: Record<NotifKind, { icon: any; bg: string; fg: string; label: string }> = {
+const KIND_META: Record<NotifKind, { icon: ComponentType<{ className?: string }>; bg: string; fg: string; label: string }> = {
   appointment: { icon: CalendarClock, bg: "bg-sky-100", fg: "text-sky-600", label: "Lịch hẹn" },
   message: { icon: MessageSquare, bg: "bg-emerald-100", fg: "text-emerald-600", label: "Tin nhắn" },
   reminder: { icon: RefreshCw, bg: "bg-amber-100", fg: "text-amber-600", label: "Nhắc nhở" },
@@ -33,7 +34,7 @@ export function AppShell({
   roleLabel: string;
   roleColor: string;
   initials: string;
-  nav: { key: string; label: string; icon: any }[];
+  nav: { key: string; label: string; icon: ComponentType<{ className?: string }> }[];
   active: string;
   onNav: (key: string) => void;
   onLogout: () => void;
@@ -60,16 +61,22 @@ export function AppShell({
     },
   ]);
   const [openNotif, setOpenNotif] = useState<Notif | null>(null);
+  const [showMobile, setShowMobile] = useState(false);
+  const notifiedSearch = useRef(false);
   const unread = notifs.filter(n => !n.read).length;
 
   return (
     <div className="min-h-screen flex" style={{ fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      {/* Mobile overlay */}
+      {showMobile && (
+        <div className="fixed inset-0 bg-black/40 z-20 lg:hidden" onClick={() => setShowMobile(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 shrink-0 flex flex-col" style={{
+      <aside className={`${showMobile ? "fixed inset-y-0 left-0 z-30" : "hidden lg:flex"} w-64 shrink-0 flex-col`} style={{
         background: "linear-gradient(180deg, #0C1A35 0%, #0F2244 100%)",
         color: "#fff",
         boxShadow: "4px 0 24px rgba(15, 34, 68, 0.15)",
-        zIndex: 10,
       }}>
         {/* Brand Header */}
         <div className="p-5 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
@@ -92,7 +99,7 @@ export function AppShell({
             return (
               <button
                 key={item.key}
-                onClick={() => onNav(item.key)}
+                onClick={() => { onNav(item.key); setShowMobile(false); }}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left outline-none ${
                   isActive ? "text-white" : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
@@ -112,7 +119,7 @@ export function AppShell({
         {/* Logout area */}
         <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
           <button
-            onClick={onLogout}
+            onClick={() => { onLogout(); setShowMobile(false); }}
             className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all outline-none"
             style={{
               background: "rgba(255,255,255,0.06)",
@@ -143,18 +150,37 @@ export function AppShell({
           borderBottom: "1px solid #E2E8F0",
           boxShadow: "0 1px 4px rgba(0,0,0,0.04)"
         }}>
-          <div>
-            <h3 className="tracking-tight leading-tight font-bold text-slate-800 text-base">{title}</h3>
-            <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
+          <div className="flex items-center gap-3">
+            <button
+              className="lg:hidden size-8 rounded-xl inline-flex items-center justify-center hover:bg-slate-100 border border-slate-200 transition-all"
+              onClick={() => setShowMobile(prev => !prev)}
+              aria-label="Toggle menu"
+            >
+              <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                {showMobile ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+            <div>
+              <h3 className="tracking-tight leading-tight font-bold text-slate-800 text-base">{title}</h3>
+              <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
+            </div>
           </div>
 
           {/* Middle Mock Search bar */}
           <div className="hidden md:flex flex-1 max-w-sm mx-6 relative items-center">
             <Search className="absolute left-3 w-4 h-4 text-slate-400 pointer-events-none" />
             <input
-              readOnly
               placeholder="Tìm bệnh nhân, phác đồ, chẩn đoán..."
               className="w-full h-9 pl-9 pr-12 border border-slate-200 rounded-xl text-xs bg-slate-50 text-slate-700 outline-none transition-all"
+              onFocus={() => {
+                if (notifiedSearch.current) return;
+                notifiedSearch.current = true;
+                toast.info("Chức năng tìm kiếm đang phát triển. Vui lòng sử dụng thanh điều hướng bên trái.");
+              }}
             />
             <div className="absolute right-3 px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[10px] text-slate-400 font-medium select-none">
               ⌘K
@@ -264,7 +290,7 @@ export function AppShell({
         </header>
 
         {/* Upgrade Content Container to elegant Slate Page Background */}
-        <main className="flex-1 overflow-auto p-6" style={{ backgroundColor: "#F0F4F8" }}>{children}</main>
+        <main className="flex-1 overflow-auto p-6 animate-fade-in" style={{ backgroundColor: "#F0F4F8" }}>{children}</main>
       </div>
 
       <Dialog open={!!openNotif} onOpenChange={() => setOpenNotif(null)}>

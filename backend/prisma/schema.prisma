@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  role      String   // benhnhan, tuvan, bacsi, chuyengia, quanly
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PainPoint {
+  id          String   @id @default(uuid())
+  description String
+  category    String
+  evaluation  String
+  createdAt   DateTime @default(now())
+}
+
+model Appointment {
+  id          String   @id @default(uuid())
+  patientName String
+  doctorName  String
+  doctorSpec  String
+  date        String
+  time        String
+  clinic      String
+  status      String   // Sắp tới, Hoàn thành, Đã hủy
+  age         Int?
+  symptoms    String?
+  level       String?  // Khẩn cấp, Cao, Trung bình, Thấp
+  vitalsBp    String?
+  vitalsHr    String?
+  vitalsTemp  String?
+  vitalsSpo2  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PatientRecord {
+  id          String   @id @default(uuid())
+  patientName String
+  title       String
+  date        String
+  doctor      String
+  note        String
+  type        String   // benhan, ketqua, donthuoc
+  createdAt   DateTime @default(now())
+}
+

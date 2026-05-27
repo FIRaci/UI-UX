@@ -1,7 +1,7 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { Toaster } from "./components/ui/sonner";
+import { toast } from "sonner";
 import { LoginScreen, type Role } from "./components/LoginScreen";
-import { Chatbot } from "./components/Chatbot";
 import { SEO } from "./components/SEO";
 
 const PatientDashboard = lazy(() => import("./components/PatientDashboard").then(m => ({ default: m.PatientDashboard })));
@@ -36,20 +36,31 @@ const ROLE_SEO: Record<string, { title: string; description: string }> = {
 export default function App() {
   const [role, setRole] = useState<Role | null>(null);
 
-  const handleLogout = () => setRole(null);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setRole(null);
+  };
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      handleLogout();
+      toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+    };
+    window.addEventListener("app:unauthorized", handleUnauthorized);
+    return () => window.removeEventListener("app:unauthorized", handleUnauthorized);
+  }, []);
 
   return (
     <div className="size-full min-h-screen bg-slate-50">
       <SEO {...(role ? ROLE_SEO[role] : {})} />
       {!role && <LoginScreen onLogin={setRole} />}
       <Suspense fallback={<div className="size-full flex items-center justify-center text-slate-400 text-sm">Đang tải...</div>}>
-        {role === "benhnhan" && <PatientDashboard onLogout={handleLogout} />}
-        {role === "bacsi" && <DoctorDashboard onLogout={handleLogout} />}
-        {role === "chuyengia" && <ExpertDashboard onLogout={handleLogout} />}
-        {role === "tuvan" && <ConsultantDashboard onLogout={handleLogout} />}
-        {role === "quanly" && <AdminDashboard onLogout={handleLogout} />}
+        {role === "benhnhan" && <PatientDashboard onLogout={handleLogout} role={role} />}
+        {role === "bacsi" && <DoctorDashboard onLogout={handleLogout} role={role} />}
+        {role === "chuyengia" && <ExpertDashboard onLogout={handleLogout} role={role} />}
+        {role === "tuvan" && <ConsultantDashboard onLogout={handleLogout} role={role} />}
+        {role === "quanly" && <AdminDashboard onLogout={handleLogout} role={role} />}
       </Suspense>
-      {role && <Chatbot role={role} />}
       <Toaster position="top-right" richColors />
     </div>
   );
