@@ -1,4 +1,4 @@
-import { ReactNode, useState, useRef, type ComponentType } from "react";
+import { ReactNode, useState, useRef, useEffect, type ComponentType } from "react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Badge } from "./ui/badge";
@@ -16,6 +16,10 @@ const KIND_META: Record<NotifKind, { icon: ComponentType<{ className?: string }>
   message: { icon: MessageSquare, bg: "bg-emerald-100", fg: "text-emerald-600", label: "Tin nhắn" },
   reminder: { icon: RefreshCw, bg: "bg-amber-100", fg: "text-amber-600", label: "Nhắc nhở" },
 };
+
+const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+type ApiNotif = { id: string; target: string; title: string; content: string; time: string; status: string; createdAt: string };
 
 export function AppShell({
   title,
@@ -40,29 +44,36 @@ export function AppShell({
   onLogout: () => void;
   children: ReactNode;
 }) {
-  const [notifs, setNotifs] = useState<Notif[]>([
-    {
-      id: 1, kind: "appointment", title: "Lịch khám sắp tới",
-      desc: "Bạn có lịch khám lúc 09:00 ngày mai",
-      body: "Bác sĩ Nguyễn Văn An (Tim mạch) sẽ khám cho bạn vào 09:00 ngày 08/05/2026 tại phòng 204, CN Quận 1. Vui lòng đến sớm 15 phút để hoàn tất thủ tục, mang theo CMND/CCCD và sổ khám bệnh cũ (nếu có). Nhịn ăn ít nhất 8 tiếng nếu được chỉ định xét nghiệm máu.",
-      time: "5 phút trước", read: false,
-    },
-    {
-      id: 2, kind: "message", title: "Tin nhắn mới từ bác sĩ",
-      desc: "BS. Trần Thị Bình đã phản hồi câu hỏi của bạn",
-      body: "BS. Trần Thị Bình: \"Theo mô tả của bạn, đây là phản ứng dị ứng nhẹ. Hãy ngừng sản phẩm mỹ phẩm mới sử dụng trong 3-5 ngày, chườm lạnh nếu ngứa nhiều và uống nhiều nước. Nếu lan rộng hoặc phù nề, vui lòng đến phòng khám ngay.\"",
-      time: "1 giờ trước", read: false,
-    },
-    {
-      id: 3, kind: "reminder", title: "Nhắc tái khám định kỳ",
-      desc: "Đã đến hạn tái khám tim mạch 6 tháng",
-      body: "Theo lịch theo dõi của bác sĩ, bạn cần tái khám tim mạch 6 tháng/lần để đánh giá hiệu quả điều trị tăng huyết áp. Đặt lịch ngay trong mục Lịch khám hoặc liên hệ tổng đài 1900-0000 để được hỗ trợ.",
-      time: "Hôm qua", read: true,
-    },
-  ]);
+  const [notifs, setNotifs] = useState<Notif[]>([]);
   const [openNotif, setOpenNotif] = useState<Notif | null>(null);
   const [showMobile, setShowMobile] = useState(false);
   const notifiedSearch = useRef(false);
+
+  useEffect(() => {
+    const fetchNotifs = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API}/api/notifications`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data: ApiNotif[] = await res.json();
+        setNotifs(data.map((n, i) => ({
+          id: i + 1,
+          kind: "message" as NotifKind,
+          title: n.title,
+          desc: n.content.length > 80 ? n.content.substring(0, 80) + "..." : n.content,
+          body: n.content,
+          time: n.time || new Date(n.createdAt).toLocaleDateString("vi-VN"),
+          read: false,
+        })));
+      } catch {
+        // ignore
+      }
+    };
+    fetchNotifs();
+  }, []);
+
   const unread = notifs.filter(n => !n.read).length;
 
   return (

@@ -307,6 +307,66 @@ const app = new Elysia()
           }),
         }
       )
+      .get("/notifications", async ({ set }) => {
+        try {
+          return await prisma.notification.findMany({
+            orderBy: { createdAt: "desc" }
+          });
+        } catch (error) {
+          set.status = 500;
+          return { error: "Lỗi cơ sở dữ liệu khi truy vấn thông báo" };
+        }
+      })
+      .post(
+        "/notifications",
+        async ({ user, body, set }) => {
+          if (user?.role !== "quanly") {
+            set.status = 403;
+            return { error: "Quyền truy cập bị từ chối" };
+          }
+          try {
+            const notif = await prisma.notification.create({
+              data: {
+                target: body.target,
+                title: body.title,
+                content: body.content,
+                time: body.time,
+                status: "sent",
+              },
+            });
+            return notif;
+          } catch (error) {
+            set.status = 500;
+            return { error: "Lỗi cơ sở dữ liệu khi gửi thông báo" };
+          }
+        },
+        {
+          body: t.Object({
+            target: t.String(),
+            title: t.String(),
+            content: t.String(),
+            time: t.String(),
+          }),
+        }
+      )
+      .delete(
+        "/notifications/:id",
+        async ({ user, params, set }) => {
+          if (user?.role !== "quanly") {
+            set.status = 403;
+            return { error: "Quyền truy cập bị từ chối" };
+          }
+          try {
+            await prisma.notification.delete({
+              where: { id: params.id },
+            });
+            return { success: true };
+          } catch (error) {
+            set.status = 404;
+            return { error: "Không tìm thấy thông báo" };
+          }
+        }
+      )
       .get("/records", async ({ user, set }) => {
         if (user?.role !== "bacsi" && user?.role !== "benhnhan" && user?.role !== "quanly") {
           set.status = 403;
