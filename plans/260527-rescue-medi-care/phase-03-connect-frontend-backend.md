@@ -1,66 +1,84 @@
 ---
 phase: 3
-title: "Connect Frontend ↔ Backend"
-status: pending
+title: "Connect Frontend ↔ Backend & AI Service"
+status: completed
 priority: P0
 effort: "3h"
 dependencies: [2]
 ---
 
-# Phase 3: Connect Frontend ↔ Backend
+# Phase 3: Connect Frontend ↔ Backend & AI Service
 
 ## Overview
-Thay thế Zustand hardcoded data và toast stubs bằng API calls thật. LoginScreen gọi API auth. Appointment booking POST/PUT lên backend. Dashboard đọc data từ API. Chat AI remains stub (API key để sau).
+Thay thế Zustand hardcoded data và toast stubs bằng API calls thật. Login gọi API auth. Appointments CRUD qua backend. ChatView + ConsultantDashboard gọi AI service (FastAPI/Gemini).
 
 ## Key Rule
 **Demo-honest pattern:** Không gọi API nếu backend chưa chạy → fallback graceful với loading state + error toast. Không silently fail.
 
-## Architecture
+## Architecture (Actual)
 ```
-Frontend (fetch)                  Backend (Express)
+Frontend (fetch)                  Backend (Elysia:3000)
 LoginScreen ──POST /api/auth/login──> JWT token
 PatientDashboard ──GET /api/appointments──> Appointment[]
 PatientDashboard ──POST /api/appointments──> 201 Created
-DoctorDashboard ──GET /api/appointments──> Appointment[]
-AdminDashboard ──GET /api/patients──> Patient[]
+DoctorDashboard ──GET /api/records──> PatientRecord[]
+ConsultantDashboard ──GET /api/painpoints──> PainPoint[]
 store.ts ──setToken() / getToken()──> localStorage + fetch headers
+
+                              AI Service (FastAPI:8000)
+ChatView ──POST /api/chat──> Gemini 1.5 Flash ──> {text, actions[]}
+ConsultantDashboard ──POST /api/chat──> Gemini 1.5 Flash ──> insight extraction
 ```
 
-## Related Code Files
-- **Modify:** `src/app/store.ts` (thêm API actions), `src/app/components/LoginScreen.tsx` (API call), `src/app/components/PatientDashboard.tsx` (appointment CRUD), `src/app/components/DoctorDashboard.tsx` (load appointments), `src/app/components/AdminDashboard.tsx` (load patients)
-- **Create:** `src/app/lib/api.ts` — fetch wrapper với JWT auto-attach
-- **No change:** ChatView, ExpertDashboard (pain points vẫn là stub — để sau)
+## Key Differences from Original Plan
+| Item | Plan (Old) | Reality |
+|------|-----------|---------|
+| Backend framework | Express.js :3001 | **Elysia** (Bun) :3000 |
+| API wrapper | `lib/api.ts` | **Direct fetch** trong từng component + store |
+| Patients | GET /api/patients | **GET /api/records** (PatientRecord model) |
+| Chat | Stub | **Real Gemini 1.5 Flash** via FastAPI |
+| AI URL | Hardcoded | **`VITE_AI_SERVICE_URL`** env var |
+| Fallback delay | 1000-1800ms | **300-700ms** |
 
-## Implementation Steps
-1. Tạo `src/app/lib/api.ts`:
-   - `api.get<T>(url)` — fetch GET + Authorization header
-   - `api.post<T>(url, body)` — fetch POST
-   - Tự động parse 401 → dispatch `app:unauthorized`
-   - Base URL từ env hoặc mặc định `http://localhost:3001/api`
-2. Update `store.ts`:
-   - `token` state + `setToken()` / `getToken()` sync với localStorage
-   - `appointments` state: `fetchAppointments()` → GET /api/appointments
-   - `createAppointment()` → POST /api/appointments
-   - `patients` state: `fetchPatients()` → GET /api/patients
-3. Update `LoginScreen.tsx`:
-   - Form submit → `POST /api/auth/login`
-   - Thành công → store.setToken(token) + store.setRole(role)
-   - Thất bại → toast.error + clear form
-4. Update `PatientDashboard.tsx`:
-   - `useEffect` → `store.fetchAppointments()` thay vì đọc hardcode
-   - Booking form → `store.createAppointment()` thay vì store mutation
-5. Update `DoctorDashboard.tsx`:
-   - `useEffect` → `store.fetchAppointments()`
-   - Filter appointments cho doctor hiện tại
-6. AdminDashboard: giữ nguyên data hardcode cho mục charts (vẫn là mock), nhưng patients table gọi API
+## Implementation Summary
+1. **LoginScreen** (`src/app/components/LoginScreen.tsx`):
+   - Gọi `POST /api/auth/login` — lưu token + role vào store
+   - Quick login: `{ username: role, password: "123456" }`
+   - Register toggle + error toast
+
+2. **store.ts** (`src/app/store.ts`):
+   - `token` state sync với localStorage
+   - `appointments` CRUD: fetch + upsert merge (giữ optimistic entries)
+   - `records` fetch: GET /api/records
+   - `painpoints` CRUD
+   - 401 handler: auto logout + toast
+   - **Optimistic updates** với rollback trên catch
+
+3. **ChatView** (`src/app/components/ChatView.tsx`):
+   - POST `{import.meta.env.VITE_AI_SERVICE_URL}/api/chat` với `{role, message, history}`
+   - Xử lý AI `actions[]`: WARNING_RED (toast.error), NAVIGATE_APPOINTMENT (dispatch), others (toast.info)
+   - Fallback local `ROLE_RESPONSES` khi AI offline
+   - 37 unit tests (6 tests ChatView mock fetch)
+
+4. **ConsultantDashboard** (`src/app/components/ConsultantDashboard/index.tsx`):
+   - Gọi AI text + local insight extraction (symptoms/specialty/severity)
+   - Fallback full local khi offline
+
+5. **useAppNavigate** (`src/app/hooks/useAppNavigate.ts`):
+   - `useRef` callback pattern + `[keys]` deps để tránh stale closure
+   - `app:navigate` event dispatch thay React Router
 
 ## Success Criteria
-- [ ] Login với "benhnhan/123" → vào PatientDashboard
-- [ ] Book appointment → xuất hiện trong list sau refresh
-- [ ] Doctor login → thấy appointment đã book
-- [ ] 401 response → tự động logout + toast
-- [ ] Loading state hiển thị khi đang fetch
+- [x] Login với "benhnhan/123456" → PatientDashboard
+- [x] Book appointment → persist qua refresh
+- [x] All roles → chat với Gemini 1.5 Flash
+- [x] AI offline → fallback local responses (300-700ms delay)
+- [x] AI actions → toast + navigate
+- [x] 401 → auto logout
+- [x] 37 unit tests + 6 E2E pass
 
 ## Risk Assessment
-- **Nguy cơ:** CORS blocking — mitigation: thêm `cors()` middleware trong backend
-- **Nguy cơ:** Backend chưa chạy, frontend gọi API fail — mitigation: error toast + graceful fallback
+- **Nguy cơ:** CORS — mitigated: `@elysiajs/cors` trong backend
+- **Nguy cơ:** Backend chưa chạy — mitigated: error toast + graceful fallback
+- **Nguy cơ:** `&` trong đường dẫn UI&UX phá npx — mitigated: `npx.cmd` + `node node_modules/...` trong run.bat
+- **Nguy cơ:** Race condition optimistic updates — mitigated: upsert merge trong fetchAppointments

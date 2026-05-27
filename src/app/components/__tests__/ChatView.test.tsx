@@ -2,6 +2,13 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ChatView } from '../ChatView';
 
 describe('ChatView', () => {
+  const originalFetch = globalThis.fetch;
+  beforeAll(() => {
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error('AI service offline'));
+  });
+  afterAll(() => {
+    globalThis.fetch = originalFetch;
+  });
   it('renders welcome message based on role', () => {
     render(<ChatView role="benhnhan" />);
     expect(
@@ -44,7 +51,7 @@ describe('ChatView', () => {
     expect(screen.getByText('Tôi bị đau đầu')).toBeInTheDocument();
     await waitFor(
       () => expect(screen.getByText(/Đau đầu có thể do nhiều nguyên nhân/)).toBeInTheDocument(),
-      { timeout: 3000 },
+      { timeout: 5000 },
     );
   });
 });

@@ -60,7 +60,7 @@ export function DoctorDashboard({ onLogout, role }: { onLogout: () => void; role
         setRecords(data.map((r: any) => ({ p: r.patientName, d: r.date, t: r.title, m: r.note })));
       }
     } catch (e) {
-      console.warn("Records API chưa khả dụng (sẽ hoạt động khi backend được kích hoạt ở Phase 2)");
+      console.error("Failed to load records:", e);
     }
   };
 

@@ -99,7 +99,7 @@ export function ConsultantDashboard({ onLogout, role }: { onLogout: () => void; 
     return { message: "Tôi hiểu rồi. Bạn có thể chia sẻ thêm chi tiết về triệu chứng này không? Ví dụ: khi nào bạn thấy nó xuất hiện nhiều nhất?" };
   };
 
-  const sendChatMessage = (message: string) => {
+  const sendChatMessage = async (message: string) => {
     if (!message.trim()) return;
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -110,21 +110,66 @@ export function ConsultantDashboard({ onLogout, role }: { onLogout: () => void; 
     setChatMessages((prev: ChatMessage[]) => [...prev, userMsg]);
     setChatInput("");
     setIsTyping(true);
-    setTimeout(() => {
-      const aiResponse = generateAIResponse(message, conversationStep);
+
+    try {
+      const history = chatMessages
+        .filter(m => m.id !== "welcome")
+        .slice(-10)
+        .map(m => ({ from: m.role === "user" ? "me" : "bot", text: m.content }));
+
+      const res = await fetch(`${import.meta.env.VITE_AI_SERVICE_URL || "http://localhost:8000"}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role, message, history }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const aiMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: "ai",
+          content: data.text,
+          timestamp: new Date(),
+        };
+        setChatMessages((prev: ChatMessage[]) => [...prev, aiMsg]);
+        handleConsultantActions(data.actions);
+      } else {
+        throw new Error(`API ${res.status}`);
+      }
+    } catch {
+      // fallback: local response + local insight when AI service offline
+      const localResponse = generateAIResponse(message, conversationStep);
+      await new Promise(r => setTimeout(r, 300 + Math.random() * 400));
       const aiMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "ai",
-        content: aiResponse.message,
+        content: localResponse.message,
         timestamp: new Date(),
       };
       setChatMessages((prev: ChatMessage[]) => [...prev, aiMsg]);
-      setIsTyping(false);
-      setConversationStep((prev: number) => prev + 1);
-      if (aiResponse.insight) {
-        setAiInsight((prev: AIInsight) => ({ ...prev, ...aiResponse.insight }));
+      if (localResponse.insight) {
+        setAiInsight((prev: AIInsight) => ({ ...prev, ...localResponse.insight }));
       }
-    }, 1500 + Math.random() * 1000);
+      // only advance step + insight on fallback path
+      setConversationStep((prev: number) => Math.min(prev + 1, 4));
+    }
+
+    setIsTyping(false);
+  };
+
+  const handleConsultantActions = (actions?: string[]) => {
+    if (!actions?.length) return;
+    for (const action of actions) {
+      if (action === "NAVIGATE_APPOINTMENT") {
+        toast.success("AI đề xuất đặt lịch khám", {
+          action: { label: "Đặt ngay", onClick: () => setActive("appointments") },
+        });
+      } else if (action === "SHOW_PACKAGES") toast.info("AI đề xuất gói khám phù hợp");
+      else if (action === "WARNING_RED") toast.error("AI cảnh báo: Cần kiểm tra y tế ngay!");
+      else if (action === "HIGHLIGHT_CRITICAL") toast.warning("AI phát hiện dấu hiệu nghiêm trọng");
+      else if (action === "SHOW_REPORTS") toast.info("AI đang tải báo cáo");
+      else if (action === "ALERT_OVERLOAD") toast.warning("AI cảnh báo quá tải hệ thống");
+    }
   };
 
   const bookAppointment = () => {

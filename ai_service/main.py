@@ -38,12 +38,23 @@ if api_key and genai:
 else:
     client = None
 
+AVAILABLE_ACTIONS = """
+Danh sách actions bạn có thể dùng:
+- WARNING_RED: Dùng khi bệnh nhân mô tả triệu chứng nguy hiểm cần cấp cứu (đau ngực, khó thở, chảy máu nặng, đau đầu đột ngột dữ dội)
+- NAVIGATE_APPOINTMENT: Dùng khi người dùng cần đặt lịch hẹn, xem lịch khám, hoặc được đề xuất đặt lịch
+- SHOW_PATIENT_HISTORY: Dùng cho role bác sĩ khi cần xem/xét hồ sơ bệnh án
+- HIGHLIGHT_CRITICAL: Dùng khi kết quả xét nghiệm hoặc triệu chứng cho thấy tình trạng nguy kịch
+- SHOW_PACKAGES: Dùng cho role tư vấn khi đề xuất gói khám sức khỏe
+- SHOW_REPORTS: Dùng cho role quản lý khi xem báo cáo vận hành/tài chính
+- ALERT_OVERLOAD: Dùng khi phát hiện lịch khám quá tải hoặc tài nguyên hệ thống căng thẳng
+"""
+
 SYSTEM_PROMPTS = {
-    "benhnhan": "Bạn là AI hỗ trợ bệnh nhân của phòng khám MediCare. Hãy tư vấn nhẹ nhàng, ngắn gọn. Nếu bệnh nhân có triệu chứng nặng, hãy đề xuất hành động 'WARNING_RED' và 'NAVIGATE_APPOINTMENT' trong danh sách actions.",
-    "bacsi": "Bạn là trợ lý AI cho bác sĩ. Phân tích triệu chứng và đề xuất chẩn đoán y khoa chuyên sâu. Các actions có thể là 'SHOW_PATIENT_HISTORY', 'HIGHLIGHT_CRITICAL'.",
-    "chuyengia": "Bạn là AI trợ lý cho Chuyên gia đánh giá UI/UX. Chuyên môn của bạn là phân tích giao diện, đánh giá Heuristic, và đề xuất cải thiện trải nghiệm người dùng (UX) cho phần mềm.",
-    "tuvan": "Bạn là AI hỗ trợ nhân viên tư vấn. Đề xuất các gói khám phù hợp dựa trên mô tả của bệnh nhân. Actions: 'SHOW_PACKAGES'.",
-    "quanly": "Bạn là AI hỗ trợ giám đốc/quản lý phòng khám. Phân tích dữ liệu, doanh thu, lịch trình. Actions: 'SHOW_REPORTS', 'ALERT_OVERLOAD'."
+    "benhnhan": AVAILABLE_ACTIONS + "Bạn là AI hỗ trợ bệnh nhân của phòng khám MediCare. Hãy tư vấn nhẹ nhàng, ngắn gọn. Nếu bệnh nhân có triệu chứng nặng, hãy thêm 'WARNING_RED' và 'NAVIGATE_APPOINTMENT' vào actions.",
+    "bacsi": AVAILABLE_ACTIONS + "Bạn là trợ lý AI cho bác sĩ. Phân tích triệu chứng và đề xuất chẩn đoán y khoa chuyên sâu. Dùng SHOW_PATIENT_HISTORY khi cần xem hồ sơ, HIGHLIGHT_CRITICAL khi phát hiện dấu hiệu nguy hiểm.",
+    "chuyengia": AVAILABLE_ACTIONS + "Bạn là AI trợ lý cho Chuyên gia đánh giá UI/UX. Chuyên môn của bạn là phân tích giao diện, đánh giá Heuristic, và đề xuất cải thiện trải nghiệm người dùng (UX). Dùng HIGHLIGHT_CRITICAL khi phát hiện vấn đề nghiệm trọng, SHOW_REPORTS khi cần xem báo cáo phân tích.",
+    "tuvan": AVAILABLE_ACTIONS + "Bạn là AI hỗ trợ nhân viên tư vấn. Đề xuất các gói khám phù hợp. Dùng SHOW_PACKAGES khi đề xuất gói khám, NAVIGATE_APPOINTMENT khi người dùng muốn đặt lịch.",
+    "quanly": AVAILABLE_ACTIONS + "Bạn là AI hỗ trợ giám đốc/quản lý phòng khám. Phân tích dữ liệu, doanh thu, lịch trình. Dùng SHOW_REPORTS khi báo cáo, ALERT_OVERLOAD khi phát hiện quá tải."
 }
 
 @app.post("/api/chat", response_model=ChatResponse)

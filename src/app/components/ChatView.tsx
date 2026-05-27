@@ -8,67 +8,48 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Bot, Send, Sparkles, AlertCircle, Users } from "lucide-react";
 import { toast } from "sonner";
 
-type Message = { id: string; role: "me" | "bot"; text: string; time: Date };
+const AI_SERVICE_URL = import.meta.env.VITE_AI_SERVICE_URL || "http://localhost:8000";
 
 const ROLE_CONFIG: Record<string, { welcome: string; prompts: string[]; avatar: string }> = {
   benhnhan: {
-    welcome: "Xin chào! Tôi là trợ lý sức khỏe AI. Bạn đang gặp vấn đề gì về sức khỏe hôm nay?",
+    welcome: "Xin chào! Tôi là trợ lý sức khỏe AI của MediCare. Tôi có thể giúp gì cho bạn hôm nay? Vui lòng mô tả triệu chứng của bạn để tôi phân tích.",
     prompts: ["Tôi bị đau đầu", "Tôi bị sốt", "Tôi bị đau bụng", "Tôi mệt mỏi"],
     avatar: "BN",
   },
   bacsi: {
-    welcome: "Xin chào bác sĩ! Tôi có thể giúp bạn tra cứu hồ sơ bệnh nhân, lịch khám, và tài liệu y khoa.",
-    prompts: ["Bệnh nhân chờ hôm nay", "Lịch khám tuần này", "Tra cứu phác đồ"],
+    welcome: "Xin chào bác sĩ! Tôi là trợ lý AI hỗ trợ chẩn đoán. Tôi có thể phân tích hồ sơ bệnh án và đề xuất hướng điều trị.",
+    prompts: ["Phân tích hồ sơ bệnh nhân", "Đề xuất chẩn đoán", "Kiểm tra tương tác thuốc", "Tra cứu y văn"],
     avatar: "BS",
   },
   chuyengia: {
-    welcome: "Xin chào chuyên gia! Tôi sẵn sàng hỗ trợ đánh giá heuristic, phân tích pain point và khảo sát SUS.",
-    prompts: ["Phân tích UI", "Ghi nhận pain point", "Đánh giá Heuristic"],
+    welcome: "Xin chào chuyên gia! Tôi là trợ lý AI. Tôi có thể hỗ trợ phân tích dữ liệu sức khỏe và phát hiện điểm đau.",
+    prompts: ["Phân tích điểm đau", "Đề xuất cải thiện", "Thống kê sức khỏe", "Cảnh báo bất thường"],
     avatar: "CG",
   },
   tuvan: {
-    welcome: "Xin chào! Tôi là trợ lý AI. Bạn cần tư vấn về vấn đề sức khỏe gì hôm nay?",
-    prompts: ["Tôi cần tư vấn tâm lý", "Chế độ dinh dưỡng", "Bài tập thư giãn"],
+    welcome: "Xin chào! Tôi là trợ lý AI hỗ trợ tư vấn. Hãy cho tôi biết bạn cần hỗ trợ gì về đặt lịch hoặc gói khám?",
+    prompts: ["Gói khám sức khỏe", "Đặt lịch hẹn", "Tư vấn sức khỏe", "Bảo hiểm y tế"],
     avatar: "TV",
   },
   quanly: {
-    welcome: "Xin chào! Tôi có thể giúp bạn xem báo cáo vận hành, lịch hệ thống và thống kê doanh thu.",
-    prompts: ["Báo cáo doanh thu", "Số lượt khám", "Lịch hệ thống"],
+    welcome: "Xin chào quản lý! Tôi có thể giúp bạn xem báo cáo vận hành và thống kê hệ thống.",
+    prompts: ["Báo cáo vận hành", "Thống kê bệnh nhân", "Hiệu suất phòng khám", "Cảnh báo tồn kho"],
     avatar: "QL",
   },
 };
 
 const ROLE_RESPONSES: Record<string, (msg: string) => string> = {
-  benhnhan: (msg) => {
-    const lower = msg.toLowerCase();
-    if (lower.includes("đau đầu") || lower.includes("nhức đầu")) return "Đau đầu có thể do nhiều nguyên nhân như căng thẳng, thiếu ngủ, hoặc tăng huyết áp. Bạn đã nghỉ ngơi chưa? Nếu đau kéo dài hoặc kèm theo chóng mặt, hãy đến phòng khám để được thăm khám. Tôi có thể giúp bạn đặt lịch khám ngay.";
-    if (lower.includes("sốt") || lower.includes("nóng")) return "Sốt là phản ứng tự nhiên của cơ thể chống lại nhiễm trùng. Bạn hãy đo nhiệt độ, uống nhiều nước và nghỉ ngơi. Nếu sốt trên 39°C kéo dài hơn 2 ngày, hoặc kèm khó thở, hãy đến cơ sở y tế gần nhất.";
-    if (lower.includes("đau bụng")) return "Đau bụng có thể do rối loạn tiêu hóa, viêm dạ dày, hoặc ngộ độc thực phẩm. Bạn có kèm theo buồn nôn, tiêu chảy hay sốt không? Hãy mô tả thêm để tôi phân tích chính xác hơn.";
-    if (lower.includes("mệt") || lower.includes("mỏi")) return "Mệt mỏi kéo dài có thể do thiếu máu, rối loạn giấc ngủ, hoặc căng thẳng. Bạn có thường xuyên thức khuya không? Một chế độ dinh dưỡng cân bằng và ngủ đủ 7-8 tiếng sẽ cải thiện đáng kể.";
-    return "Cảm ơn bạn đã chia sẻ. Để tôi phân tích chính xác hơn, bạn có thể mô tả thêm chi tiết về triệu chứng của mình không? Ví dụ: triệu chứng bắt đầu khi nào, mức độ thế nào?";
+  benhnhan: (msg: string) => {
+    if (msg.includes("đau đầu") || msg.includes("nhức đầu")) return "Đau đầu có thể do nhiều nguyên nhân như căng thẳng, thiếu ngủ, hoặc vấn đề về thị lực. Bạn có thể cho tôi biết thêm: cơn đau ở vị trí nào? Đau âm ỉ hay đau nhói? Đã kéo dài bao lâu?";
+    if (msg.includes("sốt") || msg.includes("nóng")) return "Sốt là phản ứng tự nhiên của cơ thể. Bạn hãy đo nhiệt độ và cho tôi biết: sốt bao nhiêu độ? Có kèm ho, đau họng hay không? Đã uống thuốc gì chưa?";
+    if (msg.includes("đau bụng")) return "Đau bụng có thể do nhiều nguyên nhân khác nhau. Bạn có thể mô tả: đau ở vùng nào? Đau quặn hay âm ỉ? Có buồn nôn hoặc tiêu chảy không?";
+    if (msg.includes("mệt") || msg.includes("mỏi")) return "Mệt mỏi kéo dài có thể do thiếu ngủ, thiếu dinh dưỡng hoặc các vấn đề sức khỏe tiềm ẩn. Bạn ngủ được bao nhiêu tiếng mỗi đêm? Có hoa mắt chóng mặt không?";
+    return "Cảm ơn bạn đã chia sẻ! Để tôi phân tích kỹ hơn, bạn có thể cho tôi biết thêm chi tiết về tình trạng của bạn không?";
   },
-  bacsi: (_) => {
-    return "Dữ liệu hồ sơ bệnh nhân đã được tải. Hôm nay có 5 ca chờ khám, trong đó 1 ca khẩn cấp (Trần Văn Hậu - đau ngực dữ dội). Bạn có muốn tôi hiển thị lịch sử bệnh án của bệnh nhân này không?";
-  },
-  chuyengia: (msg) => {
-    const lower = msg.toLowerCase();
-    if (lower.includes("ui") || lower.includes("giao diện") || lower.includes("design")) return "Phân tích UI nhanh: Giao diện MediCare AI sử dụng tông màu xanh dương - xanh lá (blue/emerald) thể hiện sự tin cậy và sức khỏe. Các dashboard có cấu trúc sidebar rõ ràng. Gợi ý cải thiện: thêm breadcrumb cho navigation sâu hơn, tối ưu contrast cho người lớn tuổi.";
-    if (lower.includes("pain point") || lower.includes("lỗi")) return "Pain points đã ghi nhận: 2 báo cáo từ tuần này — (1) Khó hủy lịch từ dashboard bệnh nhân, (2) Thiếu bộ lọc trong biểu đồ quản lý. Khuyến nghị: thêm nút Hủy trực tiếp trên thẻ lịch hẹn.";
-    return "Chào chuyên gia! Tôi sẵn sàng hỗ trợ đánh giá Heuristic (10 nguyên tắc Nielsen), ghi nhận Pain Points hoặc phân tích SUS Survey. Bạn muốn bắt đầu với phần nào?";
-  },
-  tuvan: (msg) => {
-    const lower = msg.toLowerCase();
-    if (lower.includes("tâm lý") || lower.includes("stress") || lower.includes("lo âu")) return "Tư vấn tâm lý: Căng thẳng và lo âu là phản ứng bình thường, nhưng nếu kéo dài có thể ảnh hưởng sức khỏe. Một số kỹ thuật thư giãn: hít thở sâu 4-7-8, thiền 10 phút/ngày, tập thể dục nhẹ. Bạn có muốn tôi gợi ý các gói tư vấn tâm lý phù hợp không?";
-    if (lower.includes("dinh dưỡng") || lower.includes("ăn") || lower.includes("diet")) return "Chế độ dinh dưỡng: Bạn nên ăn đa dạng thực phẩm, ưu tiên rau xanh (3-5 phần/ngày), protein nạc (cá, ức gà), và uống đủ 2 lít nước. Tránh đồ ăn nhanh và nước ngọt có ga. Tôi có thể gợi ý thực đơn mẫu cho bạn!";
-    if (lower.includes("tập") || lower.includes("yoga") || lower.includes("thể dục")) return "Bài tập thư giãn: Yoga nhẹ nhàng 15-20 phút/ngày giúp giảm căng thẳng và cải thiện tuần hoàn máu. Bạn có thể bắt đầu với tư thế em bé (Child's Pose), tư thế mèo - bò (Cat-Cow), và tư thế xác chết (Savasana).";
-    return "Xin chào! Tôi là trợ lý tư vấn sức khỏe. Bạn cần hỗ trợ về vấn đề gì hôm nay? Tôi có thể tư vấn tâm lý, dinh dưỡng, hoặc gợi ý bài tập thư giãn.";
-  },
-  quanly: (msg) => {
-    const lower = msg.toLowerCase();
-    if (lower.includes("doanh thu")) return "Báo cáo doanh thu tháng này: Tổng doanh thu dự kiến 1.28 tỷ đồng (+12.5% so với tháng trước). Phòng khám Tim mạch dẫn đầu với 31.8% doanh thu. 223 bệnh nhân mới trong tháng. Bạn có muốn xem báo cáo chi tiết không?";
-    if (lower.includes("lượt khám") || lower.includes("bệnh nhân")) return "Số liệu hôm nay: 42 lượt khám, trong đó 15 bệnh nhân mới. Tỷ lệ lấp đầy lịch đạt 78%. Phòng khám CN Quận 1 đang đông nhất (28 lượt). Hệ thống đang hoạt động ở mức ổn định.";
-    return "Xin chào quản lý! Bảng điều khiển đã sẵn sàng. Hôm nay có 42 lượt khám, doanh thu ước tính 87 triệu đồng. Bạn muốn xem báo cáo nào? Tôi có thể hiển thị doanh thu, số lượt khám, hoặc tình trạng lịch hệ thống.";
-  },
+  bacsi: (msg: string) => "Cảm ơn bác sĩ! Tôi đã phân tích thông tin và sẵn sàng hỗ trợ chẩn đoán. Bác sĩ có thể cung cấp thêm thông tin về triệu chứng hoặc kết quả xét nghiệm?",
+  chuyengia: (msg: string) => "Cảm ơn chuyên gia! Dữ liệu đã được ghi nhận. Tôi sẽ tiến hành phân tích chuyên sâu và đưa ra đề xuất cải thiện.",
+  tuvan: (msg: string) => "Cảm ơn bạn! Tôi đã nhận được yêu cầu và đang tìm kiếm thông tin phù hợp. Bạn muốn đặt lịch khám ở phòng khám nào?",
+  quanly: (msg: string) => "Cảm ơn quản lý! Tôi đang tổng hợp dữ liệu vận hành. Bạn muốn xem báo cáo nào trước?",
 };
 
 export function ChatView({ role }: { role: string }) {
@@ -84,22 +65,66 @@ export function ChatView({ role }: { role: string }) {
     if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const send = (text?: string) => {
+  const send = async (text?: string) => {
     const t = (text ?? input).trim();
     if (!t) return;
     setMessages(m => [...m, { id: Date.now().toString(), role: "me", text: t, time: new Date() }]);
     setInput("");
     setIsTyping(true);
 
-    setTimeout(async () => {
-      try {
-        const reply = ROLE_RESPONSES[role]?.(t) ?? "Cảm ơn bạn! Tôi đã nhận được thông tin và đang phân tích. Bạn có thể cho tôi biết thêm chi tiết được không?";
-        setMessages(m => [...m, { id: (Date.now() + 1).toString(), role: "bot", text: reply, time: new Date() }]);
-      } catch {
-        setMessages(m => [...m, { id: (Date.now() + 1).toString(), role: "bot", text: "Xin lỗi, tôi đang gặp sự cố xử lý. Vui lòng thử lại sau.", time: new Date() }]);
+    try {
+      const history = messages
+        .filter(m => m.id !== "welcome")
+        .slice(-10)
+        .map(m => ({ from: m.role === "me" ? "me" : "bot", text: m.text }));
+
+      const res = await fetch(`${AI_SERVICE_URL}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role, message: t, history }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        handleAiActions(data.actions);
+        setMessages(m => [...m, { id: (Date.now() + 1).toString(), role: "bot", text: data.text, time: new Date() }]);
+      } else {
+        throw new Error(`API ${res.status}`);
       }
-      setIsTyping(false);
-    }, 1000 + Math.random() * 800);
+    } catch {
+      // fallback: local response when AI service offline
+      await new Promise(r => setTimeout(r, 300 + Math.random() * 400));
+      const reply = ROLE_RESPONSES[role]?.(t) ?? "Cảm ơn bạn! Tôi đã nhận được thông tin và đang phân tích. Bạn có thể cho tôi biết thêm chi tiết được không?";
+      setMessages(m => [...m, { id: (Date.now() + 1).toString(), role: "bot", text: reply, time: new Date() }]);
+      // fallback actions
+      if (role === "benhnhan" && (t.includes("đau") || t.includes("sốt"))) {
+        handleAiActions(["WARNING_RED", "NAVIGATE_APPOINTMENT"]);
+      } else if (role === "bacsi" && (t.includes("hồ sơ") || t.includes("bệnh án"))) {
+        handleAiActions(["SHOW_PATIENT_HISTORY"]);
+      } else if (role === "quanly" && (t.includes("báo cáo") || t.includes("doanh thu"))) {
+        handleAiActions(["SHOW_REPORTS"]);
+      } else if (role === "tuvan" && (t.includes("gói") || t.includes("khám"))) {
+        handleAiActions(["SHOW_PACKAGES"]);
+      }
+    }
+
+    setIsTyping(false);
+  };
+
+  const handleAiActions = (actions?: string[]) => {
+    if (!actions?.length) return;
+    for (const action of actions) {
+      if (action === "WARNING_RED") toast.error("AI cảnh báo: Cần kiểm tra y tế ngay!");
+      else if (action === "NAVIGATE_APPOINTMENT") {
+        toast.success("AI đề xuất đặt lịch khám", {
+          action: { label: "Đặt ngay", onClick: () => navigate("appointments") },
+        });
+      } else if (action === "SHOW_PATIENT_HISTORY") toast.info("AI đề xuất xem lịch sử bệnh án");
+      else if (action === "HIGHLIGHT_CRITICAL") toast.warning("AI phát hiện dấu hiệu nghiêm trọng");
+      else if (action === "SHOW_PACKAGES") toast.info("AI đề xuất gói khám phù hợp");
+      else if (action === "SHOW_REPORTS") toast.info("AI đang tải báo cáo");
+      else if (action === "ALERT_OVERLOAD") toast.warning("AI cảnh báo quá tải hệ thống");
+    }
   };
 
   const navigate = (view: string) => {
