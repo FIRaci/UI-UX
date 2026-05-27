@@ -22,4 +22,4 @@ echo - AI Service (Python): http://localhost:8000
 echo Nhan Ctrl+C de thoat tat ca dich vu.
 echo ===================================================
 
-node node_modules/concurrently/bin/concurrently.js --kill-others --names "AI,BACKEND,FRONTEND" --prefix-colors "yellow,blue,green" "cd ai_service && venv\Scripts\python -m uvicorn main:app --reload --port 8000" "cd backend && bun install --silent && bun run dev" "npm install --silent && node node_modules/vite/bin/vite.js"
+node node_modules/concurrently/dist/bin/concurrently.js --kill-others --names "AI,BACKEND,FRONTEND" --prefix-colors "yellow,blue,green" "cd ai_service && venv\Scripts\python -m uvicorn main:app --reload --port 8000" "cd backend && bun install --silent && bun run dev" "npm install --silent && node node_modules/vite/bin/vite.js"
