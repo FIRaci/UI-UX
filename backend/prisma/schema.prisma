@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  role      String   // benhnhan, tuvan, bacsi, chuyengia, quanly
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  target    String   // all, patient, doctor
+  title     String
+  content   String
+  time      String   // scheduled time
+  status    String   @default("sent") // sent, cancelled
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PainPoint {
+  id          String   @id @default(uuid())
+  description String
+  category    String
+  evaluation  String
+  createdAt   DateTime @default(now())
+}
+
+model Appointment {
+  id          String   @id @default(uuid())
+  patientName String
+  doctorName  String
+  doctorSpec  String
+  date        String
+  time        String
+  clinic      String
+  status      String   // Sắp tới, Hoàn thành, Đã hủy
+  age         Int?
+  symptoms    String?
+  level       String?  // Khẩn cấp, Cao, Trung bình, Thấp
+  vitalsBp    String?
+  vitalsHr    String?
+  vitalsTemp  String?
+  vitalsSpo2  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PatientRecord {
+  id          String   @id @default(uuid())
+  patientName String
+  title       String
+  date        String
+  doctor      String
+  note        String
+  type        String   // benhan, ketqua, donthuoc
+  createdAt   DateTime @default(now())
+}
+
+model Doctor {
+  id        Int      @id @default(autoincrement())
+  name      String
+  spec      String
+  rating    Float
+  fee       String
+  clinic    String
+  avail     String   // JSON string of available times like '["08:00", "09:00"]'
+}
+
+model Thread {
+  id          Int       @id @default(autoincrement())
+  staffId     Int
+  staffName   String
+  staffSpec   String
+  userRole    String
+  userName    String
+  topic       String
+  status      String    // Đang diễn ra, Đã kết thúc, Chờ phản hồi
+  last        String
+  updatedAt   DateTime  @updatedAt
+  messages    Message[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  threadId  Int
+  from      String   // "user" or "staff"
+  txt       String
+  timeStr   String   // string representation of time like "5 phút trước" or "09:00"
+  thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+}
+
+model Article {
+  id          Int      @id @default(autoincrement())
+  title       String
+  category    String
+  reads       String
+  time        String
+}
+
