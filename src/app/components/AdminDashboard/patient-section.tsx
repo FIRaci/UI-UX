@@ -4,10 +4,11 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Badge } from "../ui/badge";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "../ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
-import { Search, Plus, Pencil } from "lucide-react";
+import { Search, Plus, Pencil, Filter, Download, MoreHorizontal, Phone, MapPin, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import type { Patient } from "./types";
 
@@ -17,14 +18,18 @@ export function PatientSection() {
     { id: 2, name: "Trần Thu Hà", phone: "0907654321", gender: "Nữ", dob: "1996-08-22", address: "Q3, TP.HCM" },
     { id: 3, name: "Lê Văn Tú", phone: "0912345678", gender: "Nam", dob: "1980-12-01", address: "Q.Tân Bình" },
     { id: 4, name: "Phạm Bích Ngọc", phone: "0987654321", gender: "Nữ", dob: "1975-06-10", address: "Q7, TP.HCM" },
+    { id: 5, name: "Hoàng Văn Nam", phone: "0923456789", gender: "Nam", dob: "1988-03-18", address: "Q.10, TP.HCM" },
+    { id: 6, name: "Ngô Thị Mai", phone: "0934567890", gender: "Nữ", dob: "1995-11-25", address: "Q.Bình Thạnh" },
   ]);
   const [pSearch, setPSearch] = useState("");
   const [editingP, setEditingP] = useState<Patient | null>(null);
+  const [genderFilter, setGenderFilter] = useState("all");
 
-  const filteredP = patients.filter(p =>
-    p.name.toLowerCase().includes(pSearch.toLowerCase()) ||
-    p.phone.includes(pSearch)
-  );
+  const filteredP = patients.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(pSearch.toLowerCase()) || p.phone.includes(pSearch);
+    const matchesGender = genderFilter === "all" || p.gender === genderFilter;
+    return matchesSearch && matchesGender;
+  });
 
   const savePatient = () => {
     if (!editingP) return;
@@ -46,79 +51,187 @@ export function PatientSection() {
 
   return (
     <>
-      <Card className="p-6 bg-white/90 backdrop-blur-xl border border-white shadow-[0_10px_40px_rgb(0,0,0,0.05)] transition-all duration-300 animate-slide-up" style={{ borderRadius: "28px" }}>
-        <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-xl font-extrabold tracking-tight text-slate-800">Quản lý bệnh nhân</h4>
-            <div className="text-sm text-slate-500 font-medium mt-1">Danh sách hồ sơ bệnh nhân trong hệ thống</div>
+            <h2 className="text-2xl font-bold text-slate-900">Quản lý bệnh nhân</h2>
+            <p className="text-sm text-slate-500 mt-1">Quản lý hồ sơ bệnh nhân trong hệ thống</p>
           </div>
-          <div className="flex gap-3">
-            <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input className="pl-10 w-72 h-11 bg-slate-50/50 border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all text-[15px]" placeholder="Tìm theo tên, SĐT..." value={pSearch} onChange={e => setPSearch(e.target.value)} />
-            </div>
-            <Button onClick={() => setEditingP({ id: 0, name: "", phone: "", gender: "Nam", dob: "", address: "" })} className="h-11 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/20 font-bold border-0">
-              <Plus className="w-4 h-4 mr-2" /> Thêm hồ sơ
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" className="h-9">
+              <Download className="w-4 h-4 mr-2" />
+              Xuất file
+            </Button>
+            <Button onClick={() => setEditingP({ id: 0, name: "", phone: "", gender: "Nam", dob: "", address: "" })} className="h-9 bg-blue-600 hover:bg-blue-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Thêm bệnh nhân
             </Button>
           </div>
         </div>
-        {filteredP.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground">
-            {patients.length === 0 ? "Danh sách bệnh nhân trống" : "Không tìm thấy bệnh nhân phù hợp"}
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            { label: "Tổng bệnh nhân", value: patients.length, color: "blue" },
+            { label: "Nam", value: patients.filter(p => p.gender === "Nam").length, color: "sky" },
+            { label: "Nữ", value: patients.filter(p => p.gender === "Nữ").length, color: "pink" },
+            { label: "Mới tháng này", value: "128", color: "emerald" },
+          ].map((stat, i) => (
+            <Card key={i} className="p-4 bg-white border-0 shadow-sm" style={{ borderRadius: "12px" }}>
+              <div className="text-sm text-slate-500">{stat.label}</div>
+              <div className={`text-2xl font-bold text-${stat.color}-600 mt-1`}>{stat.value}</div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Filters & Search */}
+        <Card className="p-4 bg-white border-0 shadow-sm" style={{ borderRadius: "12px" }}>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                className="pl-10 h-10 bg-slate-50 border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all"
+                placeholder="Tìm theo tên, số điện thoại..."
+                value={pSearch}
+                onChange={e => setPSearch(e.target.value)}
+              />
+            </div>
+            <Select value={genderFilter} onValueChange={setGenderFilter}>
+              <SelectTrigger className="w-[140px] h-10 bg-slate-50 border-slate-200 rounded-lg">
+                <Filter className="w-4 h-4 mr-2 text-slate-400" />
+                <SelectValue placeholder="Giới tính" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="Nam">Nam</SelectItem>
+                <SelectItem value="Nữ">Nữ</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="text-sm text-slate-500">
+              Hiển thị <span className="font-medium text-slate-900">{filteredP.length}</span> bệnh nhân
+            </div>
           </div>
-        ) : (
-          <div className="rounded-2xl border border-slate-100 overflow-hidden bg-white">
-            <Table>
-              <TableHeader className="bg-slate-50/80">
-                <TableRow className="border-b border-slate-100 hover:bg-transparent">
-                  <TableHead className="font-bold text-slate-600 uppercase tracking-wider text-xs h-12">Họ tên</TableHead>
-                  <TableHead className="font-bold text-slate-600 uppercase tracking-wider text-xs h-12">SĐT</TableHead>
-                  <TableHead className="font-bold text-slate-600 uppercase tracking-wider text-xs h-12">Giới tính</TableHead>
-                  <TableHead className="font-bold text-slate-600 uppercase tracking-wider text-xs h-12">Ngày sinh</TableHead>
-                  <TableHead className="font-bold text-slate-600 uppercase tracking-wider text-xs h-12">Địa chỉ</TableHead>
-                  <TableHead className="text-right font-bold text-slate-600 uppercase tracking-wider text-xs h-12">Thao tác</TableHead>
+        </Card>
+
+        {/* Table */}
+        <Card className="bg-white border-0 shadow-sm overflow-hidden" style={{ borderRadius: "16px" }}>
+          <Table>
+            <TableHeader>
+              <TableRow className="border-b border-slate-100 bg-slate-50/50">
+                <TableHead className="font-semibold text-slate-600 text-xs uppercase tracking-wider h-12">Bệnh nhân</TableHead>
+                <TableHead className="font-semibold text-slate-600 text-xs uppercase tracking-wider h-12">Liên hệ</TableHead>
+                <TableHead className="font-semibold text-slate-600 text-xs uppercase tracking-wider h-12">Giới tính</TableHead>
+                <TableHead className="font-semibold text-slate-600 text-xs uppercase tracking-wider h-12">Ngày sinh</TableHead>
+                <TableHead className="font-semibold text-slate-600 text-xs uppercase tracking-wider h-12">Địa chỉ</TableHead>
+                <TableHead className="text-right font-semibold text-slate-600 text-xs uppercase tracking-wider h-12 w-12"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredP.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-12">
+                    <div className="text-slate-400">
+                      <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p className="font-medium">Không tìm thấy bệnh nhân</p>
+                      <p className="text-sm mt-1">Thử thay đổi bộ lọc hoặc tìm kiếm</p>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredP.map(p => (
-                  <TableRow key={p.id} className="border-b border-slate-50 hover:bg-slate-50/80 transition-colors group">
-                    <TableCell className="flex items-center gap-3 py-3">
-                      <Avatar className="w-10 h-10 border border-white shadow-sm group-hover:scale-105 transition-transform"><AvatarFallback className="bg-gradient-to-br from-indigo-500 to-blue-500 text-white font-bold text-sm">{p.name[0]}</AvatarFallback></Avatar>
-                      <span className="font-bold text-slate-800 text-[15px]">{p.name}</span>
-                    </TableCell>
-                    <TableCell className="font-medium text-slate-600">{p.phone}</TableCell>
+              ) : (
+                filteredP.map(p => (
+                  <TableRow key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
                     <TableCell>
-                      <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-bold ${p.gender === "Nam" ? "bg-blue-50 text-blue-700" : p.gender === "Nữ" ? "bg-pink-50 text-pink-700" : "bg-slate-100 text-slate-700"}`}>
-                        {p.gender}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-10 h-10 border border-slate-100 group-hover:scale-105 transition-transform">
+                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-medium text-sm">
+                            {p.name.split(" ").pop()?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium text-slate-900">{p.name}</div>
+                          <div className="text-xs text-slate-500">ID: #{p.id}</div>
+                        </div>
+                      </div>
                     </TableCell>
-                    <TableCell className="font-medium text-slate-600">{p.dob}</TableCell>
-                    <TableCell className="text-slate-500 max-w-[200px] truncate">{p.address}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <Phone className="w-3.5 h-3.5 text-slate-400" />
+                        {p.phone}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="secondary"
+                        className={`${p.gender === "Nam" ? "bg-blue-50 text-blue-700 hover:bg-blue-100" : "bg-pink-50 text-pink-700 hover:bg-pink-100"} font-medium`}
+                      >
+                        {p.gender}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                        {p.dob}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-sm text-slate-600 max-w-[180px]">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate">{p.address}</span>
+                      </div>
+                    </TableCell>
                     <TableCell className="text-right">
-                      <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50" onClick={() => setEditingP(p)}><Pencil className="w-4 h-4" /></Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 opacity-0 group-hover:opacity-100 transition-all"
+                        onClick={() => setEditingP(p)}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </Card>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Card>
+      </div>
 
+      {/* Dialog */}
       <Dialog open={!!editingP} onOpenChange={() => setEditingP(null)}>
-        <DialogContent className="animate-scale-in">
+        <DialogContent className="sm:max-w-[500px]">
           {editingP && (
             <>
               <DialogHeader>
-                <DialogTitle>{editingP.id ? "Cập nhật" : "Thêm"} bệnh nhân</DialogTitle>
+                <DialogTitle className="text-xl">{editingP.id ? "Cập nhật" : "Thêm mới"} bệnh nhân</DialogTitle>
                 <DialogDescription>Thông tin hành chính bệnh nhân</DialogDescription>
               </DialogHeader>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5 col-span-2"><Label>Họ tên</Label><Input value={editingP.name} onChange={e => setEditingP({ ...editingP, name: e.target.value })} /></div>
-                <div className="space-y-1.5"><Label>Số điện thoại</Label><Input value={editingP.phone} onChange={e => setEditingP({ ...editingP, phone: e.target.value })} /></div>
-                <div className="space-y-1.5"><Label>Giới tính</Label>
+              <div className="grid grid-cols-2 gap-4 py-4">
+                <div className="space-y-2 col-span-2">
+                  <Label className="text-sm font-medium">Họ và tên</Label>
+                  <Input
+                    value={editingP.name}
+                    onChange={e => setEditingP({ ...editingP, name: e.target.value })}
+                    placeholder="Nhập họ tên"
+                    className="h-10"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Số điện thoại</Label>
+                  <Input
+                    value={editingP.phone}
+                    onChange={e => setEditingP({ ...editingP, phone: e.target.value })}
+                    placeholder="0901234567"
+                    className="h-10"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Giới tính</Label>
                   <Select value={editingP.gender} onValueChange={v => setEditingP({ ...editingP, gender: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Nam">Nam</SelectItem>
                       <SelectItem value="Nữ">Nữ</SelectItem>
@@ -126,12 +239,32 @@ export function PatientSection() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1.5"><Label>Ngày sinh</Label><Input type="date" value={editingP.dob} onChange={e => setEditingP({ ...editingP, dob: e.target.value })} /></div>
-                <div className="space-y-1.5"><Label>Địa chỉ</Label><Input value={editingP.address} onChange={e => setEditingP({ ...editingP, address: e.target.value })} /></div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Ngày sinh</Label>
+                  <Input
+                    type="date"
+                    value={editingP.dob}
+                    onChange={e => setEditingP({ ...editingP, dob: e.target.value })}
+                    className="h-10"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Địa chỉ</Label>
+                  <Input
+                    value={editingP.address}
+                    onChange={e => setEditingP({ ...editingP, address: e.target.value })}
+                    placeholder="Quận, TP.HCM"
+                    className="h-10"
+                  />
+                </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => { setEditingP(null); toast.info("Đã hủy thay đổi"); }}>Hủy</Button>
-                <Button onClick={savePatient}>Lưu</Button>
+              <DialogFooter className="gap-2">
+                <Button variant="outline" onClick={() => setEditingP(null)}>
+                  Hủy
+                </Button>
+                <Button onClick={savePatient} className="bg-blue-600 hover:bg-blue-700">
+                  Lưu thay đổi
+                </Button>
               </DialogFooter>
             </>
           )}

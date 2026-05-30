@@ -131,7 +131,7 @@ export function ChatView({ role }: { role: string }) {
         <Card className="p-3 mb-3 bg-amber-50 border-amber-200 flex items-start gap-2" style={{ borderRadius: "12px" }}>
           <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <p className="text-xs text-amber-800">
-            <b>Luu y:</b> Ket qua AI chi mang tinh ho tro tham khao va khong thay the chan doan y khoa chuyen nghiep.
+            <b>Lưu ý:</b> Kết quả AI chỉ mang tính hỗ trợ tham khảo và không thay thế chẩn đoán y khoa chuyên nghiệp.
           </p>
         </Card>
 
@@ -190,7 +190,7 @@ export function ChatView({ role }: { role: string }) {
 
           {messages.length === 1 && (
             <div className="px-4 py-3 border-t border-slate-100 bg-slate-50">
-              <div className="text-xs text-muted-foreground mb-2">Goi y nhanh:</div>
+              <div className="text-xs text-muted-foreground mb-2">Gợi ý nhanh:</div>
               <div className="flex flex-wrap gap-2">
                 {config.prompts.map((p, i) => (
                   <button
@@ -213,7 +213,7 @@ export function ChatView({ role }: { role: string }) {
                 onKeyDown={e => {
                   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); }
                 }}
-                placeholder="Nhap tin nhan..."
+                placeholder="Nhập tin nhắn..."
                 className="resize-none min-h-[48px] max-h-32 rounded-xl border-slate-200"
                 rows={1}
               />
@@ -226,7 +226,7 @@ export function ChatView({ role }: { role: string }) {
                 <Send className="w-4 h-4" />
               </Button>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-2 text-center">Nhan Enter de gui, Shift+Enter de xuong dong</p>
+            <p className="text-[11px] text-muted-foreground mt-2 text-center">Nhấn Enter để gửi, Shift+Enter để xuống dòng</p>
           </div>
         </Card>
       </div>
@@ -235,11 +235,11 @@ export function ChatView({ role }: { role: string }) {
         <Card className="p-4 border border-slate-100 shadow-sm" style={{ borderRadius: "16px" }}>
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="w-4 h-4 text-emerald-600" />
-            <h4 className="text-sm font-bold text-slate-800">Phan tich AI</h4>
+            <h4 className="text-sm font-bold text-slate-800">Phân tích AI</h4>
           </div>
           <div className="text-center py-4 text-slate-400">
             <Bot className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-            <p className="text-xs">Hay nhan tin de AI phan tich</p>
+            <p className="text-xs">Hãy nhắn tin để AI phân tích</p>
           </div>
         </Card>
       </div>
