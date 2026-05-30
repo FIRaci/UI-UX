@@ -63,12 +63,27 @@ async function seedDatabase() {
     const apptCount = await prisma.appointment.count();
     if (apptCount === 0) {
       console.log("Seeding appointments...");
+      const today = new Date().toISOString().split("T")[0];
+      const nextMonth = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
+      const lastWeek1 = new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0];
+      const lastWeek2 = new Date(Date.now() - 8 * 86400000).toISOString().split("T")[0];
       await prisma.appointment.createMany({
         data: [
-          { patientName: "Nguyễn Minh Khoa", doctorName: "PGS.TS Nguyễn Hữu Tâm", doctorSpec: "Tim mạch", date: "2026-06-01", time: "08:00", clinic: "CN Q1", status: "Sắp tới", age: 35, symptoms: "Kiểm tra huyết áp", level: "Thấp" },
+          { patientName: "Nguyễn Minh Khoa", doctorName: "PGS.TS Nguyễn Hữu Tâm", doctorSpec: "Tim mạch", date: nextMonth, time: "08:00", clinic: "CN Q1", status: "Sắp tới", age: 35, symptoms: "Kiểm tra huyết áp", level: "Thấp" },
           { patientName: "Nguyễn Minh Khoa", doctorName: "BS. Trần Thị Bình", doctorSpec: "Da liễu", date: "2026-05-10", time: "10:00", clinic: "CN Q3", status: "Hoàn thành", age: 35, symptoms: "Mẩn ngứa ở lưng", level: "Trung bình" },
           { patientName: "Nguyễn Minh Khoa", doctorName: "BS.CKII Phạm Phương Thảo", doctorSpec: "Sản phụ khoa", date: "2026-04-20", time: "14:00", clinic: "CN Q1", status: "Hoàn thành", age: 35, symptoms: "Khám định kỳ", level: "Thấp" },
-          { patientName: "Nguyễn Minh Khoa", doctorName: "BS. Lê Phương Linh", doctorSpec: "Tâm lý", date: "2026-06-15", time: "09:00", clinic: "CN Phú Nhuận", status: "Sắp tới", age: 35, symptoms: "Căng thẳng công việc", level: "Trung bình" }
+          { patientName: "Nguyễn Minh Khoa", doctorName: "BS. Lê Phương Linh", doctorSpec: "Tâm lý", date: nextMonth, time: "09:00", clinic: "CN Phú Nhuận", status: "Sắp tới", age: 35, symptoms: "Căng thẳng công việc", level: "Trung bình" },
+          // Lịch hẹn cho BS. Nguyễn Văn An (hôm nay)
+          { patientName: "Trần Văn Hậu", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: today, time: "08:00", clinic: "CN Q1", status: "Sắp tới", age: 58, symptoms: "Đau ngực dữ dội, khó thở", level: "Khẩn cấp" },
+          { patientName: "Đặng Quỳnh Anh", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: today, time: "09:00", clinic: "CN Q1", status: "Sắp tới", age: 34, symptoms: "Sốt cao, đau đầu kéo dài 3 ngày", level: "Cao" },
+          { patientName: "Phạm Bích Ngọc", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: today, time: "10:00", clinic: "CN Q1", status: "Sắp tới", age: 47, symptoms: "Đau lưng dưới, tê chân phải", level: "Trung bình" },
+          { patientName: "Lê Văn Tú", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: today, time: "14:00", clinic: "CN Q1", status: "Sắp tới", age: 41, symptoms: "Tái khám tăng huyết áp", level: "Trung bình" },
+          { patientName: "Mai Hồng Yến", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: today, time: "15:30", clinic: "CN Q1", status: "Sắp tới", age: 29, symptoms: "Khám sức khỏe định kỳ", level: "Thấp" },
+          // Lịch hẹn cũ (đã hoàn thành)
+          { patientName: "Nguyễn Minh Khoa", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: lastWeek1, time: "08:00", clinic: "CN Q1", status: "Hoàn thành", age: 35, symptoms: "Khám định kỳ tim mạch", level: "Thấp" },
+          { patientName: "Trần Thu Hà", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: lastWeek2, time: "09:30", clinic: "CN Q1", status: "Hoàn thành", age: 52, symptoms: "Tái khám rối loạn nhịp tim", level: "Cao" },
+          // Lịch hẹn sắp tới
+          { patientName: "Lê Văn Tú", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: nextMonth, time: "08:00", clinic: "CN Q1", status: "Sắp tới", age: 41, symptoms: "Tái khám huyết áp tháng 6", level: "Trung bình" },
         ]
       });
     }

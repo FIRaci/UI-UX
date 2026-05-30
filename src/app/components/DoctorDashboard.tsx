@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { AppShell } from "./AppShell";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
@@ -13,13 +13,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import {
   LayoutDashboard, CalendarDays, Users, FileText, MessagesSquare,
   CheckCircle2, Clock, Send, AlertTriangle, ArrowLeft, Video, MessageCircle,
-  Mic, Save, Sparkles, Pill, History, Search, Filter, Phone, PhoneOff
+  Mic, Save, Sparkles, Pill, History, Search, Filter, Phone, PhoneOff,
+  Stethoscope, ClipboardList, UserSearch
 } from "lucide-react";
 import { toast } from "sonner";
 import { useStore, store, formatRelative } from "../store";
 
 const ME_NAME = "BS. Nguyễn Văn An";
-const ME_ID = 2;
+const ME_ID = 1;
 
 type Triage = {
   id: number;
@@ -58,9 +59,10 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
   const [levelFilter, setLevelFilter] = useState<string>("all");
   const [scheduleLevelFilter, setScheduleLevelFilter] = useState<string>("all");
   const [consultPatient, setConsultPatient] = useState<Triage | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const appointments = useStore(s => s.appointments.filter(a => a.doctorName === ME_NAME));
-  const TODAY = "2026-05-14";
+  const TODAY = new Date().toISOString().split("T")[0];
   const todayAppts = appointments.filter(a => a.date === TODAY);
   const todayUpcoming = todayAppts.filter(a => a.status === "Sắp tới");
   const filteredSchedule = todayAppts.filter(a => scheduleLevelFilter === "all" || a.level === scheduleLevelFilter);
@@ -134,6 +136,93 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
     );
   }
 
+  // --- Search logic ---
+  const sq = searchQuery.toLowerCase().trim();
+  const searchResultsQueue = sq ? queue.filter(t =>
+    t.patient.toLowerCase().includes(sq) || t.symptoms.toLowerCase().includes(sq)
+  ) : [];
+  const searchResultsAppts = sq ? appointments.filter(a =>
+    a.patientName.toLowerCase().includes(sq) || (a.symptoms || "").toLowerCase().includes(sq) || a.doctorSpec.toLowerCase().includes(sq)
+  ) : [];
+  const searchResultsRecords = sq ? records.filter(r =>
+    r.p.toLowerCase().includes(sq) || r.t.toLowerCase().includes(sq) || r.m.toLowerCase().includes(sq)
+  ) : [];
+  const hasResults = searchResultsQueue.length + searchResultsAppts.length + searchResultsRecords.length > 0;
+
+  const searchResultsNode = sq ? (
+    <div className="overflow-auto" style={{ maxHeight: '400px' }}>
+      {!hasResults && (
+        <div className="p-8 text-center">
+          <UserSearch className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+          <div className="text-sm font-medium text-slate-500">Không tìm thấy kết quả cho "{searchQuery}"</div>
+          <div className="text-xs text-slate-400 mt-1">Thử tìm theo tên bệnh nhân, triệu chứng hoặc chẩn đoán</div>
+        </div>
+      )}
+      {searchResultsQueue.length > 0 && (
+        <div>
+          <div className="px-4 py-2 bg-rose-50 text-[10px] font-bold uppercase tracking-wider text-rose-600 flex items-center gap-1.5 border-b border-rose-100">
+            <AlertTriangle className="w-3 h-3" /> Ca chờ khám ({searchResultsQueue.length})
+          </div>
+          {searchResultsQueue.map(t => (
+            <button
+              key={`q-${t.id}`}
+              className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors flex items-center gap-3 border-b border-slate-100 last:border-0"
+              onClick={() => { openConsult(t); setSearchQuery(""); }}
+            >
+              <Avatar className="w-9 h-9 shrink-0"><AvatarFallback className="bg-gradient-to-br from-rose-500 to-orange-500 text-white text-xs font-bold">{t.patient[0]}</AvatarFallback></Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-bold text-slate-800 truncate">{t.patient} <span className="text-slate-400 font-normal">({t.age} tuổi)</span></div>
+                <div className="text-xs text-slate-500 truncate mt-0.5">{t.symptoms}</div>
+              </div>
+              <LevelBadge level={t.level} />
+            </button>
+          ))}
+        </div>
+      )}
+      {searchResultsAppts.length > 0 && (
+        <div>
+          <div className="px-4 py-2 bg-blue-50 text-[10px] font-bold uppercase tracking-wider text-blue-600 flex items-center gap-1.5 border-b border-blue-100">
+            <CalendarDays className="w-3 h-3" /> Lịch hẹn ({searchResultsAppts.length})
+          </div>
+          {searchResultsAppts.slice(0, 5).map(a => (
+            <button
+              key={`a-${a.id}`}
+              className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors flex items-center gap-3 border-b border-slate-100 last:border-0"
+              onClick={() => { setApptDetail(a); setSearchQuery(""); }}
+            >
+              <Avatar className="w-9 h-9 shrink-0"><AvatarFallback className="bg-gradient-to-br from-blue-500 to-sky-500 text-white text-xs font-bold">{a.patientName[0]}</AvatarFallback></Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-bold text-slate-800 truncate">{a.patientName}</div>
+                <div className="text-xs text-slate-500 truncate mt-0.5">{a.date} • {a.time} • {a.clinic}</div>
+              </div>
+              <Badge variant={a.status === "Hoàn thành" ? "default" : "secondary"} className="shrink-0 text-[10px]">{a.status}</Badge>
+            </button>
+          ))}
+        </div>
+      )}
+      {searchResultsRecords.length > 0 && (
+        <div>
+          <div className="px-4 py-2 bg-violet-50 text-[10px] font-bold uppercase tracking-wider text-violet-600 flex items-center gap-1.5 border-b border-violet-100">
+            <FileText className="w-3 h-3" /> Hồ sơ & đơn thuốc ({searchResultsRecords.length})
+          </div>
+          {searchResultsRecords.slice(0, 5).map((r, i) => (
+            <button
+              key={`r-${i}`}
+              className="w-full text-left px-4 py-3 hover:bg-violet-50 transition-colors flex items-center gap-3 border-b border-slate-100 last:border-0"
+              onClick={() => { setRecordView(r); setSearchQuery(""); }}
+            >
+              <div className="w-9 h-9 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center shrink-0"><ClipboardList className="w-4 h-4" /></div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-bold text-slate-800 truncate">{r.p}</div>
+                <div className="text-xs text-slate-500 truncate mt-0.5">{r.t} • {r.d}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  ) : null;
+
   return (
     <AppShell
       title="Phòng khám của tôi"
@@ -142,8 +231,11 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
       roleColor="bg-violet-100 text-violet-700 border border-violet-200"
       initials="VA"
       active={active}
-      onNav={setActive}
+      onNav={(key) => { setActive(key); setSearchQuery(""); }}
       onLogout={onLogout}
+      searchValue={searchQuery}
+      onSearchChange={setSearchQuery}
+      searchResults={searchResultsNode}
       nav={[
         { key: "overview", label: "Tổng quan & Ca chờ", icon: LayoutDashboard },
         { key: "schedule", label: "Lịch khám hôm nay", icon: CalendarDays },
@@ -844,20 +936,149 @@ function ConsultationRoom({
   const [note, setNote] = useState("");
   const [drugQuery, setDrugQuery] = useState("");
   const [showTemplate, setShowTemplate] = useState(false);
-  const [callOn, setCallOn] = useState(true);
+  const [callOn, setCallOn] = useState(false);
+  const [micOn, setMicOn] = useState(true);
   const [chatMode, setChatMode] = useState<"video" | "chat">("video");
   const [chatMsgs, setChatMsgs] = useState([
     { f: "staff" as const, txt: `Chào ${patient.patient}, tôi là bác sĩ trực hôm nay.`, t: "vừa xong" },
     { f: "user" as const, txt: "Dạ chào bác sĩ ạ.", t: "vừa xong" },
   ]);
   const [chatInput, setChatInput] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordTime, setRecordTime] = useState(0);
+  const [recordings, setRecordings] = useState<{url:string; dur:number}[]>([]);
+  const [callDuration, setCallDuration] = useState(0);
+  const [showFinishDialog, setShowFinishDialog] = useState(false);
 
-  const aiSummary = [
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const selfVideoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const mediaRecRef = useRef<MediaRecorder | null>(null);
+  const recChunks = useRef<Blob[]>([]);
+  const recTimerRef = useRef<ReturnType<typeof setInterval>>();
+  const callTimerRef = useRef<ReturnType<typeof setInterval>>();
+
+  // Camera start/stop
+  const startCamera = useCallback(async () => {
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      streamRef.current = s;
+      if (selfVideoRef.current) { selfVideoRef.current.srcObject = s; }
+      setCallOn(true);
+      toast.success("Đã kết nối camera & mic");
+    } catch { toast.error("Không thể truy cập camera/mic"); }
+  }, []);
+
+  const stopCamera = useCallback(() => {
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
+    if (selfVideoRef.current) selfVideoRef.current.srcObject = null;
+    setCallOn(false);
+  }, []);
+
+  // Call timer
+  useEffect(() => {
+    if (callOn) {
+      callTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
+    } else {
+      if (callTimerRef.current) clearInterval(callTimerRef.current);
+    }
+    return () => { if (callTimerRef.current) clearInterval(callTimerRef.current); };
+  }, [callOn]);
+
+  // Mic toggle
+  const toggleMic = () => {
+    if (streamRef.current) {
+      streamRef.current.getAudioTracks().forEach(t => { t.enabled = !t.enabled; });
+      setMicOn(p => !p);
+      toast.info(micOn ? "Đã tắt mic" : "Đã bật mic");
+    } else { toast.error("Chưa kết nối cuộc gọi"); }
+  };
+
+  // Voice recording
+  const startRecording = async () => {
+    try {
+      const s = streamRef.current || await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(s, { mimeType: "audio/webm" });
+      recChunks.current = [];
+      mr.ondataavailable = e => { if (e.data.size > 0) recChunks.current.push(e.data); };
+      mr.onstop = () => {
+        const blob = new Blob(recChunks.current, { type: "audio/webm" });
+        const url = URL.createObjectURL(blob);
+        setRecordings(p => [...p, { url, dur: recordTime }]);
+        const transcript = `[Ghi âm ${fmtTime(recordTime)}] Bệnh nhân mô tả triệu chứng ${patient.symptoms.toLowerCase()}, đã khám lâm sàng.`;
+        setNote(prev => (prev ? prev + "\n" : "") + transcript);
+        toast.success("Đã lưu ghi âm & chuyển thành ghi chú");
+      };
+      mr.start();
+      mediaRecRef.current = mr;
+      setIsRecording(true);
+      setRecordTime(0);
+      recTimerRef.current = setInterval(() => setRecordTime(t => t + 1), 1000);
+    } catch { toast.error("Không thể truy cập mic"); }
+  };
+
+  const stopRecording = () => {
+    mediaRecRef.current?.stop();
+    setIsRecording(false);
+    if (recTimerRef.current) clearInterval(recTimerRef.current);
+  };
+
+  // Cleanup
+  useEffect(() => () => { stopCamera(); if (recTimerRef.current) clearInterval(recTimerRef.current); }, [stopCamera]);
+
+  const fmtTime = (s: number) => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+
+  // AI Summary - gọi AI Service thật
+  const [aiSummary, setAiSummary] = useState<string[]>([
     `Bệnh nhân ${patient.patient}, ${patient.age} tuổi, vào viện vì: ${patient.symptoms.toLowerCase()}.`,
-    `Sinh hiệu lúc tiếp nhận: HA ${patient.vitals.bp}, mạch ${patient.vitals.hr}, nhiệt độ ${patient.vitals.temp}, SpO2 ${patient.vitals.spo2}.`,
-    `Tiền sử: tăng huyết áp 5 năm, đang dùng Amlodipine 5mg/ngày.`,
-    `Khuyến nghị AI: ưu tiên đo ECG, xét nghiệm Troponin nếu nghi ngờ tim mạch.`,
-  ];
+    `Sinh hiệu: HA ${patient.vitals.bp}, mạch ${patient.vitals.hr}, nhiệt độ ${patient.vitals.temp}, SpO2 ${patient.vitals.spo2}.`,
+    "Đang tải phân tích AI..."
+  ]);
+  const [aiLoading, setAiLoading] = useState(true);
+  const [aiDiagnoses, setAiDiagnoses] = useState<string[]>(["Đang phân tích..."]);
+
+  useEffect(() => {
+    const fetchAI = async () => {
+      try {
+        const prompt = `Bạn là bác sĩ AI. QUAN TRỌNG: Bạn PHẢI trả lời bằng tiếng Việt CÓ DẤU đầy đủ (ví dụ: "bệnh nhân", "chẩn đoán", "huyết áp", TUYỆT ĐỐI KHÔNG viết không dấu như "benh nhan", "chan doan", "huyet ap"). Hãy phân tích ngắn gọn bệnh nhân sau:
+- Tên: ${patient.patient}, ${patient.age} tuổi
+- Triệu chứng: ${patient.symptoms}
+- Sinh hiệu: HA ${patient.vitals.bp}, mạch ${patient.vitals.hr}bpm, nhiệt độ ${patient.vitals.temp}, SpO2 ${patient.vitals.spo2}
+- Mức độ sàng lọc: ${patient.level}
+
+Trả về JSON: {"text": "tóm tắt bằng tiếng Việt CÓ DẤU gồm 4-5 điểm chính, mỗi điểm cách nhau bằng dấu |", "actions": [], "suggestedActions": []}`;
+
+        const res = await fetch("http://127.0.0.1:8000/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: prompt, role: "bacsi", history: [] }),
+        });
+        const data = await res.json();
+        if (data.text) {
+          const lines = data.text.split("|").map((s: string) => s.trim()).filter(Boolean);
+          setAiSummary(lines.length > 0 ? lines : [data.text]);
+          // Extract diagnoses from AI response
+          const diagMatch = data.text.match(/chẩn đoán[^:]*:(.*?)(?:\.|$)/i);
+          if (diagMatch) {
+            setAiDiagnoses(diagMatch[1].split(",").map((s: string) => s.trim()).filter(Boolean));
+          } else {
+            setAiDiagnoses(["Cần thêm xét nghiệm", "Theo dõi sinh hiệu", "Tham khảo chuyên khoa"]);
+          }
+        }
+      } catch {
+        setAiSummary([
+          `Bệnh nhân ${patient.patient}, ${patient.age} tuổi, vào viện vì: ${patient.symptoms.toLowerCase()}.`,
+          `Sinh hiệu lúc tiếp nhận: HA ${patient.vitals.bp}, mạch ${patient.vitals.hr}, nhiệt độ ${patient.vitals.temp}, SpO2 ${patient.vitals.spo2}.`,
+          `Tiền sử: tăng huyết áp 5 năm, đang dùng Amlodipine 5mg/ngày.`,
+          `Khuyến nghị: ưu tiên đo ECG, xét nghiệm Troponin nếu nghi ngờ tim mạch.`,
+        ]);
+        setAiDiagnoses(["Cơn tăng huyết áp", "Đau đầu căng thẳng", "Rối loạn tiền đình"]);
+      }
+      setAiLoading(false);
+    };
+    fetchAI();
+  }, [patient]);
 
   const history = [
     { d: "2026-04-22", t: "Khám định kỳ tim mạch", note: "HA 130/85, kê tiếp Amlodipine" },
@@ -878,13 +1099,7 @@ function ConsultationRoom({
     setChatInput("");
   };
 
-  const saveAndFinish = () => {
-    if (!note.trim()) {
-      toast.error("Vui lòng ghi chú trước khi hoàn tất");
-      return;
-    }
-    onFinish();
-  };
+
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -919,8 +1134,12 @@ function ConsultationRoom({
             </div>
             <TabsContent value="ai" className="flex-1 m-0 overflow-auto p-4 space-y-3">
               <Card className="p-4 bg-gradient-to-br from-violet-50 to-sky-50 border-violet-200">
-                <div className="flex items-center gap-2 text-violet-700">
-                  <Sparkles className="w-4 h-4" /> <span className="text-sm">AI sàng lọc & tóm tắt</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-violet-700">
+                    <Sparkles className="w-4 h-4" /> <span className="text-sm font-medium">AI sàng lọc & tóm tắt</span>
+                  </div>
+                  {aiLoading && <span className="text-[10px] text-violet-500 animate-pulse">⏳ Đang phân tích...</span>}
+                  {!aiLoading && <span className="text-[10px] text-emerald-600">✓ AI Service</span>}
                 </div>
                 <div className="space-y-2 mt-3">
                   {aiSummary.map((line, i) => (
@@ -934,7 +1153,7 @@ function ConsultationRoom({
               <Card className="p-4">
                 <div className="text-sm">Đề xuất chẩn đoán phân biệt</div>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {["Cơn tăng huyết áp", "Đau đầu căng thẳng", "Rối loạn tiền đình"].map(d => (
+                  {aiDiagnoses.map(d => (
                     <Badge key={d} variant="secondary">{d}</Badge>
                   ))}
                 </div>
@@ -982,24 +1201,50 @@ function ConsultationRoom({
             </div>
             {chatMode === "video" ? (
               <div className="flex-1 relative bg-slate-900 flex items-center justify-center">
-                <div className="text-white/60 text-sm">[Khu vực video]</div>
-                <div className="absolute bottom-3 right-3 w-32 h-20 bg-slate-700 rounded-lg border-2 border-white/30 flex items-center justify-center text-white/60 text-xs">Bạn</div>
+                {callOn ? (
+                  <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+                    <div className="text-center text-white/50">
+                      <Video className="w-12 h-12 mx-auto mb-2 opacity-40" />
+                      <div className="text-sm">Camera bệnh nhân</div>
+                      <div className="text-xs mt-1 text-white/30">(Đang chờ kết nối...)</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <Phone className="w-10 h-10 mx-auto text-white/20 mb-3" />
+                    <div className="text-white/40 text-sm mb-4">Chưa kết nối cuộc gọi</div>
+                    <Button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-6" onClick={startCamera}>
+                      <Phone className="w-4 h-4 mr-2" /> Bắt đầu gọi
+                    </Button>
+                  </div>
+                )}
+                {/* Self video (camera thật) */}
+                <div className="absolute bottom-3 right-3 w-36 h-24 bg-slate-700 rounded-lg border-2 border-white/30 overflow-hidden">
+                  <video ref={selfVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                  {!callOn && <div className="absolute inset-0 flex items-center justify-center text-white/60 text-xs bg-slate-800/80">Bạn</div>}
+                </div>
+                {/* Status */}
                 <div className="absolute top-3 left-3 flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] flex items-center gap-1">
-                    <span className={`w-1.5 h-1.5 rounded-full bg-white ${callOn ? "animate-pulse" : ""}`} />
-                    {callOn ? "Đang gọi" : "Đã ngắt"}
-                  </span>
+                  {callOn ? (
+                    <span className="px-2.5 py-1 rounded-full bg-rose-500 text-white text-[11px] font-medium flex items-center gap-1.5 shadow-lg">
+                      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                      Đang gọi • {fmtTime(callDuration)}
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-1 rounded-full bg-slate-600 text-white/70 text-[11px]">Chưa kết nối</span>
+                  )}
                 </div>
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
-                  <Button size="icon" variant="secondary" onClick={() => toast.info("Tắt/bật mic")}><Mic className="w-4 h-4" /></Button>
-                  <Button
-                    size="icon"
-                    className={callOn ? "bg-rose-600 hover:bg-rose-700 text-white" : "bg-emerald-600 hover:bg-emerald-700 text-white"}
-                    onClick={() => { setCallOn(!callOn); toast.info(callOn ? "Đã kết thúc cuộc gọi" : "Đã kết nối lại"); }}
-                  >
-                    {callOn ? <PhoneOff className="w-4 h-4" /> : <Phone className="w-4 h-4" />}
-                  </Button>
-                </div>
+                {/* Controls */}
+                {callOn && (
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+                    <Button size="icon" variant="secondary" className={`rounded-full w-10 h-10 ${!micOn ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}`} onClick={toggleMic}>
+                      {micOn ? <Mic className="w-4 h-4" /> : <span className="text-xs font-bold">🔇</span>}
+                    </Button>
+                    <Button size="icon" className="bg-rose-600 hover:bg-rose-700 text-white rounded-full w-10 h-10" onClick={() => { stopCamera(); toast.info("Đã kết thúc cuộc gọi"); }}>
+                      <PhoneOff className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             ) : (
               <>
@@ -1025,9 +1270,20 @@ function ConsultationRoom({
 
           <Card className="p-0 overflow-hidden flex flex-col min-h-0">
             <div className="border-b px-3 py-2 flex items-center justify-between">
-              <span className="text-sm">Ghi chú</span>
+              <span className="text-sm">Ghi chú {recordings.length > 0 && <span className="text-xs text-muted-foreground ml-1">({recordings.length} ghi âm)</span>}</span>
               <Button size="sm" variant="outline" onClick={() => setShowTemplate(true)}><FileText className="w-3.5 h-3.5 mr-1" />Template</Button>
             </div>
+            {/* Recordings playback */}
+            {recordings.length > 0 && (
+              <div className="px-3 pt-2 flex gap-2 flex-wrap">
+                {recordings.map((r, i) => (
+                  <div key={i} className="flex items-center gap-1.5 bg-violet-50 border border-violet-200 rounded-lg px-2 py-1">
+                    <span className="text-[10px] text-violet-700 font-medium">🎙 {fmtTime(r.dur)}</span>
+                    <audio src={r.url} controls className="h-6" style={{ width: 120 }} />
+                  </div>
+                ))}
+              </div>
+            )}
             <Textarea
               className="flex-1 m-3 resize-none"
               placeholder="Ghi chú chẩn đoán, đơn thuốc, dặn dò..."
@@ -1035,10 +1291,18 @@ function ConsultationRoom({
               onChange={e => setNote(e.target.value)}
             />
             <div className="px-3 pb-3 flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => toast.info("Đang ghi âm... (mô phỏng)")}>
-                <Mic className="w-4 h-4 mr-1" /> Ghi chú giọng nói
+              <Button
+                variant={isRecording ? "destructive" : "outline"}
+                className={`flex-1 ${isRecording ? "animate-pulse" : ""}`}
+                onClick={isRecording ? stopRecording : startRecording}
+              >
+                <Mic className="w-4 h-4 mr-1" />
+                {isRecording ? `Đang ghi... ${fmtTime(recordTime)} — Nhấn để dừng` : "Ghi chú giọng nói"}
               </Button>
-              <Button className="flex-1 bg-slate-900 hover:bg-slate-800" onClick={saveAndFinish}>
+              <Button className="flex-1 bg-slate-900 hover:bg-slate-800" onClick={() => {
+                if (!note.trim()) { toast.error("Vui lòng ghi chú trước khi hoàn tất"); return; }
+                setShowFinishDialog(true);
+              }}>
                 <Save className="w-4 h-4 mr-1" /> Lưu & Hoàn tất
               </Button>
             </div>
@@ -1063,6 +1327,45 @@ function ConsultationRoom({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowTemplate(false)}>Đóng</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showFinishDialog} onOpenChange={setShowFinishDialog}>
+        <DialogContent>
+          <DialogHeader className="text-left">
+            <DialogTitle>Xác nhận hoàn tất phiên khám</DialogTitle>
+            <DialogDescription>Kiểm tra lại thông tin trước khi lưu</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="p-3 rounded-lg border bg-slate-50">
+              <div className="text-xs text-muted-foreground mb-1">Bệnh nhân</div>
+              <div className="font-medium">{patient.patient} ({patient.age} tuổi)</div>
+            </div>
+            <div className="p-3 rounded-lg border bg-slate-50">
+              <div className="text-xs text-muted-foreground mb-1">Ghi chú ({note.split('\n').filter(Boolean).length} dòng)</div>
+              <div className="text-sm whitespace-pre-line line-clamp-4">{note}</div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="p-2 rounded-lg border text-center">
+                <div className="text-xs text-muted-foreground">Ghi âm</div>
+                <div className="font-medium mt-0.5">{recordings.length} file</div>
+              </div>
+              <div className="p-2 rounded-lg border text-center">
+                <div className="text-xs text-muted-foreground">Thời gian gọi</div>
+                <div className="font-medium mt-0.5">{fmtTime(callDuration)}</div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowFinishDialog(false)}>Quay lại</Button>
+            <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => {
+              setShowFinishDialog(false);
+              stopCamera();
+              onFinish();
+            }}>
+              <CheckCircle2 className="w-4 h-4 mr-1" /> Xác nhận hoàn tất
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

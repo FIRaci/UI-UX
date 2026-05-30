@@ -32,6 +32,9 @@ export function AppShell({
   onNav,
   onLogout,
   children,
+  searchValue,
+  onSearchChange,
+  searchResults,
 }: {
   title: string;
   subtitle: string;
@@ -43,6 +46,9 @@ export function AppShell({
   onNav: (key: string) => void;
   onLogout: () => void;
   children: ReactNode;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  searchResults?: ReactNode;
 }) {
   const [notifs, setNotifs] = useState<Notif[]>([]);
   const [notifError, setNotifError] = useState(false);
@@ -182,21 +188,40 @@ export function AppShell({
             </div>
           </div>
 
-          {/* Middle Mock Search bar */}
+          {/* Search bar */}
           <div className="hidden md:flex flex-1 max-w-sm mx-6 relative items-center">
-            <Search className="absolute left-3 w-4 h-4 text-slate-400 pointer-events-none" />
+            <Search className="absolute left-3 w-4 h-4 text-slate-400 pointer-events-none z-10" />
             <input
               placeholder="Tìm bệnh nhân, phác đồ, chẩn đoán..."
-              className="w-full h-9 pl-9 pr-12 border border-slate-200 rounded-xl text-xs bg-slate-50 text-slate-700 outline-none transition-all"
+              className={`w-full h-9 pl-9 pr-12 border rounded-xl text-xs bg-slate-50 text-slate-700 outline-none transition-all ${searchValue ? 'border-blue-400 ring-2 ring-blue-100 bg-white' : 'border-slate-200'}`}
+              value={onSearchChange ? (searchValue ?? "") : undefined}
+              onChange={onSearchChange ? (e) => onSearchChange(e.target.value) : undefined}
               onFocus={() => {
+                if (onSearchChange) return;
                 if (notifiedSearch.current) return;
                 notifiedSearch.current = true;
                 toast.info("Chức năng tìm kiếm đang phát triển. Vui lòng sử dụng thanh điều hướng bên trái.");
               }}
             />
-            <div className="absolute right-3 px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[10px] text-slate-400 font-medium select-none">
-              ⌘K
-            </div>
+            {(!searchValue) && (
+              <div className="absolute right-3 px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[10px] text-slate-400 font-medium select-none">
+                ⌘K
+              </div>
+            )}
+            {searchValue && onSearchChange && (
+              <button
+                className="absolute right-3 w-5 h-5 rounded-md bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-500 transition-colors z-10"
+                onClick={() => onSearchChange("")}
+              >
+                ×
+              </button>
+            )}
+            {/* Search Results Dropdown */}
+            {searchValue && searchResults && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200" style={{ maxHeight: '420px' }}>
+                {searchResults}
+              </div>
+            )}
           </div>
 
           {/* Right Utilities */}
