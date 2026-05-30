@@ -2,6 +2,7 @@ import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
 import { Activity, HeartPulse, Droplet, Scale, Timer, Beaker, Zap, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const metrics = [
   { label: "Huyết áp", value: "120/80", unit: "mmHg", icon: Activity, p: 75, c: "bg-sky-500", status: "Bình thường", sc: "text-emerald-600 bg-emerald-50 border-emerald-200", trend: "up", history: [118, 122, 119, 121, 120] },
@@ -18,6 +19,7 @@ export function Tracking({ onBook, skipConfirm, onSkip, onCancelSkip }: {
   onSkip: () => void;
   onCancelSkip: () => void;
 }) {
+  const navigate = useNavigate();
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="grid md:grid-cols-3 gap-5">
@@ -29,7 +31,7 @@ export function Tracking({ onBook, skipConfirm, onSkip, onCancelSkip }: {
           </div>
           
           {metrics.map(m => (
-            <Card key={m.label} className="p-4 bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all hover:border-teal-100" style={{ borderRadius: "20px" }}>
+            <Card key={m.label} className="p-4 bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all hover:border-teal-100 hover:scale-[1.02] cursor-default" style={{ borderRadius: "20px" }}>
               <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-2">
                   <div className={`w-8 h-8 rounded-xl ${m.c.replace('bg-', 'bg-').replace('500', '100')} flex items-center justify-center`}>
@@ -96,17 +98,17 @@ export function Tracking({ onBook, skipConfirm, onSkip, onCancelSkip }: {
             </Card>
             
             {skipConfirm ? (
-              <div className="mt-4 p-3.5 rounded-2xl bg-white border border-orange-200 shadow-sm">
+              <div className="mt-4 p-3.5 rounded-2xl bg-white border border-orange-200 shadow-sm animate-scale-in">
                 <p className="text-xs text-slate-700 font-semibold mb-3">Bạn có chắc chắn muốn bỏ qua nhắc nhở này?</p>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" className="flex-1 rounded-xl text-xs border-orange-200 text-orange-700 hover:bg-orange-50" onClick={onCancelSkip}>Giữ lại</Button>
-                  <Button size="sm" className="flex-1 rounded-xl text-xs bg-orange-600 hover:bg-orange-700 text-white" onClick={() => { onCancelSkip(); toast.info("Đã bỏ qua nhắc nhở"); }}>Bỏ qua</Button>
+                  <Button size="sm" variant="outline" className="flex-1 rounded-xl text-xs border-orange-200 text-orange-700 hover:bg-orange-50 active:scale-95" onClick={onCancelSkip}>Giữ lại</Button>
+                  <Button size="sm" className="flex-1 rounded-xl text-xs bg-orange-600 hover:bg-orange-700 text-white active:scale-95" onClick={() => { onCancelSkip(); toast.info("Đã bỏ qua nhắc nhở"); }}>Bỏ qua</Button>
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-2 mt-4">
+              <div className="flex flex-col gap-2 mt-4 animate-scale-in">
                 <Button onClick={onBook} className="w-full rounded-xl text-sm font-bold h-10 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md shadow-orange-500/20 transition-all active:scale-95">Đặt lịch tái khám ngay</Button>
-                <Button variant="ghost" className="w-full rounded-xl text-xs h-9 text-orange-700 hover:bg-orange-100/50" onClick={onSkip}>Bỏ qua nhắc nhở này</Button>
+                <Button variant="ghost" className="w-full rounded-xl text-xs h-9 text-orange-700 hover:bg-orange-100/50 active:scale-95 transition-all" onClick={onSkip}>Bỏ qua nhắc nhở này</Button>
               </div>
             )}
           </Card>
@@ -128,7 +130,7 @@ export function Tracking({ onBook, skipConfirm, onSkip, onCancelSkip }: {
                 </div>
               ))}
             </div>
-            <Button variant="outline" className="w-full mt-5 rounded-xl text-xs font-semibold border-emerald-200 text-emerald-600 hover:bg-emerald-50" onClick={() => window.location.href="/patient/records"}>Xem toàn bộ lịch sử</Button>
+            <Button variant="outline" className="w-full mt-5 rounded-xl text-xs font-semibold border-emerald-200 text-emerald-600 hover:bg-emerald-50 active:scale-95 transition-all" onClick={() => navigate("/patient/records")}>Xem toàn bộ lịch sử</Button>
           </Card>
         </div>
       </div>

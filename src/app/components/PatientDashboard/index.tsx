@@ -27,18 +27,18 @@ type Suggestion = { id: string; type: string; title: string; description: string
 const ActionItem = ({ icon: Icon, label, onClick, className, bg, text, hover, badge, delay = 0 }: any) => (
   <div className={`absolute z-30 ${className}`}>
     <motion.button
-      animate={{ y: [0, -6, 0] }}
+      animate={{ y: [0, -8, 0], boxShadow: ["0px 8px 32px rgba(0,0,0,0.04)", "0px 16px 40px rgba(16,185,129,0.15)", "0px 8px 32px rgba(0,0,0,0.04)"] }}
       transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay }}
-      whileHover={{ scale: 1.1, y: 0, transition: { duration: 0.2 } }}
+      whileHover={{ scale: 1.1, y: 0, boxShadow: "0px 16px 40px rgba(16,185,129,0.3)", transition: { duration: 0.2 } }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-1.5 sm:gap-2 w-[84px] h-[84px] sm:w-[104px] sm:h-[104px] rounded-[24px] bg-white/60 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] shadow-lg shadow-emerald-500/10 ${hover} transition-colors`}
+      className={`flex flex-col items-center justify-center gap-1.5 sm:gap-2 w-[84px] h-[84px] sm:w-[104px] sm:h-[104px] rounded-[24px] bg-white/70 backdrop-blur-2xl border border-white/60 ${hover} transition-colors`}
     >
-      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-[16px] ${bg} flex items-center justify-center ${text} relative`}>
-        <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
-        {badge > 0 && <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">{badge}</span>}
+      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-[16px] ${bg} flex items-center justify-center ${text} relative shadow-inner`}>
+        <Icon className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-sm" />
+        {badge > 0 && <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md border-[1.5px] border-white">{badge}</span>}
       </div>
-      <span className="text-[10px] sm:text-xs font-bold text-slate-700 leading-tight whitespace-nowrap">{label}</span>
+      <span className="text-[10px] sm:text-xs font-bold text-slate-700 leading-tight whitespace-nowrap drop-shadow-sm">{label}</span>
     </motion.button>
   </div>
 );
@@ -102,9 +102,29 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
     return [];
   });
   
+  const [currentSessionId, setCurrentSessionId] = useState<string>(() => {
+    return localStorage.getItem("ai_current_session_id") || Date.now().toString();
+  });
+
+  useEffect(() => {
+    localStorage.setItem("ai_current_session_id", currentSessionId);
+  }, [currentSessionId]);
+
   useEffect(() => {
     localStorage.setItem("ai_chat_history", JSON.stringify(messages));
-  }, [messages]);
+    if (messages.length > 0) {
+      const sessions = JSON.parse(localStorage.getItem("ai_chat_sessions") || "[]");
+      const existingIdx = sessions.findIndex((s: any) => s.id === currentSessionId);
+      if (existingIdx >= 0) {
+        sessions[existingIdx].msgs = messages;
+        sessions[existingIdx].date = new Date().toISOString();
+      } else {
+        sessions.push({ id: currentSessionId, date: new Date().toISOString(), msgs: messages });
+      }
+      localStorage.setItem("ai_chat_sessions", JSON.stringify(sessions));
+      setChatSessions(sessions);
+    }
+  }, [messages, currentSessionId]);
 
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -365,9 +385,17 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50 via-white to-emerald-50 pointer-events-none" />
 
       {/* ===== DASHBOARD VIEW: The Radical Orbital Layout ===== */}
-      {activeView === "dashboard" && (
-        <div className="flex-1 flex flex-col items-center justify-center relative min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/40 to-slate-50 overflow-hidden">
-          {/* Ambient Background Glowing Orbs */}
+      <AnimatePresence mode="wait">
+        {activeView === "dashboard" && (
+          <motion.div 
+            key="dashboard"
+            initial={{ opacity: 0, scale: 0.98 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            exit={{ opacity: 0, scale: 0.98 }} 
+            transition={{ duration: 0.3 }}
+            className="flex-1 flex flex-col items-center justify-center relative min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/40 to-slate-50 overflow-hidden"
+          >
+            {/* Ambient Background Glowing Orbs */}
           <div className="absolute top-[15%] left-[20%] w-[30vw] h-[30vw] bg-teal-400/10 rounded-full blur-[100px] pointer-events-none" />
           <div className="absolute bottom-[20%] right-[15%] w-[40vw] h-[40vw] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
 
@@ -419,7 +447,12 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
                             onClick={() => { 
                               store.markNotificationRead(n.id);
                               setShowNotifs(false); 
-                              if (n.target) navigate(n.target);
+                              let route = "/patient";
+                              const text = (n.title + " " + n.content).toLowerCase();
+                              if (text.includes("lịch hẹn") || text.includes("khám")) route = "/patient/appointments";
+                              else if (text.includes("tin nhắn")) route = "/patient/messages";
+                              else if (text.includes("xét nghiệm") || text.includes("kết quả")) route = "/patient/records";
+                              navigate(route);
                             }}
                           >
                             <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><Bell className="w-5 h-5" /></div>
@@ -442,7 +475,7 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
             </div>
             
             <div 
-              className="w-11 h-11 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center text-xs font-bold cursor-pointer hover:scale-105 transition-transform shadow-sm border-[3px] border-white" 
+              className="w-11 h-11 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center text-xs font-bold cursor-pointer hover:scale-105 active:scale-95 transition-transform shadow-sm border-[3px] border-white" 
               onClick={() => navigate("/patient/profile")}
             >
               MK
@@ -450,7 +483,7 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
             <Button 
               variant="ghost" 
               size="icon" 
-              className="w-11 h-11 rounded-full text-red-500 hover:text-red-600 hover:bg-red-50 bg-white/70 backdrop-blur-md shadow-sm border border-slate-200" 
+              className="w-11 h-11 rounded-full text-red-500 hover:text-red-600 hover:bg-red-50 bg-white/70 backdrop-blur-md shadow-sm border border-slate-200 active:scale-95 transition-all" 
               onClick={onLogout}
             >
               <LogOut className="w-5 h-5" />
@@ -527,7 +560,7 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
               <div 
                 className="pointer-events-auto flex items-center gap-3 bg-slate-900/80 backdrop-blur-xl pl-5 pr-2 py-2 rounded-full text-white shadow-2xl hover:scale-105 transition-all border border-slate-700 max-w-full"
               >
-                <div className="flex items-center gap-3 cursor-pointer" onClick={() => { handleDashboardSuggestion(suggestions[0]); setDismissedSuggestion(true); }}>
+                <div className="flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform" onClick={() => { handleDashboardSuggestion(suggestions[0]); setDismissedSuggestion(true); }}>
                   <Sparkles className="w-5 h-5 text-yellow-400 shrink-0" />
                   <span className="text-sm font-semibold truncate py-1.5">{suggestions[0].title}: {suggestions[0].actionLabel}</span>
                   <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 mr-1" />
@@ -542,12 +575,19 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
               </div>
             </motion.div>
           )}
-        </div>
+        </motion.div>
       )}
 
       {/* ===== CHAT VIEW ===== */}
       {activeView === "chat" && (
-        <div className="h-screen flex flex-col bg-white">
+        <motion.div 
+          key="chat"
+          initial={{ opacity: 0, y: "100%" }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: "100%" }}
+          transition={{ type: "spring", damping: 25, stiffness: 200 }}
+          className="h-screen flex flex-col bg-white absolute inset-0 z-50"
+        >
           {/* Chat Header */}
           <header className="h-16 bg-white border-b border-emerald-100/40 px-4 flex items-center gap-3 shrink-0">
             <Button variant="ghost" size="icon" onClick={() => navigate("/patient")} className="rounded-full hover:bg-slate-100">
@@ -565,7 +605,7 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
             </div>
             
             <div className="ml-auto flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl" onClick={() => {
+              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl active:scale-95" onClick={() => {
                 setChatSessions(JSON.parse(localStorage.getItem("ai_chat_sessions") || "[]"));
                 setShowChatHistory(true);
               }}>
@@ -573,14 +613,11 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
               </Button>
               <Button variant="ghost" size="sm" onClick={() => {
                 if (messages.length > 0) {
-                  const sessions = JSON.parse(localStorage.getItem("ai_chat_sessions") || "[]");
-                  sessions.push({ id: Date.now().toString(), date: new Date().toISOString(), msgs: messages });
-                  localStorage.setItem("ai_chat_sessions", JSON.stringify(sessions));
-                  setChatSessions(sessions);
+                  setCurrentSessionId(Date.now().toString());
                   setMessages([]);
                   toast.success("Đã mở cuộc trò chuyện mới");
                 }
-              }} className="text-emerald-600 font-semibold bg-emerald-50 hover:bg-emerald-100 rounded-xl px-3 h-9">
+              }} className="text-emerald-600 font-semibold bg-emerald-50 hover:bg-emerald-100 rounded-xl px-3 h-9 active:scale-95">
                 <Plus className="w-4 h-4 mr-1.5" />
                 Mới
               </Button>
@@ -590,6 +627,26 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
           {/* Chat Messages */}
           <ScrollArea className="flex-1 px-4 py-6">
             <div className="max-w-3xl mx-auto space-y-6">
+              {messages.length === 0 && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-10 gap-2 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-4">
+                    <Bot className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="font-bold text-slate-800 text-lg">Xin chào, tôi có thể giúp gì cho bạn?</h3>
+                  <p className="text-sm text-slate-500 mb-6">Hãy chọn một gợi ý bên dưới hoặc tự nhập câu hỏi của bạn.</p>
+                  <div className="flex flex-wrap justify-center gap-3 max-w-lg">
+                    {["Tôi bị đau đầu và buồn nôn", "Lịch khám gần nhất của tôi khi nào?", "Tư vấn dinh dưỡng cho người tiểu đường", "Làm sao để đặt lịch khám mới?", "Có những phương thức thanh toán nào?", "Giải thích kết quả xét nghiệm máu"].map(prompt => (
+                      <button 
+                        key={prompt}
+                        onClick={() => { setInput(prompt); sendChat(prompt); }}
+                        className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:border-emerald-300 hover:text-emerald-700 hover:bg-emerald-50 hover:shadow-sm transition-all active:scale-95 text-left shadow-sm"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
               {messages.map(msg => (
                 <motion.div key={msg.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-3 ${msg.role === "me" ? "flex-row-reverse" : ""}`}>
                   {msg.role === "bot" && (
@@ -671,7 +728,7 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
               </Button>
               <Button
                 size="icon"
-                className={`h-11 w-11 rounded-xl shrink-0 transition-all ${input.trim() ? "bg-emerald-600 hover:bg-emerald-700 shadow-md" : "bg-slate-200 text-slate-400"}`}
+                className={`h-11 w-11 rounded-xl shrink-0 transition-all active:scale-95 ${input.trim() ? "bg-emerald-600 hover:bg-emerald-700 shadow-md" : "bg-slate-200 text-slate-400"}`}
                 onClick={() => sendChat(input)}
                 disabled={!input.trim() || isTyping}
               >
@@ -680,12 +737,19 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
             </div>
             <p className="text-center text-[10px] text-slate-400 mt-2 font-medium">AI mang tính tham khảo, không thay thế chẩn đoán y khoa.</p>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* ===== SUB-PAGE VIEWS ===== */}
       {activeView !== "dashboard" && activeView !== "chat" && (
-        <div className="min-h-screen flex flex-col relative">
+        <motion.div 
+          key="subpages"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.2 }}
+          className="min-h-screen flex flex-col relative bg-slate-50 absolute inset-0 z-40"
+        >
           <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50 via-white to-emerald-50 pointer-events-none" />
           <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-emerald-100/40 px-4 h-14 flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate("/patient")} className="rounded-full hover:bg-slate-100">
@@ -738,15 +802,16 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
           >
             <Bot className="w-7 h-7" />
           </motion.button>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* Floating Chat Button (visible on sub-pages, not on dashboard or chat) */}
       {activeView !== "dashboard" && activeView !== "chat" && (
         <motion.button
           initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 260, damping: 20 }}
+          className="group fixed bottom-6 right-6 w-14 h-14 sm:w-16 sm:h-16 rounded-[2rem] sm:rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_8px_32px_rgba(16,185,129,0.3)] hover:shadow-[0_12px_40px_rgba(16,185,129,0.5)] flex flex-col items-center justify-center gap-2 hover:scale-110 active:scale-95 transition-all z-40 border-[3px] border-white"
           onClick={openChat}
-          className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-2xl shadow-emerald-500/30 flex flex-col items-center justify-center hover:scale-110 active:scale-95 transition-transform border-[3px] border-white"
         >
           <Bot className="w-7 h-7" />
         </motion.button>
@@ -777,8 +842,9 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
               <div className="text-center py-8 text-slate-400 text-sm">Chưa có lịch sử trò chuyện.</div>
             ) : (
               [...chatSessions].reverse().map(session => (
-                <div key={session.id} className="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:border-emerald-200 hover:shadow-emerald-500/10 transition-all cursor-pointer" onClick={() => {
+                <div key={session.id} className={`p-4 border rounded-2xl shadow-sm hover:border-emerald-200 hover:shadow-emerald-500/10 transition-all cursor-pointer ${session.id === currentSessionId ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-100"}`} onClick={() => {
                   setMessages(session.msgs);
+                  setCurrentSessionId(session.id);
                   setShowChatHistory(false);
                   toast.success("Đã tải lại lịch sử chat");
                 }}>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -60,6 +61,14 @@ export function BookingDialog({ doctor, bookDate, onBookDateChange, bookTime, on
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const handleConfirm = () => {
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setIsSubmitting(false);
+      onConfirm();
+    }, 1000);
+  };
   return (
     <Dialog open={!!doctor} onOpenChange={onCancel}>
       <DialogContent className="animate-scale-in">
@@ -91,8 +100,10 @@ export function BookingDialog({ doctor, bookDate, onBookDateChange, bookTime, on
               </Card>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => { onCancel(); toast.info("Đã hủy đặt lịch"); }}>Hủy</Button>
-              <Button onClick={onConfirm}>Xác nhận đặt lịch</Button>
+              <Button variant="outline" className="active:scale-95 transition-all" onClick={() => { onCancel(); toast.info("Đã hủy đặt lịch"); }} disabled={isSubmitting}>Hủy</Button>
+              <Button className="active:scale-95 transition-all w-36" onClick={handleConfirm} disabled={isSubmitting}>
+                {isSubmitting ? <span className="w-5 h-5 border-2 border-white/50 border-t-transparent rounded-full animate-spin"></span> : "Xác nhận đặt lịch"}
+              </Button>
             </DialogFooter>
           </>
         )}
@@ -110,6 +121,14 @@ export function EditAppointmentDialog({ editing, onEditingChange, editingOrigina
   appointments: Appointment[];
   doctors: Doctor[];
 }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const handleUpdate = () => {
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setIsSubmitting(false);
+      onUpdate();
+    }, 1000);
+  };
   return (
     <Dialog open={!!editing} onOpenChange={() => { onCancel(); }}>
       <DialogContent className="animate-scale-in">
@@ -145,8 +164,10 @@ export function EditAppointmentDialog({ editing, onEditingChange, editingOrigina
               );
             })()}
             <DialogFooter>
-              <Button variant="outline" onClick={() => { onCancel(); toast.info("Đã hủy thay đổi"); }}>Hủy</Button>
-              <Button onClick={onUpdate}>Xác nhận đổi lịch</Button>
+              <Button variant="outline" className="active:scale-95 transition-all" onClick={() => { onCancel(); toast.info("Đã hủy thay đổi"); }} disabled={isSubmitting}>Hủy</Button>
+              <Button className="active:scale-95 transition-all w-36" onClick={handleUpdate} disabled={isSubmitting}>
+                {isSubmitting ? <span className="w-5 h-5 border-2 border-white/50 border-t-transparent rounded-full animate-spin"></span> : "Xác nhận đổi lịch"}
+              </Button>
             </DialogFooter>
           </>
         )}
@@ -164,6 +185,15 @@ export function NewMessageDialog({ doctor, onDoctorChange, content, onContentCha
   onSend: () => void;
   onCancel: () => void;
 }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const handleSend = () => {
+    if (!doctor || !content.trim()) return toast.error("Vui lòng chọn bác sĩ và nhập nội dung");
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setIsSubmitting(false);
+      onSend();
+    }, 1000);
+  };
   return (
     <Dialog open={!!doctor} onOpenChange={() => onCancel()}>
       <DialogContent className="animate-scale-in">
@@ -186,8 +216,10 @@ export function NewMessageDialog({ doctor, onDoctorChange, content, onContentCha
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => { onCancel(); toast.info("Đã hủy gửi tin nhắn"); }}>Hủy</Button>
-              <Button onClick={onSend}>Gửi</Button>
+              <Button variant="outline" className="active:scale-95 transition-all" onClick={() => { onCancel(); toast.info("Đã hủy gửi tin nhắn"); }} disabled={isSubmitting}>Hủy</Button>
+              <Button className="active:scale-95 transition-all w-24" onClick={handleSend} disabled={isSubmitting}>
+                {isSubmitting ? <span className="w-5 h-5 border-2 border-white/50 border-t-transparent rounded-full animate-spin"></span> : "Gửi"}
+              </Button>
             </DialogFooter>
           </>
         )}

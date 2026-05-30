@@ -42,7 +42,7 @@ export function SearchSection({
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
           {doctors.map(d => (
-            <Card key={d.id} className="p-5 hover:shadow-md transition-all duration-300 bg-white border border-slate-100 hover:border-blue-100 rounded-2xl">
+            <Card key={d.id} className="p-5 hover:shadow-lg transition-all duration-300 bg-white border border-slate-100 hover:border-blue-100 hover:scale-[1.02] cursor-default rounded-2xl">
               <div className="flex items-start gap-4">
                 <Avatar className="w-14 h-14 border border-slate-100 shadow-sm"><AvatarFallback className="bg-blue-600 text-white font-bold text-lg">{d.name.split(" ").pop()![0]}</AvatarFallback></Avatar>
                 <div className="flex-1">
@@ -61,8 +61,8 @@ export function SearchSection({
                     <span className="inline-flex px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">Có lịch trống hôm nay</span>
                   </div>
                   <div className="flex gap-2.5 mt-3">
-                    <Button size="sm" variant="outline" className="rounded-xl flex-1 text-xs" onClick={() => onPick(d)}>Chi tiết</Button>
-                    <Button size="sm" className="rounded-xl flex-1 text-xs bg-orange-500 hover:bg-orange-600 shadow-sm font-bold" onClick={() => onBook(d)}>Đặt lịch</Button>
+                    <Button size="sm" variant="outline" className="rounded-xl flex-1 text-xs active:scale-95 transition-all hover:bg-slate-50" onClick={() => onPick(d)}>Chi tiết</Button>
+                    <Button size="sm" className="rounded-xl flex-1 text-xs bg-orange-500 hover:bg-orange-600 shadow-sm font-bold active:scale-95 transition-all" onClick={() => onBook(d)}>Đặt lịch</Button>
                   </div>
                 </div>
               </div>

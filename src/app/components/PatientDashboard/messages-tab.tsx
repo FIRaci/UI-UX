@@ -25,23 +25,26 @@ export function MessagesTab({
       <div className="grid grid-cols-[300px_1fr] h-full">
         <div className="border-r overflow-auto">
           <div className="p-3 border-b flex items-center justify-between">
-            <span className="text-sm">Hội thoại ({threads.length})</span>
-            <Button size="sm" variant="outline" onClick={onNewThread}><Plus className="w-3.5 h-3.5 mr-1" />Mới</Button>
+            <span className="text-sm font-bold text-slate-800">Hội thoại ({threads.length})</span>
+            <Button size="sm" variant="outline" className="active:scale-95 transition-all text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-100" onClick={onNewThread}><Plus className="w-3.5 h-3.5 mr-1" />Mới</Button>
           </div>
           {threads.map(t => (
             <button
               key={t.id}
               onClick={() => setActiveThreadId(t.id)}
-              className={`w-full p-3 flex items-start gap-3 border-b hover:bg-slate-50 text-left ${activeThreadId === t.id ? "bg-sky-50" : ""}`}
+              className={`w-full p-4 flex items-start gap-3 border-b transition-all active:scale-[0.98] text-left hover:bg-slate-50 ${activeThreadId === t.id ? "bg-sky-50 border-sky-100" : ""}`}
             >
-              <Avatar><AvatarFallback className="bg-sky-100 text-sky-700">{t.staffName.split(" ").pop()?.[0]}</AvatarFallback></Avatar>
+              <div className="relative">
+                <Avatar><AvatarFallback className="bg-sky-100 text-sky-700">{t.staffName.split(" ").pop()?.[0]}</AvatarFallback></Avatar>
+                {t.status === "Chờ phản hồi" && <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>}
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-center gap-2">
-                  <span className="truncate">{t.staffName}</span>
-                  <span className="text-xs text-muted-foreground shrink-0">{formatRelative(t.updatedAt)}</span>
+                  <span className={`truncate text-sm ${t.status === "Chờ phản hồi" ? "font-bold text-slate-900" : "font-medium text-slate-700"}`}>{t.staffName}</span>
+                  <span className={`text-[10px] shrink-0 ${t.status === "Chờ phản hồi" ? "font-bold text-sky-600" : "text-slate-400"}`}>{formatRelative(t.updatedAt)}</span>
                 </div>
-                <div className="text-xs text-muted-foreground">{t.topic}</div>
-                <div className="text-sm text-muted-foreground truncate mt-0.5">{t.last}</div>
+                <div className="text-xs font-medium text-slate-500 mt-0.5">{t.topic}</div>
+                <div className={`text-xs truncate mt-1 ${t.status === "Chờ phản hồi" ? "font-bold text-slate-800" : "text-slate-500"}`}>{t.last}</div>
               </div>
             </button>
           ))}
@@ -59,7 +62,7 @@ export function MessagesTab({
                   </div>
                 </div>
                 {activeThread.status !== "Đã kết thúc" && (
-                  <Button size="sm" variant="outline" onClick={() => {
+                  <Button size="sm" variant="outline" className="active:scale-95 transition-all" onClick={() => {
                     store.setThreadStatus(activeThread.id, "Đã kết thúc");
                     toast.success("Đã kết thúc cuộc tư vấn");
                   }}>Kết thúc</Button>
@@ -79,8 +82,8 @@ export function MessagesTab({
               </ScrollArea>
               {activeThread.status !== "Đã kết thúc" ? (
                 <div className="p-3 border-t flex gap-2">
-                  <Input placeholder="Nhập tin nhắn..." value={reply} onChange={e => setReply(e.target.value)} onKeyDown={e => e.key === "Enter" && onSendReply()} />
-                  <Button size="icon" onClick={onSendReply}><Send className="w-4 h-4" /></Button>
+                  <Input placeholder="Nhập tin nhắn..." value={reply} onChange={e => setReply(e.target.value)} onKeyDown={e => e.key === "Enter" && onSendReply()} className="rounded-xl border-slate-200 focus-visible:ring-sky-500" />
+                  <Button size="icon" onClick={onSendReply} className="rounded-xl active:scale-95 transition-all bg-sky-500 hover:bg-sky-600"><Send className="w-4 h-4" /></Button>
                 </div>
               ) : (
                 <div className="p-3 border-t text-center text-sm text-muted-foreground">Hội thoại đã kết thúc</div>

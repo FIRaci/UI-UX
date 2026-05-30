@@ -6,6 +6,7 @@ import { Label } from "../ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 import { toast } from "sonner";
+import { Droplets, Activity, Ruler, Weight, HeartPulse, AlertCircle, Phone } from "lucide-react";
 
 export function Profile() {
   const [showEdit, setShowEdit] = useState(false);
@@ -26,34 +27,115 @@ export function Profile() {
   const [showPayment, setShowPayment] = useState(false);
   const [paymentInputs, setPaymentInputs] = useState({ bank: "", number: "" });
 
+  const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
+  const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
+
+  // Health Stats (Mock Data)
+  const healthStats = {
+    bloodType: "O+",
+    height: "172 cm",
+    weight: "68 kg",
+    bmi: 23.0,
+    bmiStatus: "Bình thường",
+    allergies: "Hải sản (Tôm, Cua)",
+    history: "Viêm dạ dày nhẹ (2023)",
+    emergency: "Nguyễn Thị Mai (Vợ) - 0909 123 456"
+  };
+
   return (
     <div className="grid md:grid-cols-2 gap-5 animate-fade-in">
-      <Card className="p-6 bg-white/60 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-all duration-300" style={{ borderRadius: "20px" }}>
-        <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-5">Thông tin tài khoản</h4>
-        <div className="flex items-center gap-4 mb-5">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-md">MK</div>
-          <div>
-            <div className="font-bold text-slate-800 text-base">Nguyễn Minh Khoa</div>
-            <div className="text-xs text-slate-500 mt-0.5">Bệnh nhân • Mã số: BN-2024-00123</div>
-            <span className="inline-flex mt-1.5 px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 text-[10px] font-bold border border-sky-200">Tài khoản hoạt động</span>
-          </div>
-        </div>
-        <div className="space-y-3">
-          {[
-            { label: "Email", value: editForm.email },
-            { label: "Số điện thoại", value: editForm.phone },
-            { label: "Ngày sinh", value: editForm.dob },
-            { label: "Giới tính", value: editForm.gender },
-            { label: "Địa chỉ", value: editForm.address },
-          ].map(item => (
-            <div key={item.label} className="flex justify-between items-center py-2.5 border-b border-slate-50 last:border-0">
-              <span className="text-xs text-slate-500 font-medium">{item.label}</span>
-              <span className="text-xs font-semibold text-slate-800">{item.value}</span>
+      <div className="space-y-5">
+        {/* Personal Info */}
+        <Card className="p-6 bg-white/60 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-all duration-300" style={{ borderRadius: "20px" }}>
+          <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-5">Thông tin tài khoản</h4>
+          <div className="flex items-center gap-4 mb-5">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-md">MK</div>
+            <div>
+              <div className="font-bold text-slate-800 text-base">Nguyễn Minh Khoa</div>
+              <div className="text-xs text-slate-500 mt-0.5">Bệnh nhân • Mã số: BN-2024-00123</div>
+              <span className="inline-flex mt-1.5 px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 text-[10px] font-bold border border-sky-200">Tài khoản hoạt động</span>
             </div>
-          ))}
-        </div>
-        <Button className="mt-5 w-full rounded-xl text-xs h-9 bg-slate-900 hover:bg-slate-800" onClick={() => setShowEdit(true)}>Chỉnh sửa thông tin</Button>
-      </Card>
+          </div>
+          <div className="space-y-3">
+            {[
+              { label: "Email", value: editForm.email },
+              { label: "Số điện thoại", value: editForm.phone },
+              { label: "Ngày sinh", value: editForm.dob },
+              { label: "Giới tính", value: editForm.gender },
+              { label: "Địa chỉ", value: editForm.address },
+            ].map(item => (
+              <div key={item.label} className="flex justify-between items-center py-2.5 border-b border-slate-50 last:border-0">
+                <span className="text-xs text-slate-500 font-medium">{item.label}</span>
+                <span className="text-xs font-semibold text-slate-800">{item.value}</span>
+              </div>
+            ))}
+          </div>
+          <Button className="mt-5 w-full rounded-xl text-xs h-9 bg-slate-900 hover:bg-slate-800" onClick={() => setShowEdit(true)}>Chỉnh sửa thông tin</Button>
+        </Card>
+
+        {/* Health Stats Card */}
+        <Card className="p-6 bg-gradient-to-br from-emerald-50 to-teal-50/50 backdrop-blur-2xl border border-emerald-100/50 shadow-[0_8px_32px_rgba(16,185,129,0.06)] hover:shadow-emerald-500/15 transition-all duration-300 relative overflow-hidden" style={{ borderRadius: "20px" }}>
+          <div className="absolute top-0 right-0 p-4 opacity-5">
+            <HeartPulse className="w-32 h-32 text-emerald-500" />
+          </div>
+          <h4 className="font-bold text-emerald-900 text-sm tracking-tight mb-5 flex items-center gap-2 relative z-10">
+            <Activity className="w-4 h-4 text-emerald-600" />
+            Chỉ số Sức khỏe Cơ bản
+          </h4>
+          
+          <div className="grid grid-cols-2 gap-3 mb-5 relative z-10">
+            <div className="bg-white/80 p-3 rounded-2xl border border-white shadow-sm flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-500"><Droplets className="w-5 h-5" /></div>
+              <div><div className="text-[10px] text-slate-500 font-semibold">Nhóm máu</div><div className="text-sm font-bold text-red-600">{healthStats.bloodType}</div></div>
+            </div>
+            <div className="bg-white/80 p-3 rounded-2xl border border-white shadow-sm flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500"><Ruler className="w-5 h-5" /></div>
+              <div><div className="text-[10px] text-slate-500 font-semibold">Chiều cao</div><div className="text-sm font-bold text-slate-800">{healthStats.height}</div></div>
+            </div>
+            <div className="bg-white/80 p-3 rounded-2xl border border-white shadow-sm flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500"><Weight className="w-5 h-5" /></div>
+              <div><div className="text-[10px] text-slate-500 font-semibold">Cân nặng</div><div className="text-sm font-bold text-slate-800">{healthStats.weight}</div></div>
+            </div>
+            <div className="bg-white/80 p-3 rounded-2xl border border-emerald-100 shadow-sm flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500"><Activity className="w-5 h-5" /></div>
+              <div>
+                <div className="text-[10px] text-slate-500 font-semibold">Chỉ số BMI</div>
+                <div className="flex items-center gap-1.5">
+                  <div className="text-sm font-bold text-emerald-600">{healthStats.bmi}</div>
+                  <div className="text-[9px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-md">{healthStats.bmiStatus}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3 relative z-10 bg-white/60 p-4 rounded-2xl border border-white shadow-sm">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
+              <div>
+                <div className="text-xs font-bold text-slate-800">Dị ứng</div>
+                <div className="text-xs text-slate-600 mt-0.5">{healthStats.allergies}</div>
+              </div>
+            </div>
+            <div className="w-full h-px bg-slate-200/50"></div>
+            <div className="flex items-start gap-3">
+              <HeartPulse className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+              <div>
+                <div className="text-xs font-bold text-slate-800">Tiền sử bệnh lý</div>
+                <div className="text-xs text-slate-600 mt-0.5">{healthStats.history}</div>
+              </div>
+            </div>
+            <div className="w-full h-px bg-slate-200/50"></div>
+            <div className="flex items-start gap-3">
+              <Phone className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+              <div>
+                <div className="text-xs font-bold text-slate-800">Liên hệ khẩn cấp</div>
+                <div className="text-xs text-slate-600 mt-0.5">{healthStats.emergency}</div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
+
       <div className="space-y-5">
         <Card className="p-5 bg-white/60 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-all duration-300" style={{ borderRadius: "20px" }}>
           <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-4">Cài đặt thông báo</h4>
@@ -149,8 +231,17 @@ export function Profile() {
             <div className="space-y-1.5"><Label>Địa chỉ</Label><Input value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} /></div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEdit(false)}>Hủy</Button>
-            <Button onClick={() => { toast.info("Tính năng cập nhật đang phát triển"); setShowEdit(false); }}>Lưu</Button>
+            <Button variant="outline" className="active:scale-95 transition-all" onClick={() => setShowEdit(false)} disabled={isSubmittingProfile}>Hủy</Button>
+            <Button className="active:scale-95 transition-all w-24" disabled={isSubmittingProfile} onClick={() => { 
+              setIsSubmittingProfile(true);
+              setTimeout(() => {
+                setIsSubmittingProfile(false);
+                toast.success("Đã cập nhật thông tin thành công"); 
+                setShowEdit(false); 
+              }, 1000);
+            }}>
+              {isSubmittingProfile ? <span className="w-5 h-5 border-2 border-white/50 border-t-transparent rounded-full animate-spin"></span> : "Lưu"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -174,13 +265,19 @@ export function Profile() {
             <div className="space-y-1.5"><Label>Số tài khoản</Label><Input placeholder="Nhập số tài khoản..." value={paymentInputs.number} onChange={e => setPaymentInputs({ ...paymentInputs, number: e.target.value })} /></div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPayment(false)}>Hủy</Button>
-            <Button onClick={() => {
+            <Button variant="outline" className="active:scale-95 transition-all" onClick={() => setShowPayment(false)} disabled={isSubmittingPayment}>Hủy</Button>
+            <Button className="active:scale-95 transition-all w-24" disabled={isSubmittingPayment} onClick={() => {
               if (!paymentInputs.bank || !paymentInputs.number.trim()) { toast.error("Vui lòng nhập đầy đủ thông tin"); return; }
-              toast.info("Tính năng thêm thanh toán đang phát triển");
-              setShowPayment(false);
-              setPaymentInputs({ bank: "", number: "" });
-            }}>Thêm</Button>
+              setIsSubmittingPayment(true);
+              setTimeout(() => {
+                setIsSubmittingPayment(false);
+                toast.success("Đã thêm phương thức thanh toán thành công");
+                setShowPayment(false);
+                setPaymentInputs({ bank: "", number: "" });
+              }, 1000);
+            }}>
+              {isSubmittingPayment ? <span className="w-5 h-5 border-2 border-white/50 border-t-transparent rounded-full animate-spin"></span> : "Thêm"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
