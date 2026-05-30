@@ -16,15 +16,6 @@ async function seedDatabase() {
           { username: "benhnhan", password: hashedPassword, role: "benhnhan", name: "Nguyễn Minh Khoa" },
           { username: "tuvan", password: hashedPassword, role: "tuvan", name: "CV. Đỗ Thanh Hằng" },
           { username: "bacsi", password: hashedPassword, role: "bacsi", name: "BS. Nguyễn Văn An" },
-          { username: "bs_binh", password: hashedPassword, role: "bacsi", name: "BS. Trần Thị Bình" },
-          { username: "bs_cuong", password: hashedPassword, role: "bacsi", name: "BS. Lê Hoàng Cường" },
-          { username: "bs_dung", password: hashedPassword, role: "bacsi", name: "BS. Phạm Mai Dung" },
-          { username: "bs_dat", password: hashedPassword, role: "bacsi", name: "BS. Vũ Quốc Đạt" },
-          { username: "bs_hoa", password: hashedPassword, role: "bacsi", name: "BS. Đinh Thị Hoa" },
-          { username: "bs_linh", password: hashedPassword, role: "bacsi", name: "BS. Hoàng Thùy Linh" },
-          { username: "bs_minh", password: hashedPassword, role: "bacsi", name: "BS. Trương Quang Minh" },
-          { username: "bs_thanh", password: hashedPassword, role: "bacsi", name: "BS. Nguyễn Ngọc Thanh" },
-          { username: "bs_phong", password: hashedPassword, role: "bacsi", name: "BS. Lê Hải Phong" },
           { username: "quanly", password: hashedPassword, role: "quanly", name: "Quản lý Phòng khám" },
         ]
       });
@@ -44,7 +35,27 @@ async function seedDatabase() {
           { name: "BS. Hoàng Thùy Linh", spec: "Nội tiết", rating: 4.8, fee: "250.000đ", clinic: "CN Q10", avail: '["08:30", "11:00", "16:00"]' },
           { name: "BS. Trương Quang Minh", spec: "Thần kinh", rating: 4.7, fee: "450.000đ", clinic: "CN Q1", avail: '["09:00", "10:30", "14:00", "16:30"]' },
           { name: "BS. Nguyễn Ngọc Thanh", spec: "Tiêu hóa", rating: 4.8, fee: "300.000đ", clinic: "CN Q3", avail: '["08:00", "10:00", "13:30", "15:00"]' },
-          { name: "BS. Lê Hải Phong", spec: "Mắt", rating: 4.9, fee: "250.000đ", clinic: "CN Tân Bình", avail: '["09:30", "11:30", "14:30", "16:00"]' }
+          { name: "BS. Lê Hải Phong", spec: "Mắt", rating: 4.9, fee: "250.000đ", clinic: "CN Tân Bình", avail: '["09:30", "11:30", "14:30", "16:00"]' },
+          { name: "PGS.TS Nguyễn Hữu Tâm", spec: "Tim mạch", rating: 5.0, fee: "500.000đ", clinic: "CN Q1", avail: '["08:00", "10:00"]' },
+          { name: "BS.CKII Lê Thị Nga", spec: "Hô hấp", rating: 4.9, fee: "350.000đ", clinic: "CN Q3", avail: '["13:30", "15:00", "16:30"]' },
+          { name: "BS. Trần Xuân Huy", spec: "Ngoại thần kinh", rating: 4.8, fee: "400.000đ", clinic: "CN Q10", avail: '["09:00", "14:00"]' },
+          { name: "BS.CKI Đỗ Nhật Nam", spec: "Nhi khoa", rating: 4.9, fee: "300.000đ", clinic: "CN Tân Bình", avail: '["08:00", "09:30", "15:00"]' },
+          { name: "BS. Võ Thị Thanh Tâm", spec: "Da liễu", rating: 4.7, fee: "200.000đ", clinic: "CN Phú Nhuận", avail: '["10:00", "14:30", "16:00"]' },
+          { name: "ThS.BS Nguyễn Phúc Đại", spec: "Nam khoa", rating: 4.8, fee: "400.000đ", clinic: "CN Q7", avail: '["08:30", "11:00", "15:30"]' },
+          { name: "BS.CKII Phạm Phương Thảo", spec: "Sản phụ khoa", rating: 5.0, fee: "450.000đ", clinic: "CN Q1", avail: '["07:30", "09:00", "13:30"]' },
+          { name: "BS. Lâm Quế Chi", spec: "Tiêu hóa", rating: 4.6, fee: "250.000đ", clinic: "CN Tân Bình", avail: '["10:30", "14:00"]' },
+          { name: "BS. Trần Ngọc Minh", spec: "Răng Hàm Mặt", rating: 4.9, fee: "300.000đ", clinic: "CN Q10", avail: '["08:00", "11:00", "16:30"]' },
+          { name: "BS. Đặng Hữu Trí", spec: "Cơ xương khớp", rating: 4.8, fee: "350.000đ", clinic: "CN Q3", avail: '["09:00", "10:30", "15:00"]' },
+          { name: "ThS.BS Đinh Tiến Dũng", spec: "Ung bướu", rating: 5.0, fee: "600.000đ", clinic: "CN Q1", avail: '["08:00", "14:00"]' },
+          { name: "BS.CKI Nguyễn Thu Trang", spec: "Mắt", rating: 4.7, fee: "250.000đ", clinic: "CN Q7", avail: '["13:30", "15:30"]' },
+          { name: "BS. Lê Phương Linh", spec: "Tâm lý", rating: 4.9, fee: "500.000đ", clinic: "CN Phú Nhuận", avail: '["09:00", "10:30", "14:00", "16:00"]' },
+          { name: "BS. Hoàng Minh Tuấn", spec: "Tai mũi họng", rating: 4.8, fee: "300.000đ", clinic: "CN Tân Bình", avail: '["08:30", "11:30", "15:30"]' },
+          { name: "PGS.TS Vũ Thanh Huyền", spec: "Nội tiết", rating: 5.0, fee: "450.000đ", clinic: "CN Q10", avail: '["08:00", "09:30"]' },
+          { name: "BS. Đào Công Nhật", spec: "Chấn thương chỉnh hình", rating: 4.7, fee: "350.000đ", clinic: "CN Q1", avail: '["10:00", "14:30"]' },
+          { name: "BS.CKII Bùi Xuân Lộc", spec: "Phục hồi chức năng", rating: 4.9, fee: "400.000đ", clinic: "CN Q3", avail: '["08:00", "09:00", "10:00", "13:30", "15:00"]' },
+          { name: "BS. Tạ Bích Phượng", spec: "Truyền nhiễm", rating: 4.8, fee: "300.000đ", clinic: "CN Q7", avail: '["09:30", "11:00", "16:00"]' },
+          { name: "ThS.BS Lê Viết Hoàng", spec: "Hô hấp", rating: 4.9, fee: "350.000đ", clinic: "CN Tân Bình", avail: '["08:30", "14:00", "16:30"]' },
+          { name: "BS. Châu Tiểu Phụng", spec: "Nhi khoa", rating: 4.8, fee: "250.000đ", clinic: "CN Phú Nhuận", avail: '["07:30", "09:30", "15:00"]' },
         ]
       });
     }
@@ -54,9 +65,10 @@ async function seedDatabase() {
       console.log("Seeding appointments...");
       await prisma.appointment.createMany({
         data: [
-          { patientName: "Nguyễn Minh Khoa", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-15", time: "09:00", clinic: "CN Q1", status: "Sắp tới", age: 35, symptoms: "Khám định kỳ", level: "Thấp" },
-          { patientName: "Trần Văn Hậu", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-14", time: "08:00", clinic: "CN Q1", status: "Hoàn thành", age: 58, symptoms: "Đau ngực dữ dội", level: "Khẩn cấp", vitalsBp: "160/100", vitalsHr: "112", vitalsTemp: "37.2°C", vitalsSpo2: "94%" },
-          { patientName: "Phạm Thanh Tâm", doctorName: "BS. Trần Thị Bình", doctorSpec: "Da liễu", date: "2026-05-20", time: "10:00", clinic: "CN Q3", status: "Sắp tới", age: 28, symptoms: "Nổi mẩn đỏ", level: "Trung bình" }
+          { patientName: "Nguyễn Minh Khoa", doctorName: "PGS.TS Nguyễn Hữu Tâm", doctorSpec: "Tim mạch", date: "2026-06-01", time: "08:00", clinic: "CN Q1", status: "Sắp tới", age: 35, symptoms: "Kiểm tra huyết áp", level: "Thấp" },
+          { patientName: "Nguyễn Minh Khoa", doctorName: "BS. Trần Thị Bình", doctorSpec: "Da liễu", date: "2026-05-10", time: "10:00", clinic: "CN Q3", status: "Hoàn thành", age: 35, symptoms: "Mẩn ngứa ở lưng", level: "Trung bình" },
+          { patientName: "Nguyễn Minh Khoa", doctorName: "BS.CKII Phạm Phương Thảo", doctorSpec: "Sản phụ khoa", date: "2026-04-20", time: "14:00", clinic: "CN Q1", status: "Hoàn thành", age: 35, symptoms: "Khám định kỳ", level: "Thấp" },
+          { patientName: "Nguyễn Minh Khoa", doctorName: "BS. Lê Phương Linh", doctorSpec: "Tâm lý", date: "2026-06-15", time: "09:00", clinic: "CN Phú Nhuận", status: "Sắp tới", age: 35, symptoms: "Căng thẳng công việc", level: "Trung bình" }
         ]
       });
     }
@@ -78,21 +90,6 @@ async function seedDatabase() {
           { threadId: thread1.id, from: "user", txt: "Bác sĩ ơi, chỉ số cholesterol của tôi có cao quá không?", timeStr: "vừa xong" }
         ]
       });
-
-      const thread2 = await prisma.thread.create({
-        data: {
-          staffId: 2, staffName: "CV. Đỗ Thanh Hằng", staffSpec: "Tâm lý",
-          userRole: "tuvan", userName: "Phạm Thanh Tâm", topic: "Tâm lý",
-          status: "Đã kết thúc", last: "Cảm ơn chuyên gia, tôi sẽ thử."
-        }
-      });
-      await prisma.message.createMany({
-        data: [
-          { threadId: thread2.id, from: "user", txt: "Dạo này tôi hay mất ngủ", timeStr: "Hôm qua" },
-          { threadId: thread2.id, from: "staff", txt: "Bạn hãy thử thiền 10 phút trước khi ngủ nhé.", timeStr: "Hôm qua" },
-          { threadId: thread2.id, from: "user", txt: "Cảm ơn chuyên gia, tôi sẽ thử.", timeStr: "Hôm qua" }
-        ]
-      });
     }
 
     const articleCount = await prisma.article.count();
@@ -101,17 +98,10 @@ async function seedDatabase() {
       await prisma.article.createMany({
         data: [
           { title: "Cách nhận biết sớm đột quỵ", category: "Tim mạch", reads: "1.2k", time: "2 giờ trước" },
-          { title: "Dinh dưỡng cho người tiểu đường", category: "Nội tiết", reads: "856", time: "5 giờ trước" },
-          { title: "Bài tập giảm đau mỏi vai gáy", category: "Cơ xương khớp", reads: "2.1k", time: "1 ngày trước" }
-        ]
-      });
-    }
-
-    const painCount = await prisma.painPoint.count();
-    if (painCount === 0) {
-      await prisma.painPoint.createMany({
-        data: [
-          { description: "Role Quản lý: Thiếu tính năng xuất báo cáo hàng loạt", category: "Quản lý - Biểu đồ khó hiểu", evaluation: "Vi phạm tính linh hoạt" }
+          { title: "Dinh dưỡng cho người bị cao huyết áp", category: "Tim mạch", reads: "856", time: "5 giờ trước" },
+          { title: "Bài tập giảm đau mỏi vai gáy cho dân văn phòng", category: "Cơ xương khớp", reads: "2.1k", time: "1 ngày trước" },
+          { title: "Cảnh giác với cúm mùa", category: "Hô hấp", reads: "3.4k", time: "2 ngày trước" },
+          { title: "Chăm sóc da mụn đúng cách", category: "Da liễu", reads: "5.1k", time: "3 ngày trước" },
         ]
       });
     }
@@ -120,7 +110,8 @@ async function seedDatabase() {
     if (recordCount === 0) {
       await prisma.patientRecord.createMany({
         data: [
-          { patientName: "Nguyễn Minh Khoa", title: "Khám tổng quát định kỳ", date: "2026-04-22", doctor: "BS. Phạm Mai Dung", note: "Sức khỏe tổng thể tốt.", type: "benhan" }
+          { patientName: "Nguyễn Minh Khoa", title: "Khám Da Liễu", date: "2026-05-10", doctor: "BS. Trần Thị Bình", note: "Viêm da tiếp xúc nhẹ. Đã kê thuốc bôi.", type: "benhan" },
+          { patientName: "Nguyễn Minh Khoa", title: "Khám Tổng Quát", date: "2026-04-20", doctor: "BS.CKII Phạm Phương Thảo", note: "Sức khỏe ổn định, men gan hơi cao.", type: "ketqua" }
         ]
       });
     }
@@ -393,6 +384,43 @@ const app = new Elysia()
           } catch (error) {
             set.status = 404;
             return { error: "Không tìm thấy thông báo" };
+          }
+        }
+      )
+      .patch(
+        "/notifications/:id/read",
+        async ({ user, params, set }) => {
+          if (!user) {
+            set.status = 401;
+            return { error: "Quyền truy cập bị từ chối" };
+          }
+          try {
+            const notif = await prisma.notification.update({
+              where: { id: params.id },
+              data: { isRead: true }
+            });
+            return notif;
+          } catch (error) {
+            set.status = 404;
+            return { error: "Không tìm thấy thông báo" };
+          }
+        }
+      )
+      .patch(
+        "/notifications/read-all",
+        async ({ user, set }) => {
+          if (!user) {
+            set.status = 401;
+            return { error: "Quyền truy cập bị từ chối" };
+          }
+          try {
+            await prisma.notification.updateMany({
+              data: { isRead: true }
+            });
+            return { success: true };
+          } catch (error) {
+            set.status = 500;
+            return { error: "Lỗi cơ sở dữ liệu" };
           }
         }
       )

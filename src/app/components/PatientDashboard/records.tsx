@@ -42,17 +42,17 @@ export function Records() {
   };
 
   return (
-    <Card className="p-0 overflow-hidden bg-white border border-slate-100 shadow-sm animate-fade-in" style={{ borderRadius: "20px" }}>
+    <Card className="p-0 overflow-hidden bg-transparent/60 backdrop-blur-2xl border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] shadow-emerald-500/10 animate-fade-in" style={{ borderRadius: "20px" }}>
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <div className="border-b border-slate-100 px-5 pt-4 bg-slate-50/50">
-          <TabsList className="bg-slate-100 rounded-xl p-1 h-10 border border-slate-200/50">
-            <TabsTrigger value="benhan" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Bệnh án</TabsTrigger>
-            <TabsTrigger value="ketqua" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Kết quả xét nghiệm</TabsTrigger>
-            <TabsTrigger value="donthuoc" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Đơn thuốc</TabsTrigger>
+        <div className="border-b border-slate-100 px-5 pt-4 bg-transparent">
+          <TabsList className="bg-transparent/40 backdrop-blur-md rounded-xl p-1 h-10 border border-slate-200/50">
+            <TabsTrigger value="benhan" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-transparent data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Bệnh án</TabsTrigger>
+            <TabsTrigger value="ketqua" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-transparent data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Kết quả xét nghiệm</TabsTrigger>
+            <TabsTrigger value="donthuoc" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-transparent data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Đơn thuốc</TabsTrigger>
           </TabsList>
         </div>
         {(["benhan", "ketqua", "donthuoc"] as const).map(k => (
-          <TabsContent key={k} value={k} className="p-5 space-y-3.5 m-0 bg-white">
+          <TabsContent key={k} value={k} className="p-5 space-y-3.5 m-0 bg-transparent backdrop-blur-xl">
             {items[k].map((it: any) => (
               <div key={it.id} className="p-4.5 border border-slate-100 rounded-xl flex justify-between items-start hover:shadow-sm transition-all card-hover" style={{ borderRadius: "16px" }}>
                 <div>

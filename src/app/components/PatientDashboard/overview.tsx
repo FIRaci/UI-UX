@@ -11,10 +11,10 @@ export function Overview({ onJump, appts, threads }: { onJump: (v: string) => vo
       
       {/* Hero Section / Health Status */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 p-8 bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900 text-white shadow-2xl shadow-blue-900/20 relative overflow-hidden border-0 group" style={{ borderRadius: "32px" }}>
+        <Card className="lg:col-span-2 p-8 bg-blue-900 text-white shadow-xl relative overflow-hidden border-0 group rounded-[32px]">
           {/* Decorative glowing orbs */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl -z-10 translate-x-1/3 -translate-y-1/3 group-hover:bg-blue-400/30 transition-colors duration-700" />
-          <div className="absolute bottom-0 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl -z-10 translate-y-1/3 group-hover:bg-emerald-400/20 transition-colors duration-700" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -z-10 translate-x-1/3 -translate-y-1/3 transition-colors duration-700" />
+          <div className="absolute bottom-0 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl -z-10 translate-y-1/3 transition-colors duration-700" />
           
           <div className="flex flex-col h-full justify-between relative z-10">
             <div>
@@ -23,7 +23,7 @@ export function Overview({ onJump, appts, threads }: { onJump: (v: string) => vo
               </div>
               
               <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight mb-4">
-                Sức khỏe của bạn <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-cyan-200">đang rất ổn định</span>
+                Sức khỏe của bạn <br/> <span className="text-blue-300">đang rất ổn định</span>
               </h2>
               <p className="text-blue-100/80 text-[15px] max-w-md leading-relaxed">
                 Chỉ số sức khỏe hiện tại đạt 86/100. Hãy tiếp tục duy trì chế độ sinh hoạt và uống nước đều đặn.
@@ -31,7 +31,7 @@ export function Overview({ onJump, appts, threads }: { onJump: (v: string) => vo
             </div>
             
             <div className="mt-10 flex flex-wrap gap-4">
-              <Button onClick={() => onJump("chat")} className="h-14 px-8 rounded-2xl bg-white text-blue-900 hover:bg-blue-50 font-bold text-[15px] shadow-[0_8px_30px_rgba(255,255,255,0.2)] hover:shadow-[0_8px_30px_rgba(255,255,255,0.3)] transition-all hover:scale-105 border-0">
+              <Button onClick={() => onJump("chat")} className="h-14 px-8 rounded-2xl bg-white text-blue-900 hover:bg-blue-50 font-bold text-[15px] shadow-sm transition-all hover:scale-105 border-0">
                 <Bot className="w-5 h-5 mr-2" /> Trò chuyện với AI ngay
               </Button>
               <Button onClick={() => onJump("records")} variant="outline" className="h-14 px-8 rounded-2xl bg-white/5 border-white/20 text-white hover:bg-white/10 font-semibold text-[15px] backdrop-blur-md">
@@ -42,7 +42,7 @@ export function Overview({ onJump, appts, threads }: { onJump: (v: string) => vo
         </Card>
 
         {/* Upcoming Appointment */}
-        <Card className="p-7 bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] border border-slate-100 relative overflow-hidden group flex flex-col" style={{ borderRadius: "32px" }}>
+        <Card className="p-7 bg-white shadow-sm border border-slate-200 relative overflow-hidden group flex flex-col rounded-[32px]">
           <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-700">
             <Clock className="w-32 h-32" />
           </div>
@@ -69,7 +69,7 @@ export function Overview({ onJump, appts, threads }: { onJump: (v: string) => vo
                 <CalendarDays className="w-8 h-8 text-slate-300" />
               </div>
               <p className="text-slate-500 font-medium mb-6">Bạn không có lịch hẹn khám nào trong tuần này.</p>
-              <Button onClick={() => onJump("search")} className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md shadow-blue-500/20">
+              <Button onClick={() => onJump("search")} className="w-full h-12 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-sm">
                 Đặt lịch khám mới
               </Button>
             </div>
@@ -82,7 +82,7 @@ export function Overview({ onJump, appts, threads }: { onJump: (v: string) => vo
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Chatbot shortcut */}
-        <Card onClick={() => onJump("chat")} className="p-6 bg-gradient-to-br from-indigo-50 to-blue-50 border-0 shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group" style={{ borderRadius: "24px" }}>
+        <Card onClick={() => onJump("chat")} className="p-6 bg-blue-50 border-0 shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group rounded-3xl">
           <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center mb-5 shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
             <MessagesSquare className="w-6 h-6" />
           </div>
@@ -91,7 +91,7 @@ export function Overview({ onJump, appts, threads }: { onJump: (v: string) => vo
         </Card>
 
         {/* Search Doctors shortcut */}
-        <Card onClick={() => onJump("search")} className="p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group" style={{ borderRadius: "24px" }}>
+        <Card onClick={() => onJump("search")} className="p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group rounded-3xl">
           <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
             <Search className="w-6 h-6" />
           </div>
@@ -100,7 +100,7 @@ export function Overview({ onJump, appts, threads }: { onJump: (v: string) => vo
         </Card>
 
         {/* Tracking shortcut */}
-        <Card onClick={() => onJump("tracking")} className="p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group" style={{ borderRadius: "24px" }}>
+        <Card onClick={() => onJump("tracking")} className="p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group rounded-3xl">
           <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
             <ActivitySquare className="w-6 h-6" />
           </div>
@@ -109,7 +109,7 @@ export function Overview({ onJump, appts, threads }: { onJump: (v: string) => vo
         </Card>
 
         {/* Records shortcut */}
-        <Card onClick={() => onJump("records")} className="p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group" style={{ borderRadius: "24px" }}>
+        <Card onClick={() => onJump("records")} className="p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group rounded-3xl">
           <div className="w-12 h-12 rounded-2xl bg-violet-100 text-violet-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
             <FileHeart className="w-6 h-6" />
           </div>

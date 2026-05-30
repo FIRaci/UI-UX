@@ -21,18 +21,22 @@ describe('LoginScreen', () => {
   it('renders all 4 roles', () => {
     render(<LoginScreen onLogin={() => {}} />);
     
-    expect(screen.getByText('Người cần khám bệnh')).toBeInTheDocument();
-    expect(screen.getByText('Người cần tư vấn')).toBeInTheDocument();
+    expect(screen.getByText('Tôi là Bệnh nhân')).toBeInTheDocument();
+    expect(screen.getByText('Tư vấn viên')).toBeInTheDocument();
     expect(screen.getAllByText('Bác sĩ').length).toBeGreaterThan(0);
-    expect(screen.getByText('Quản lý phòng khám')).toBeInTheDocument();
+    expect(screen.getByText('Quản lý')).toBeInTheDocument();
   });
 
-  it('shows login form inputs', () => {
+  it('shows login form inputs when manual login is clicked', () => {
     render(<LoginScreen onLogin={() => {}} />);
     
+    // Click manual login button
+    const manualBtn = screen.getByRole('button', { name: 'Đăng nhập bằng mật khẩu' });
+    fireEvent.click(manualBtn);
+
     // Check if the form elements appear
-    expect(screen.getByPlaceholderText('benhnhan / bacsi / quanly...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Nhập tài khoản...')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('••••••')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Đăng nhập hệ thống' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Đăng nhập' })).toBeInTheDocument();
   });
 });

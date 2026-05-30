@@ -14,12 +14,19 @@ if not exist "ai_service\venv" (
 )
 call ai_service\venv\Scripts\pip install -r ai_service\requirements.txt -q
 
-echo [3/4] Starting AI Service, Backend, and Frontend...
+echo [3/4] Starting AI Service, Backend, Frontend, and Ngrok...
 echo ===================================================
 echo - Frontend (Vite): http://localhost:5173
 echo - Backend (Bun): http://localhost:3000
 echo - AI Service (Python): http://localhost:8000
+echo - Ngrok (Backend Proxy): Exposing port 3000
 echo Nhan Ctrl+C de thoat tat ca dich vu.
 echo ===================================================
 
-node node_modules/concurrently/dist/bin/concurrently.js --kill-others --names "AI,BACKEND,FRONTEND" --prefix-colors "yellow,blue,green" "cd ai_service && venv\Scripts\python -m uvicorn main:app --reload --port 8000" "cd backend && bun install --silent && bun run dev" "npm install --silent && node node_modules/vite/bin/vite.js"
+if exist ".ngrok_token" (
+    for /f "usebackq tokens=*" %%a in (".ngrok_token") do (
+        call npx --yes ngrok config add-authtoken %%a
+    )
+)
+
+node node_modules/concurrently/dist/bin/concurrently.js --kill-others --names "AI,BACKEND,FRONTEND,NGROK" --prefix-colors "yellow,blue,green,magenta" "cd ai_service && venv\Scripts\python -m uvicorn main:app --reload --port 8000" "cd backend && bun install --silent && bun run dev" "npm install --silent && node node_modules/vite/bin/vite.js" "npx --yes ngrok http 3000"

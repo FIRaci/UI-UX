@@ -11,12 +11,24 @@ export function Profile() {
   const [showEdit, setShowEdit] = useState(false);
   const [editForm, setEditForm] = useState({ email: "minhkhoa@email.com", phone: "0901 234 567", dob: "1990-08-15", gender: "Nam", address: "123 Đường Lê Lợi, Quận 1, TP.HCM" });
   const [notifSettings, setNotifSettings] = useState({ sms: true, thuoc: true, xetnghiem: false, email: false });
+  const [accessSettings, setAccessSettings] = useState(() => {
+    const saved = localStorage.getItem("access_settings");
+    return saved ? JSON.parse(saved) : { autoVoiceChat: false };
+  });
+
+  const toggleAccess = () => {
+    const next = { ...accessSettings, autoVoiceChat: !accessSettings.autoVoiceChat };
+    setAccessSettings(next);
+    localStorage.setItem("access_settings", JSON.stringify(next));
+    toast.success(next.autoVoiceChat ? "Đã bật tự động mở AI (Push to talk)" : "Đã tắt tự động mở AI");
+  };
+
   const [showPayment, setShowPayment] = useState(false);
   const [paymentInputs, setPaymentInputs] = useState({ bank: "", number: "" });
 
   return (
     <div className="grid md:grid-cols-2 gap-5 animate-fade-in">
-      <Card className="p-6 bg-white border border-slate-100 shadow-sm card-hover" style={{ borderRadius: "20px" }}>
+      <Card className="p-6 bg-white/60 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-all duration-300" style={{ borderRadius: "20px" }}>
         <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-5">Thông tin tài khoản</h4>
         <div className="flex items-center gap-4 mb-5">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-md">MK</div>
@@ -43,7 +55,7 @@ export function Profile() {
         <Button className="mt-5 w-full rounded-xl text-xs h-9 bg-slate-900 hover:bg-slate-800" onClick={() => setShowEdit(true)}>Chỉnh sửa thông tin</Button>
       </Card>
       <div className="space-y-5">
-        <Card className="p-5 bg-white border border-slate-100 shadow-sm card-hover" style={{ borderRadius: "20px" }}>
+        <Card className="p-5 bg-white/60 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-all duration-300" style={{ borderRadius: "20px" }}>
           <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-4">Cài đặt thông báo</h4>
           <div className="space-y-3">
             {[
@@ -64,10 +76,27 @@ export function Profile() {
             ))}
           </div>
         </Card>
-        <Card className="p-5 bg-white border border-slate-100 shadow-sm card-hover" style={{ borderRadius: "20px" }}>
+        <Card className="p-5 bg-white/60 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-all duration-300" style={{ borderRadius: "20px" }}>
+          <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-4">Hỗ trợ tiếp cận (Người khuyết tật)</h4>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <div>
+                <span className="text-xs text-slate-700 font-bold block">Tự động mở AI (Giọng nói)</span>
+                <span className="text-[10px] text-slate-500 block mt-0.5">Tự động mở chat và bật mic khi vào app</span>
+              </div>
+              <button
+                onClick={toggleAccess}
+                className={`w-9 h-5 rounded-full flex items-center px-0.5 transition-colors ${accessSettings.autoVoiceChat ? "bg-sky-500" : "bg-slate-200"}`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${accessSettings.autoVoiceChat ? "translate-x-4" : ""}`} />
+              </button>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-5 bg-white/60 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-all duration-300" style={{ borderRadius: "20px" }}>
           <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-4">Thanh toán &amp; Ví điện tử</h4>
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50">
+            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50 relative group">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white text-xs font-bold">MB</div>
                 <div>
@@ -75,17 +104,28 @@ export function Profile() {
                   <div className="text-[10px] text-slate-400">Mặc định</div>
                 </div>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">Đã liên kết</span>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200 group-hover:hidden block">Đã liên kết</span>
+                <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px] text-red-500 hover:text-red-600 hover:bg-red-50 hidden group-hover:flex" onClick={() => toast.success("Đã ngắt kết nối tài khoản ngân hàng")}>Ngắt kết nối</Button>
+              </div>
             </div>
-            <Button variant="outline" className="w-full rounded-xl text-xs h-9 border-dashed border-slate-300 text-slate-500" onClick={() => setShowPayment(true)}>+ Thêm phương thức thanh toán</Button>
+            <Button variant="outline" className="w-full rounded-xl text-xs h-9 border-dashed border-slate-300 text-slate-500" onClick={() => setShowPayment(true)}>+ Thêm phương thức thanh toán / Đổi tài khoản liên kết</Button>
           </div>
         </Card>
-        <Card className="p-5 bg-white border border-slate-100 shadow-sm card-hover" style={{ borderRadius: "20px" }}>
+        <Card className="p-5 bg-white/60 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-all duration-300" style={{ borderRadius: "20px" }}>
           <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-3">Bảo mật tài khoản</h4>
           <div className="space-y-2">
             <Button variant="outline" className="w-full rounded-xl text-xs h-9 justify-start border-slate-200 text-slate-700" onClick={() => toast.info("Tính năng đổi mật khẩu đang phát triển")}>Đổi mật khẩu</Button>
             <Button variant="outline" className="w-full rounded-xl text-xs h-9 justify-start border-slate-200 text-slate-700" onClick={() => toast.info("Tính năng 2FA đang phát triển")}>Xác thực 2 bước (2FA)</Button>
             <Button variant="outline" className="w-full rounded-xl text-xs h-9 justify-start border-slate-200 text-slate-700" onClick={() => toast.info("Tính năng đăng nhập sinh trắc học đang phát triển")}>Đăng nhập sinh trắc học (Vân tay / Face ID)</Button>
+          </div>
+          <div className="mt-6 pt-4 border-t border-red-100">
+            <h4 className="font-bold text-red-600 text-sm tracking-tight mb-3">Vùng nguy hiểm</h4>
+            <Button variant="outline" className="w-full rounded-xl text-xs h-9 justify-start border-red-200 text-red-600 hover:bg-red-50" onClick={() => {
+              if (window.confirm("Bạn có chắc chắn muốn xóa tài khoản vĩnh viễn? Dữ liệu y tế sẽ không thể khôi phục.")) {
+                toast.success("Đã gửi yêu cầu xóa tài khoản");
+              }
+            }}>Xóa tài khoản vĩnh viễn</Button>
           </div>
         </Card>
       </div>

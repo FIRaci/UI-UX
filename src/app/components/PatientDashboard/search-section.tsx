@@ -18,7 +18,7 @@ export function SearchSection({
 }) {
   return (
     <div className="space-y-4">
-      <Card className="p-4 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "16px" }}>
+      <Card className="p-4 bg-white border border-slate-100 shadow-sm rounded-2xl">
         <div className="flex flex-col md:flex-row gap-3">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -35,16 +35,16 @@ export function SearchSection({
       </Card>
 
       {doctors.length === 0 ? (
-        <Card className="p-10 text-center bg-white border-slate-100" style={{ borderRadius: "16px" }}>
+        <Card className="p-10 text-center bg-white border border-slate-100 rounded-2xl">
           <p className="text-slate-400 font-medium">Không tìm thấy bác sĩ phù hợp.</p>
           <p className="text-xs text-slate-400 mt-1">Hãy thử tìm với từ khóa khác hoặc xóa bộ lọc.</p>
         </Card>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
           {doctors.map(d => (
-            <Card key={d.id} className="p-5 hover:shadow-md transition-all duration-300 bg-white border border-slate-100 hover:border-sky-100 card-hover" style={{ borderRadius: "16px" }}>
+            <Card key={d.id} className="p-5 hover:shadow-md transition-all duration-300 bg-white border border-slate-100 hover:border-blue-100 rounded-2xl">
               <div className="flex items-start gap-4">
-                <Avatar className="w-14 h-14 border border-slate-100 shadow-sm"><AvatarFallback className="bg-gradient-to-br from-sky-500 to-indigo-600 text-white font-bold text-lg">{d.name.split(" ").pop()![0]}</AvatarFallback></Avatar>
+                <Avatar className="w-14 h-14 border border-slate-100 shadow-sm"><AvatarFallback className="bg-blue-600 text-white font-bold text-lg">{d.name.split(" ").pop()![0]}</AvatarFallback></Avatar>
                 <div className="flex-1">
                   <div className="flex justify-between items-start">
                     <div>
@@ -62,7 +62,7 @@ export function SearchSection({
                   </div>
                   <div className="flex gap-2.5 mt-3">
                     <Button size="sm" variant="outline" className="rounded-xl flex-1 text-xs" onClick={() => onPick(d)}>Chi tiết</Button>
-                    <Button size="sm" className="rounded-xl flex-1 text-xs bg-slate-900 hover:bg-slate-800 shadow-sm" onClick={() => onBook(d)}>Đặt lịch</Button>
+                    <Button size="sm" className="rounded-xl flex-1 text-xs bg-orange-500 hover:bg-orange-600 shadow-sm font-bold" onClick={() => onBook(d)}>Đặt lịch</Button>
                   </div>
                 </div>
               </div>

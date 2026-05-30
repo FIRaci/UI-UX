@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 import { LoginScreen, type Role } from "./components/LoginScreen";
@@ -29,11 +30,35 @@ const ROLE_SEO: Record<string, { title: string; description: string }> = {
 };
 
 export default function App() {
-  const [role, setRole] = useState<Role | null>(null);
+  const navigate = useNavigate();
+  const [role, setRole] = useState<Role | null>(() => {
+    // Try to get role from token if it exists (very simple check for this demo)
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        return payload.role as Role;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  });
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     setRole(null);
+    navigate("/login");
+  };
+
+  const handleLogin = (newRole: Role) => {
+    setRole(newRole);
+    navigate(
+      newRole === "benhnhan" ? "/patient" :
+      newRole === "bacsi" ? "/doctor" :
+      newRole === "tuvan" ? "/consultant" :
+      "/admin"
+    );
   };
 
   useEffect(() => {
@@ -48,12 +73,23 @@ export default function App() {
   return (
     <div className="size-full min-h-screen bg-slate-50">
       <SEO {...(role ? ROLE_SEO[role] : {})} />
-      {!role && <LoginScreen onLogin={setRole} />}
-      <Suspense fallback={<div className="size-full flex items-center justify-center text-slate-400 text-sm">Đang tải...</div>}>
-        {role === "benhnhan" && <PatientDashboard onLogout={handleLogout} role={role} />}
-        {role === "bacsi" && <DoctorDashboard onLogout={handleLogout} role={role} />}
-        {role === "tuvan" && <ConsultantDashboard onLogout={handleLogout} role={role} />}
-        {role === "quanly" && <AdminDashboard onLogout={handleLogout} role={role} />}
+      <Suspense fallback={<div className="size-full flex items-center justify-center text-slate-400 text-sm h-screen">Đang tải...</div>}>
+        <Routes>
+          {!role ? (
+            <>
+              <Route path="/login" element={<LoginScreen onLogin={handleLogin} />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </>
+          ) : (
+            <>
+              {role === "benhnhan" && <Route path="/patient/*" element={<PatientDashboard onLogout={handleLogout} role={role} />} />}
+              {role === "bacsi" && <Route path="/doctor/*" element={<DoctorDashboard onLogout={handleLogout} role={role} />} />}
+              {role === "tuvan" && <Route path="/consultant/*" element={<ConsultantDashboard onLogout={handleLogout} role={role} />} />}
+              {role === "quanly" && <Route path="/admin/*" element={<AdminDashboard onLogout={handleLogout} role={role} />} />}
+              <Route path="*" element={<Navigate to={`/${role === 'benhnhan' ? 'patient' : role === 'bacsi' ? 'doctor' : role === 'tuvan' ? 'consultant' : 'admin'}`} replace />} />
+            </>
+          )}
+        </Routes>
       </Suspense>
       <Toaster position="top-right" richColors />
     </div>

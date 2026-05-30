@@ -1,8 +1,15 @@
+"""MediCare AI Service — FastAPI entry point.
+
+Endpoints:
+  POST /api/chat        — Chat với AI theo role
+  POST /api/suggestions — Gợi ý chủ động cho bệnh nhân
+"""
+
 import os
 import json
-from fastapi import FastAPI, HTTPException
+import re
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from dotenv import load_dotenv
 
 try:
@@ -10,6 +17,19 @@ try:
     from google.genai import types
 except ImportError:
     genai = None
+    types = None
+
+from models import (
+    ChatRequest,
+    ChatResponse,
+    SuggestionsRequest,
+    SuggestionsResponse,
+)
+from prompts import SYSTEM_PROMPTS, RESPONSE_FORMAT_INSTRUCTION
+from suggestions_service import (
+    build_fallback_suggestions,
+    generate_suggestions_with_gemini,
+)
 
 load_dotenv()
 
@@ -23,14 +43,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class ChatRequest(BaseModel):
-    role: str
-    message: str
-    history: list = []
-
-class ChatResponse(BaseModel):
-    text: str
-    actions: list = []
+# --------------- Gemini client init ---------------
 
 api_key = os.getenv("GEMINI_API_KEY")
 if api_key and genai:
@@ -38,44 +51,34 @@ if api_key and genai:
 else:
     client = None
 
-AVAILABLE_ACTIONS = """
-Danh sách actions bạn có thể dùng:
-- WARNING_RED: Dùng khi bệnh nhân mô tả triệu chứng nguy hiểm cần cấp cứu (đau ngực, khó thở, chảy máu nặng, đau đầu đột ngột dữ dội)
-- NAVIGATE_APPOINTMENT: Dùng khi người dùng cần đặt lịch hẹn, xem lịch khám, hoặc được đề xuất đặt lịch
-- SHOW_PATIENT_HISTORY: Dùng cho role bác sĩ khi cần xem/xét hồ sơ bệnh án
-- HIGHLIGHT_CRITICAL: Dùng khi kết quả xét nghiệm hoặc triệu chứng cho thấy tình trạng nguy kịch
-- SHOW_PACKAGES: Dùng cho role tư vấn khi đề xuất gói khám sức khỏe
-- SHOW_REPORTS: Dùng cho role quản lý khi xem báo cáo vận hành/tài chính
-- ALERT_OVERLOAD: Dùng khi phát hiện lịch khám quá tải hoặc tài nguyên hệ thống căng thẳng
-"""
 
-SYSTEM_PROMPTS = {
-    "benhnhan": AVAILABLE_ACTIONS + "Bạn là AI hỗ trợ bệnh nhân của phòng khám MediCare. Hãy tư vấn nhẹ nhàng, ngắn gọn. Nếu bệnh nhân có triệu chứng nặng, hãy thêm 'WARNING_RED' và 'NAVIGATE_APPOINTMENT' vào actions.",
-    "bacsi": AVAILABLE_ACTIONS + "Bạn là trợ lý AI cho bác sĩ. Phân tích triệu chứng và đề xuất chẩn đoán y khoa chuyên sâu. Dùng SHOW_PATIENT_HISTORY khi cần xem hồ sơ, HIGHLIGHT_CRITICAL khi phát hiện dấu hiệu nguy hiểm.",
-    "chuyengia": AVAILABLE_ACTIONS + "Bạn là AI trợ lý cho Chuyên gia đánh giá UI/UX. Chuyên môn của bạn là phân tích giao diện, đánh giá Heuristic, và đề xuất cải thiện trải nghiệm người dùng (UX). Dùng HIGHLIGHT_CRITICAL khi phát hiện vấn đề nghiệm trọng, SHOW_REPORTS khi cần xem báo cáo phân tích.",
-    "tuvan": AVAILABLE_ACTIONS + "Bạn là AI hỗ trợ nhân viên tư vấn. Đề xuất các gói khám phù hợp. Dùng SHOW_PACKAGES khi đề xuất gói khám, NAVIGATE_APPOINTMENT khi người dùng muốn đặt lịch.",
-    "quanly": AVAILABLE_ACTIONS + "Bạn là AI hỗ trợ giám đốc/quản lý phòng khám. Phân tích dữ liệu, doanh thu, lịch trình. Dùng SHOW_REPORTS khi báo cáo, ALERT_OVERLOAD khi phát hiện quá tải."
-}
+# --------------- /api/chat ---------------
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     if not client:
-        # Fallback if no API key
+        # Fallback nếu chưa có API key
         if "đau" in request.message.lower() or "sốt" in request.message.lower():
             return ChatResponse(
                 text="Tôi là AI phản hồi mẫu do chưa cấu hình Gemini API Key. Vui lòng thiết lập GEMINI_API_KEY trong file .env. Dấu hiệu của bạn cần được bác sĩ kiểm tra.",
-                actions=["WARNING_RED", "NAVIGATE_APPOINTMENT"]
+                actions=["WARNING_RED", "NAVIGATE_APPOINTMENT"],
+                suggestedActions=[
+                    {"label": "Đặt lịch khám ngay", "action": "BOOK_APPOINTMENT", "data": {}},
+                    {"label": "Gọi hotline cấp cứu", "action": "CALL_EMERGENCY", "data": {}},
+                ],
             )
         return ChatResponse(
             text="Hệ thống AI đang ở chế độ giả lập do chưa có API Key. Xin chào " + request.role,
-            actions=[]
+            actions=[],
+            suggestedActions=[
+                {"label": "Đặt lịch khám", "action": "BOOK_APPOINTMENT", "data": {}},
+            ],
         )
 
     sys_prompt = SYSTEM_PROMPTS.get(request.role, "Bạn là trợ lý AI y tế MediCare.")
-    sys_prompt += "\n\nHãy trả về ĐÚNG định dạng JSON sau, không có markdown markdown block:\n"
-    sys_prompt += '{"text": "Câu trả lời của bạn", "actions": ["ACTION_1", "ACTION_2"]}'
+    sys_prompt += RESPONSE_FORMAT_INSTRUCTION
 
-    # Construct conversation history contents for Gemini
+    # Xây dựng lịch sử hội thoại cho Gemini
     contents = []
     for msg in request.history:
         role = "user" if msg.get("from") == "me" else "model"
@@ -83,28 +86,26 @@ async def chat_endpoint(request: ChatRequest):
             continue
         contents.append({
             "role": role,
-            "parts": [{"text": msg.get("text")}]
+            "parts": [{"text": msg.get("text")}],
         })
     contents.append({
         "role": "user",
-        "parts": [{"text": request.message}]
+        "parts": [{"text": request.message}],
     })
 
     try:
         response = client.models.generate_content(
-            model='gemini-3-flash-preview',
+            model="gemini-3-flash-preview",
             contents=contents,
             config=types.GenerateContentConfig(
                 system_instruction=sys_prompt,
                 response_mime_type="application/json",
             ),
         )
-        
-        # Clean response text from markdown block fences
+
         raw_text = response.text.strip()
-        
-        # Robust regex JSON extractor
-        import re
+
+        # Trích xuất JSON object từ response
         json_match = re.search(r'(\{.*\})', raw_text, re.DOTALL)
         if json_match:
             raw_text = json_match.group(1)
@@ -118,9 +119,29 @@ async def chat_endpoint(request: ChatRequest):
                 raw_text = "\n".join(lines).strip()
 
         data = json.loads(raw_text)
-        return ChatResponse(text=data.get("text", ""), actions=data.get("actions", []))
+        return ChatResponse(
+            text=data.get("text", ""),
+            actions=data.get("actions", []),
+            suggestedActions=data.get("suggestedActions", []),
+        )
     except Exception as e:
         return ChatResponse(text=f"Lỗi khi gọi AI: {str(e)}", actions=[])
+
+
+# --------------- /api/suggestions ---------------
+
+@app.post("/api/suggestions", response_model=SuggestionsResponse)
+async def suggestions_endpoint(request: SuggestionsRequest):
+    """Trả về 3-5 gợi ý chủ động dựa trên dữ liệu bệnh nhân."""
+    if client and types:
+        items = await generate_suggestions_with_gemini(client, types, request)
+    else:
+        items = build_fallback_suggestions(request)
+
+    return SuggestionsResponse(suggestions=items)
+
+
+# --------------- Run ---------------
 
 if __name__ == "__main__":
     import uvicorn

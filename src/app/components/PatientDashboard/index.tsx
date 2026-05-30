@@ -1,16 +1,18 @@
 import { useEffect, useState, useRef } from "react";
-import { LayoutDashboard, Search, CalendarDays, FileHeart, Activity, MessagesSquare, Bot, User, HeartPulse, LogOut, ArrowLeft, Send, AlertCircle } from "lucide-react";
+import { Search, CalendarDays, FileHeart, Bot, Send, HeartPulse, LogOut, Activity, MessagesSquare, ArrowLeft, Sparkles, Bell, ChevronRight, Star, Clock, Stethoscope, X, Mic, Plus, History } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { useStore, store, type Appointment, type Message } from "../../store";
+import { useStore, store, type Appointment } from "../../store";
 import { ME, type Doctor } from "./constants";
-import { Overview } from "./overview";
 import { SearchSection } from "./search-section";
 import { Appointments } from "./appointments";
-import { MessagesTab } from "./messages-tab";
 import { Records } from "./records";
-import { Tracking } from "./tracking";
 import { Profile } from "./profile";
-import { DoctorDetailDialog, BookingDialog, EditAppointmentDialog, NewMessageDialog } from "./dialogs";
+import { Tracking } from "./tracking";
+import { MessagesTab } from "./messages-tab";
+import { DoctorDetailDialog, BookingDialog, EditAppointmentDialog, NewMessageDialog, AppointmentDetailDialog } from "./dialogs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
@@ -18,23 +20,69 @@ import { ScrollArea } from "../ui/scroll-area";
 
 const AI_SERVICE_URL = import.meta.env.VITE_AI_SERVICE_URL || "http://localhost:8000";
 
+type ChatMsg = { id: string; role: "bot" | "me"; text: string; time: Date; suggestedActions?: SuggestedAction[] };
+type SuggestedAction = { label: string; action: string; data?: Record<string, unknown> };
+type Suggestion = { id: string; type: string; title: string; description: string; action: string; actionLabel: string };
+
+const ActionItem = ({ icon: Icon, label, onClick, className, bg, text, hover, badge, delay = 0 }: any) => (
+  <div className={`absolute z-30 ${className}`}>
+    <motion.button
+      animate={{ y: [0, -6, 0] }}
+      transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay }}
+      whileHover={{ scale: 1.1, y: 0, transition: { duration: 0.2 } }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center gap-1.5 sm:gap-2 w-[84px] h-[84px] sm:w-[104px] sm:h-[104px] rounded-[24px] bg-white/60 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] shadow-lg shadow-emerald-500/10 ${hover} transition-colors`}
+    >
+      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-[16px] ${bg} flex items-center justify-center ${text} relative`}>
+        <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
+        {badge > 0 && <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">{badge}</span>}
+      </div>
+      <span className="text-[10px] sm:text-xs font-bold text-slate-700 leading-tight whitespace-nowrap">{label}</span>
+    </motion.button>
+  </div>
+);
+
+const renderMessage = (text: string) => {
+  const parts = text.split(/(\*\*.*?\*\*|\*.*?\*|__.*?__)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-bold text-red-600">{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('__') && part.endsWith('__')) {
+      return <u key={i} className="underline decoration-red-500 decoration-2 underline-offset-2 font-bold text-slate-800">{part.slice(2, -2)}</u>;
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <em key={i} className="italic text-emerald-700 font-medium">{part.slice(1, -1)}</em>;
+    }
+    return <span key={i}>{part}</span>;
+  });
+};
+
 export function PatientDashboard({ onLogout, role }: { onLogout: () => void; role: string }) {
-  const [activeView, setActiveView] = useState<string>("overview");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const activeView = location.pathname.split("/").pop() === "patient" ? "dashboard" : location.pathname.split("/").pop() || "dashboard";
+    const [showNotifs, setShowNotifs] = useState(false);
   const [search, setSearch] = useState("");
   const [specFilter, setSpecFilter] = useState<string>("all");
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [bookingDoctor, setBookingDoctor] = useState<Doctor | null>(null);
-  const [bookDate, setBookDate] = useState("2026-05-12");
+  const [viewingAppt, setViewingAppt] = useState<Appointment | null>(null);
+  const [bookDate, setBookDate] = useState("2026-06-01");
   const [bookTime, setBookTime] = useState("");
   const [editing, setEditing] = useState<Appointment | null>(null);
   const [editingOriginal, setEditingOriginal] = useState<Appointment | null>(null);
   const [skipConfirm, setSkipConfirm] = useState(false);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [dismissedSuggestion, setDismissedSuggestion] = useState(false);
 
   const appointments = useStore(s => s.appointments.filter(a => a.patientName === ME));
   const myThreads = useStore(s =>
     s.threads.filter(t => t.userRole === "benhnhan" && t.userName === ME).sort((a, b) => b.updatedAt - a.updatedAt)
   );
   const DOCTORS = useStore(s => s.doctors);
+  const unreadNotifs = useStore(s => s.notifications.filter(n => (n.target === "all" || n.target === "patient") && !n.isRead));
 
   const [activeThreadId, setActiveThreadId] = useState<number | null>(null);
   const [reply, setReply] = useState("");
@@ -42,35 +90,119 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
   const [newMsgContent, setNewMsgContent] = useState("");
 
   // Chat State
-  const [messages, setMessages] = useState<Message[]>([
-    { id: "welcome", role: "bot", text: "Xin chào! Tôi là trợ lý sức khỏe AI của MediCare. Tôi có thể giúp gì cho bạn hôm nay? Vui lòng mô tả triệu chứng của bạn hoặc chọn tính năng phía trên.", time: new Date() },
-  ]);
+  const [messages, setMessages] = useState<ChatMsg[]>(() => {
+    const saved = localStorage.getItem("ai_chat_history");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Revive dates
+        return parsed.map((m: any) => ({ ...m, time: new Date(m.time) }));
+      } catch { return []; }
+    }
+    return [];
+  });
+  
+  useEffect(() => {
+    localStorage.setItem("ai_chat_history", JSON.stringify(messages));
+  }, [messages]);
+
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  
+  const [showChatHistory, setShowChatHistory] = useState(false);
+  const [chatSessions, setChatSessions] = useState<any[]>(() => {
+    try { return JSON.parse(localStorage.getItem("ai_chat_sessions") || "[]"); } catch { return []; }
+  });
+
+  useEffect(() => {
+    if (activeView === "dashboard") {
+      try {
+        const saved = localStorage.getItem("access_settings");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.autoVoiceChat) {
+            navigate("/patient/chat");
+            setTimeout(() => {
+              setIsListening(true);
+              toast.info("Chế độ Tiếp cận: Đã tự động bật Mic");
+            }, 600);
+          }
+        }
+      } catch {}
+    }
+  }, [activeView]);
+
+  const upcoming = appointments.filter(a => a.status === "Sắp tới");
+
+  // Badge viewing state
+  const [viewedAppts, setViewedAppts] = useState<number>(0);
+  const [viewedMsgs, setViewedMsgs] = useState<number>(0);
+  const unreadApptsCount = Math.max(0, upcoming.length - viewedAppts);
+  const unreadMsgsCount = Math.max(0, myThreads.length - viewedMsgs);
+
+  // Fetch suggestions on mount
+  useEffect(() => {
+    fetchSuggestions();
+  }, [appointments.length]);
+
+  const fetchSuggestions = async () => {
+    try {
+      const res = await fetch(`${AI_SERVICE_URL}/api/suggestions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientName: ME,
+          upcomingAppointments: upcoming.map(a => ({
+            doctorName: a.doctorName, doctorSpec: a.doctorSpec, date: a.date, time: a.time
+          })),
+          recentRecords: []
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSuggestions(data.suggestions || []);
+      }
+    } catch {
+      // Fallback suggestions
+      const fallback: Suggestion[] = [];
+      if (upcoming[0]) {
+        fallback.push({ id: "1", type: "reminder", title: `Lịch khám ${upcoming[0].doctorSpec}`, description: `${upcoming[0].doctorName} • ${upcoming[0].date} lúc ${upcoming[0].time}`, action: "VIEW_APPOINTMENTS", actionLabel: "Xem lịch" });
+      }
+      fallback.push({ id: "2", type: "health_tip", title: "Khám sức khỏe định kỳ", description: "Đã đến lúc kiểm tra sức khỏe tổng quát 6 tháng/lần", action: "BOOK_APPOINTMENT", actionLabel: "Đặt lịch ngay" });
+      setSuggestions(fallback);
+    }
+  };
 
   useEffect(() => {
     if (!activeThreadId && myThreads[0]) setActiveThreadId(myThreads[0].id);
   }, [myThreads, activeThreadId]);
 
   useEffect(() => {
-    const handleNavigate = (e: Event) => {
-      const raw = (e as CustomEvent<string>).detail;
-      if (!raw) return;
-      try {
-        const parsed = JSON.parse(raw);
-        if (parsed.view) { setActiveView(parsed.view); if (parsed.threadId) setActiveThreadId(parsed.threadId); }
-      } catch {
-        setActiveView(raw);
-      }
-    };
-    window.addEventListener("app:navigate", handleNavigate);
-    return () => window.removeEventListener("app:navigate", handleNavigate);
-  }, []);
-
-  useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  const openChat = () => {
+    if (messages.length === 0) {
+      const firstUpcoming = upcoming[0];
+      let welcomeText = `Chào ${ME.split(" ").pop()}! Tôi là trợ lý AI của MediCare.\n\n`;
+      if (firstUpcoming) {
+        welcomeText += `Bạn có lịch khám **${firstUpcoming.doctorSpec}** với **${firstUpcoming.doctorName}** vào **${firstUpcoming.date}** lúc **${firstUpcoming.time}**.\n\n`;
+      }
+      welcomeText += "Tôi có thể giúp bạn:";
+
+      const initialActions: SuggestedAction[] = [
+        { label: "Tư vấn triệu chứng", action: "SYMPTOM_CHECK" },
+        { label: "Đặt lịch khám mới", action: "BOOK_APPOINTMENT" },
+        { label: "Xem hồ sơ bệnh án", action: "VIEW_RECORDS" },
+        { label: "Nhắc uống thuốc", action: "MEDICATION_REMINDER" },
+      ];
+
+      setMessages([{ id: "welcome", role: "bot", text: welcomeText, time: new Date(), suggestedActions: initialActions }]);
+    }
+    navigate("/patient/chat");
+  };
 
   const sendChat = async (text?: string) => {
     const t = (text ?? input).trim();
@@ -89,34 +221,107 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
       if (res.ok) {
         const data = await res.json();
         handleAiActions(data.actions);
-        setMessages(m => [...m, { id: (Date.now() + 1).toString(), role: "bot", text: data.text, time: new Date() }]);
+        const sugActions = (data.suggestedActions || []).map((a: any) => ({ label: a.label, action: a.action, data: a.data }));
+        setMessages(m => [...m, { id: (Date.now() + 1).toString(), role: "bot", text: data.text, time: new Date(), suggestedActions: sugActions.length ? sugActions : undefined }]);
       } else {
         throw new Error(`API ${res.status}`);
       }
     } catch {
-      await new Promise(r => setTimeout(r, 400 + Math.random() * 400));
-      let reply = "Cảm ơn bạn đã chia sẻ! Để tôi phân tích kỹ hơn, bạn có thể cho tôi biết thêm chi tiết về tình trạng của bạn không?";
-      if (t.toLowerCase().includes("đau đầu") || t.toLowerCase().includes("nhức đầu")) reply = "Đau đầu có thể do căng thẳng, thiếu ngủ, hoặc vấn đề về thị lực. Bạn có thể cho tôi biết thêm: cơn đau ở vị trí nào? Đã kéo dài bao lâu?";
-      else if (t.toLowerCase().includes("sốt")) reply = "Bạn hãy đo nhiệt độ và cho tôi biết: sốt bao nhiêu độ? Có kèm ho, đau họng hay không?";
-      else if (t.toLowerCase().includes("đặt lịch") || t.toLowerCase().includes("khám")) {
-        reply = "Tôi có thể giúp bạn đặt lịch khám. Hãy mở tính năng Tìm bác sĩ nhé.";
-        handleAiActions(["NAVIGATE_APPOINTMENT"]);
+      await new Promise(r => setTimeout(r, 500));
+      let replyText = "";
+      let sugActions: SuggestedAction[] = [];
+
+      if (t.toLowerCase().includes("đau đầu") || t.toLowerCase().includes("nhức đầu")) {
+        replyText = "Đau đầu có thể do nhiều nguyên nhân: căng thẳng, thiếu ngủ, huyết áp cao, hoặc vấn đề thần kinh.\n\nNếu đau đầu kéo dài trên 3 ngày hoặc kèm sốt cao, bạn nên đi khám ngay.";
+        sugActions = [
+          { label: "Đặt lịch khám Thần kinh", action: "BOOK_SPEC", data: { spec: "Thần kinh" } },
+          { label: "Xem lịch sử khám", action: "VIEW_RECORDS" },
+        ];
+      } else if (t.toLowerCase().includes("sốt")) {
+        replyText = "Sốt là phản ứng tự nhiên của cơ thể. Hãy đo nhiệt độ và cho tôi biết:\n• Sốt bao nhiêu độ?\n• Có kèm ho, đau họng không?\n• Đã kéo dài bao lâu?\n\nNếu sốt trên 39°C, hãy đến cơ sở y tế gần nhất.";
+        sugActions = [
+          { label: "Đặt lịch khám ngay", action: "BOOK_APPOINTMENT" },
+          { label: "Gọi tư vấn bác sĩ", action: "CALL_DOCTOR" },
+        ];
+        handleAiActions(["WARNING_RED"]);
+      } else if (t.toLowerCase().includes("đặt lịch") || t.toLowerCase().includes("khám") || t.toLowerCase().includes("tìm bác sĩ")) {
+        replyText = "Tôi sẽ giúp bạn tìm bác sĩ phù hợp. Bạn muốn khám chuyên khoa nào?";
+        sugActions = [
+          { label: "Tim mạch", action: "BOOK_SPEC", data: { spec: "Tim mạch" } },
+          { label: "Thần kinh", action: "BOOK_SPEC", data: { spec: "Thần kinh" } },
+          { label: "Nhi khoa", action: "BOOK_SPEC", data: { spec: "Nhi khoa" } },
+          { label: "Xem tất cả", action: "VIEW_SEARCH" },
+        ];
+      } else if (t.toLowerCase().includes("hồ sơ") || t.toLowerCase().includes("bệnh án")) {
+        replyText = "Đây là tổng quan hồ sơ sức khỏe của bạn. Bạn muốn xem chi tiết không?";
+        sugActions = [{ label: "Mở hồ sơ bệnh án", action: "VIEW_RECORDS" }];
+      } else {
+        replyText = "Cảm ơn bạn đã chia sẻ! Tôi có thể hỗ trợ bạn với:";
+        sugActions = [
+          { label: "Phân tích triệu chứng", action: "SYMPTOM_CHECK" },
+          { label: "Đặt lịch khám", action: "BOOK_APPOINTMENT" },
+          { label: "Xem hồ sơ", action: "VIEW_RECORDS" },
+        ];
       }
-      
-      setMessages(m => [...m, { id: (Date.now() + 1).toString(), role: "bot", text: reply, time: new Date() }]);
-      if (t.includes("đau") || t.includes("sốt")) handleAiActions(["WARNING_RED", "NAVIGATE_APPOINTMENT"]);
+
+      setMessages(m => [...m, { id: (Date.now() + 1).toString(), role: "bot", text: replyText, time: new Date(), suggestedActions: sugActions }]);
     }
     setIsTyping(false);
+  };
+
+  const handleSuggestedAction = (action: SuggestedAction) => {
+    switch (action.action) {
+      case "SYMPTOM_CHECK":
+        sendChat("Tôi muốn kiểm tra triệu chứng");
+        break;
+      case "BOOK_APPOINTMENT":
+        navigate("/patient/search");
+        break;
+      case "VIEW_RECORDS":
+        navigate("/patient/records");
+        break;
+      case "VIEW_SEARCH":
+        navigate("/patient/search");
+        break;
+      case "VIEW_APPOINTMENTS":
+        navigate("/patient/appointments");
+        break;
+      case "MEDICATION_REMINDER":
+        sendChat("Nhắc tôi uống thuốc");
+        break;
+      case "BOOK_SPEC": {
+        const spec = action.data?.spec as string;
+        if (spec) {
+          setSpecFilter(spec);
+          navigate("/patient/search");
+          toast.success(`Đang tìm bác sĩ ${spec}...`);
+        }
+        break;
+      }
+      case "CALL_DOCTOR":
+        toast.info("Tính năng gọi bác sĩ đang phát triển");
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleDashboardSuggestion = (s: Suggestion) => {
+    switch (s.action) {
+      case "VIEW_APPOINTMENT":
+      case "VIEW_APPOINTMENTS": navigate("/patient/appointments"); break;
+      case "BOOK_APPOINTMENT": navigate("/patient/search"); break;
+      case "VIEW_ARTICLE": toast.info("Đang mở bài viết..."); break;
+      case "SHOW_PACKAGES": navigate("/patient/search"); toast.info("Hãy chọn bác sĩ Khám tổng quát"); break;
+      case "VIEW_MEDICATION": navigate("/patient/records"); break;
+      default: navigate("/patient/chat"); break;
+    }
   };
 
   const handleAiActions = (actions?: string[]) => {
     if (!actions?.length) return;
     for (const action of actions) {
-      if (action === "WARNING_RED") toast.error("AI cảnh báo: Cần kiểm tra y tế ngay!");
-      else if (action === "NAVIGATE_APPOINTMENT") {
-        toast.success("AI đề xuất đặt lịch khám", { action: { label: "Đặt ngay", onClick: () => setActiveView("search") } });
-      } else if (action === "SHOW_PATIENT_HISTORY") toast.info("AI đề xuất xem lịch sử bệnh án");
-      else if (action === "HIGHLIGHT_CRITICAL") toast.warning("AI phát hiện dấu hiệu nghiêm trọng");
+      if (action === "WARNING_RED") toast.error("️ AI phát hiện triệu chứng cần lưu ý!");
     }
   };
 
@@ -154,200 +359,442 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
     toast.success(`Đã gửi tin nhắn đến ${newMsgDoctor.name}`);
   };
 
-  const NAV_ITEMS = [
-    { key: "overview", label: "Tổng quan", icon: LayoutDashboard },
-    { key: "search", label: "Tìm bác sĩ", icon: Search },
-    { key: "appointments", label: "Lịch hẹn", icon: CalendarDays },
-    { key: "messages", label: "Tin nhắn", icon: MessagesSquare },
-    { key: "records", label: "Hồ sơ", icon: FileHeart },
-    { key: "tracking", label: "Theo dõi", icon: Activity },
-  ];
-
+  // ===== RENDER =====
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
-      {/* Header Glassmorphism */}
-      <header className="fixed top-0 inset-x-0 h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 z-40 px-6 flex items-center justify-between shadow-sm transition-all duration-300">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 cursor-pointer" onClick={() => setActiveView("overview")}>
-            <HeartPulse className="w-5.5 h-5.5" />
-          </div>
-          <div>
-            <div className="tracking-tight leading-tight font-bold text-slate-800 text-base">MediCare AI</div>
-            <div className="text-[10px] uppercase font-bold tracking-wider mt-0.5 text-blue-600">Trợ lý y tế cá nhân</div>
-          </div>
-        </div>
+    <div className="relative min-h-screen bg-slate-50 overflow-hidden font-sans text-slate-800">
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50 via-white to-emerald-50 pointer-events-none" />
 
-        {/* Quick Nav for Desktop */}
-        <div className="hidden md:flex items-center gap-2">
-          {NAV_ITEMS.slice(0, 4).map(item => (
-            <Button key={item.key} variant={activeView === item.key ? "secondary" : "ghost"} size="sm" onClick={() => setActiveView(item.key)} className="text-sm rounded-full px-4 font-medium transition-all hover:bg-blue-50 hover:text-blue-600">
-              <item.icon className="w-4 h-4 mr-2" />
-              {item.label}
-            </Button>
-          ))}
-          <Button variant="ghost" size="icon" onClick={() => setActiveView("overview")} className="rounded-full"><LayoutDashboard className="w-4 h-4" /></Button>
-        </div>
+      {/* ===== DASHBOARD VIEW: The Radical Orbital Layout ===== */}
+      {activeView === "dashboard" && (
+        <div className="flex-1 flex flex-col items-center justify-center relative min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/40 to-slate-50 overflow-hidden">
+          {/* Ambient Background Glowing Orbs */}
+          <div className="absolute top-[15%] left-[20%] w-[30vw] h-[30vw] bg-teal-400/10 rounded-full blur-[100px] pointer-events-none" />
+          <div className="absolute bottom-[20%] right-[15%] w-[40vw] h-[40vw] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-        {/* User Utilities */}
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" className="hidden sm:flex rounded-full text-slate-500 hover:text-red-600 hover:bg-red-50" onClick={onLogout}>
-            <LogOut className="w-4 h-4 mr-2" /> Đăng xuất
-          </Button>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 text-white flex items-center justify-center font-bold text-xs shadow-sm cursor-pointer border border-slate-200" onClick={() => setActiveView("profile")}>
-            MK
+          {/* Header - Left (Logo/Title) */}
+          <div className="absolute top-4 left-4 sm:top-8 sm:left-8 flex items-center gap-3 z-40">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30 border border-emerald-400/30">
+              <HeartPulse className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="font-extrabold text-slate-800 text-xl tracking-tight leading-none">MediCare AI</h1>
+              <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Hello, {ME.split(" ").pop()}</span>
+            </div>
           </div>
-        </div>
-      </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col pt-16 relative w-full h-screen overflow-hidden bg-slate-50">
-        {activeView === "chat" ? (
-          <div className="flex-1 overflow-hidden flex flex-col max-w-4xl mx-auto w-full py-6 px-4 sm:px-6">
-            <div className="flex items-center gap-3 mb-6 animate-in fade-in slide-in-from-top-4">
-              <Button variant="ghost" size="icon" onClick={() => setActiveView("overview")} className="rounded-full hover:bg-slate-200 bg-slate-100">
-                <ArrowLeft className="w-5 h-5 text-slate-600" />
+          {/* Header - Right (Actions: Notifications, Profile, Logout) */}
+          <div className="absolute top-4 right-4 sm:top-8 sm:right-8 flex gap-2 sm:gap-3 z-50">
+            {/* Notification Bell with Dropdown */}
+            <div className="relative">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="w-11 h-11 rounded-full bg-white/70 backdrop-blur-md shadow-sm border border-slate-200 hover:bg-white hover:shadow-md transition-all" 
+                onClick={() => setShowNotifs(!showNotifs)}
+              >
+                <Bell className="w-5 h-5 text-slate-700" />
+                {unreadNotifs.length > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm border-2 border-white">{unreadNotifs.length}</span>}
               </Button>
-              <div>
-                <h1 className="text-2xl font-extrabold tracking-tight text-slate-800">Trợ lý sức khỏe AI</h1>
-                <p className="text-slate-500 text-sm font-medium">Sẵn sàng giải đáp mọi thắc mắc của bạn</p>
+              <AnimatePresence>
+                {showNotifs && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }} 
+                    animate={{ opacity: 1, y: 0, scale: 1 }} 
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }} 
+                    className="absolute right-0 mt-3 w-[320px] sm:w-[360px] bg-white/60 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] shadow-2xl shadow-emerald-500/10 rounded-3xl z-50 overflow-hidden"
+                  >
+                      <div className="p-4 border-b border-emerald-100/40 flex justify-between items-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50 via-white to-emerald-50/50">
+                        <h3 className="font-extrabold text-slate-800">Thông báo của bạn</h3>
+                        <div className="flex gap-2">
+                          <Button variant="ghost" size="sm" className="text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 h-7 px-2" onClick={() => store.markAllNotificationsRead()}>Đọc tất cả</Button>
+                          <Button variant="ghost" size="icon" className="w-7 h-7 rounded-full hover:bg-slate-200" onClick={() => setShowNotifs(false)}><X className="w-4 h-4 text-slate-500" /></Button>
+                        </div>
+                      </div>
+                    <div className="p-3 max-h-80 overflow-y-auto">
+                      {unreadNotifs.length > 0 ? (
+                        unreadNotifs.map(n => (
+                          <div 
+                            key={n.id} 
+                            className="p-3 bg-white/60 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-2xl mb-2 flex items-start gap-3 cursor-pointer hover:bg-blue-50 hover:border-blue-100 transition-all shadow-sm" 
+                            onClick={() => { 
+                              store.markNotificationRead(n.id);
+                              setShowNotifs(false); 
+                              if (n.target) navigate(n.target);
+                            }}
+                          >
+                            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><Bell className="w-5 h-5" /></div>
+                            <div>
+                              <p className="text-sm font-bold text-slate-800">{n.title}</p>
+                              <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">{n.content}</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-8 text-center text-slate-500 text-sm font-medium flex flex-col items-center gap-3">
+                          <Bell className="w-8 h-8 text-slate-200" />
+                          Không có thông báo mới
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            
+            <div 
+              className="w-11 h-11 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center text-xs font-bold cursor-pointer hover:scale-105 transition-transform shadow-sm border-[3px] border-white" 
+              onClick={() => navigate("/patient/profile")}
+            >
+              MK
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="w-11 h-11 rounded-full text-red-500 hover:text-red-600 hover:bg-red-50 bg-white/70 backdrop-blur-md shadow-sm border border-slate-200" 
+              onClick={onLogout}
+            >
+              <LogOut className="w-5 h-5" />
+            </Button>
+          </div>
+
+          {/* ===== THE CENTER ORBITAL HUB ===== */}
+          <div className="relative w-[320px] h-[320px] sm:w-[460px] sm:h-[460px] flex items-center justify-center mt-4 sm:mt-12">
+            
+            {/* Concentric rings decoration behind the buttons */}
+            <div className="absolute inset-0 border-[1.5px] border-teal-500/10 rounded-full scale-[0.65]" />
+            <div className="absolute inset-0 border-[1.5px] border-teal-500/5 rounded-full scale-[0.85]" />
+            <div className="absolute inset-0 border border-teal-500/10 rounded-full border-dashed scale-[1.05] animate-[spin_120s_linear_infinite]" />
+
+            {/* The 5 surrounding buttons arranged in a perfect pentagon/star layout */}
+            <ActionItem
+              delay={0}
+              className="top-[-5%] sm:top-[-8%] left-1/2 -translate-x-1/2"
+              icon={Stethoscope} label="Tìm bác sĩ" bg="bg-blue-50" text="text-blue-600" hover="hover:border-blue-200"
+              onClick={() => navigate("/patient/search")}
+            />
+            <ActionItem
+              delay={0.2}
+              className="top-[22%] sm:top-[25%] right-[-10%] sm:right-[-5%] translate-x-1/2"
+              icon={CalendarDays} label="Lịch hẹn" bg="bg-amber-50" text="text-amber-600" hover="hover:border-amber-200"
+              badge={unreadApptsCount}
+              onClick={() => { navigate("/patient/appointments"); setViewedAppts(upcoming.length); }}
+            />
+            <ActionItem
+              delay={0.4}
+              className="bottom-[10%] sm:bottom-[15%] right-[-5%] sm:right-[5%] translate-x-1/2 translate-y-1/2"
+              icon={FileHeart} label="Hồ sơ" bg="bg-emerald-50" text="text-emerald-600" hover="hover:border-emerald-200"
+              onClick={() => navigate("/patient/records")}
+            />
+            <ActionItem
+              delay={0.6}
+              className="bottom-[10%] sm:bottom-[15%] left-[-5%] sm:left-[5%] -translate-x-1/2 translate-y-1/2"
+              icon={Activity} label="Theo dõi" bg="bg-purple-50" text="text-purple-600" hover="hover:border-purple-200"
+              onClick={() => navigate("/patient/tracking")}
+            />
+            <ActionItem
+              delay={0.8}
+              className="top-[22%] sm:top-[25%] left-[-10%] sm:left-[-5%] -translate-x-1/2"
+              icon={MessagesSquare} label="Tin nhắn" bg="bg-pink-50" text="text-pink-600" hover="hover:border-pink-200"
+              badge={unreadMsgsCount}
+              onClick={() => { navigate("/patient/messages"); setViewedMsgs(myThreads.length); }}
+            />
+
+            {/* Center Core: The Giant AI Chatbot Button */}
+            <motion.button
+              animate={{ scale: [1, 1.02, 1], boxShadow: ["0 0 0 0 rgba(16, 185, 129, 0)", "0 0 20px 4px rgba(16, 185, 129, 0.2)", "0 0 0 0 rgba(16, 185, 129, 0)"] }}
+              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={openChat}
+              className="relative z-40 w-44 h-44 sm:w-64 sm:h-64 rounded-full bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.3)] hover:shadow-[0_0_80px_rgba(16,185,129,0.5)] group overflow-hidden border-[8px] sm:border-[10px] border-white transition-shadow duration-500"
+            >
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.25),transparent_60%)]" />
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.3),transparent_70%)] animate-pulse" />
+              
+              <Bot className="w-16 h-16 sm:w-28 sm:h-28 text-white relative z-10 filter drop-shadow-lg group-hover:-translate-y-3 transition-transform duration-500 ease-out" />
+              <span className="text-white font-black text-xl sm:text-3xl mt-2 relative z-10 tracking-tight group-hover:-translate-y-1 transition-transform duration-500">Chat AI</span>
+              
+              {/* Tooltip hint that appears on hover */}
+              <span className="absolute bottom-5 sm:bottom-8 text-emerald-50 text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-4 transition-all duration-500">
+                Chạm để bắt đầu
+              </span>
+            </motion.button>
+          </div>
+
+          {/* Smart Suggestion Chip (bottom center) */}
+          {suggestions.length > 0 && !dismissedSuggestion && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="absolute bottom-8 sm:bottom-12 z-40 w-full flex justify-center px-4 pointer-events-none">
+              <div 
+                className="pointer-events-auto flex items-center gap-3 bg-slate-900/80 backdrop-blur-xl pl-5 pr-2 py-2 rounded-full text-white shadow-2xl hover:scale-105 transition-all border border-slate-700 max-w-full"
+              >
+                <div className="flex items-center gap-3 cursor-pointer" onClick={() => { handleDashboardSuggestion(suggestions[0]); setDismissedSuggestion(true); }}>
+                  <Sparkles className="w-5 h-5 text-yellow-400 shrink-0" />
+                  <span className="text-sm font-semibold truncate py-1.5">{suggestions[0].title}: {suggestions[0].actionLabel}</span>
+                  <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 mr-1" />
+                </div>
+                <div className="w-px h-6 bg-slate-700 mx-1"></div>
+                <button 
+                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
+                  onClick={(e) => { e.stopPropagation(); setDismissedSuggestion(true); }}
+                >
+                  <X className="w-4 h-4 text-slate-400" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      )}
+
+      {/* ===== CHAT VIEW ===== */}
+      {activeView === "chat" && (
+        <div className="h-screen flex flex-col bg-white">
+          {/* Chat Header */}
+          <header className="h-16 bg-white border-b border-emerald-100/40 px-4 flex items-center gap-3 shrink-0">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/patient")} className="rounded-full hover:bg-slate-100">
+              <ArrowLeft className="w-5 h-5 text-slate-600" />
+            </Button>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
+              <Bot className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="font-bold text-slate-800 text-sm leading-tight">Trợ lý AI MediCare</h2>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                <span className="text-[11px] text-emerald-600 font-medium">Đang hoạt động</span>
               </div>
             </div>
+            
+            <div className="ml-auto flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl" onClick={() => {
+                setChatSessions(JSON.parse(localStorage.getItem("ai_chat_sessions") || "[]"));
+                setShowChatHistory(true);
+              }}>
+                <History className="w-5 h-5" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => {
+                if (messages.length > 0) {
+                  const sessions = JSON.parse(localStorage.getItem("ai_chat_sessions") || "[]");
+                  sessions.push({ id: Date.now().toString(), date: new Date().toISOString(), msgs: messages });
+                  localStorage.setItem("ai_chat_sessions", JSON.stringify(sessions));
+                  setChatSessions(sessions);
+                  setMessages([]);
+                  toast.success("Đã mở cuộc trò chuyện mới");
+                }
+              }} className="text-emerald-600 font-semibold bg-emerald-50 hover:bg-emerald-100 rounded-xl px-3 h-9">
+                <Plus className="w-4 h-4 mr-1.5" />
+                Mới
+              </Button>
+            </div>
+          </header>
 
-            <div className="flex-1 overflow-hidden flex flex-col bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 relative animate-in fade-in slide-in-from-bottom-8 duration-700">
-              {/* Warning bar */}
-              <div className="px-4 py-2.5 bg-amber-50 border-b border-amber-100 flex items-center gap-2">
-                 <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                 <p className="text-xs text-amber-800 font-medium">Lưu ý: Kết quả AI chỉ mang tính hỗ trợ tham khảo và không thay thế chẩn đoán y khoa chuyên nghiệp.</p>
-              </div>
-
-              <ScrollArea className="flex-1 p-6">
-                <div className="space-y-6">
-                  {messages.map(msg => (
-                    <div key={msg.id} className={`flex ${msg.role === "me" ? "justify-end" : "justify-start"}`}>
-                      <div className={`flex gap-3 max-w-[85%] ${msg.role === "me" ? "flex-row-reverse" : ""}`}>
-                        {msg.role === "bot" && (
-                          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-50 flex items-center justify-center shrink-0 shadow-sm border border-emerald-100">
-                            <Bot className="w-5 h-5 text-emerald-600" />
-                          </div>
-                        )}
-                        {msg.role === "me" && (
-                          <Avatar className="w-10 h-10 shrink-0 border border-slate-200 shadow-sm rounded-2xl">
-                            <AvatarFallback className="bg-blue-100 text-blue-700 text-sm font-bold">MK</AvatarFallback>
-                          </Avatar>
-                        )}
-                        <div>
-                          <div className={`px-5 py-3.5 rounded-3xl ${
-                            msg.role === "bot"
-                              ? "bg-slate-100/80 text-slate-800 rounded-tl-md shadow-sm border border-slate-200/50"
-                              : "bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-tr-md shadow-md shadow-blue-500/20"
-                          }`}>
-                            <p className="text-[15px] leading-relaxed whitespace-pre-line">{msg.text}</p>
-                          </div>
-                          <div className={`text-[11px] text-slate-400 mt-1.5 px-1 font-medium ${msg.role === "me" ? "text-right" : ""}`}>
-                            {msg.time.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {isTyping && (
-                    <div className="flex justify-start">
-                      <div className="flex gap-3 max-w-[85%]">
-                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-50 flex items-center justify-center shrink-0 shadow-sm border border-emerald-100">
-                          <Bot className="w-5 h-5 text-emerald-600" />
-                        </div>
-                        <div className="px-5 py-4 rounded-3xl bg-slate-100/80 rounded-tl-md shadow-sm border border-slate-200/50">
-                          <div className="flex gap-1.5">
-                            <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-                            <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-                            <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "300ms" }} />
-                          </div>
-                        </div>
-                      </div>
+          {/* Chat Messages */}
+          <ScrollArea className="flex-1 px-4 py-6">
+            <div className="max-w-3xl mx-auto space-y-6">
+              {messages.map(msg => (
+                <motion.div key={msg.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-3 ${msg.role === "me" ? "flex-row-reverse" : ""}`}>
+                  {msg.role === "bot" && (
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                      <Bot className="w-4 h-4 text-white" />
                     </div>
                   )}
-                  <div ref={scrollRef} />
-                </div>
-              </ScrollArea>
+                  <div className={`flex flex-col ${msg.role === "me" ? "items-end" : "items-start"} max-w-[85%]`}>
+                    <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                      msg.role === "bot"
+                        ? "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50 via-white to-emerald-50 text-slate-800 border border-slate-200 rounded-tl-sm"
+                        : "bg-emerald-600 text-white rounded-tr-sm shadow-sm"
+                    }`}>
+                      <div className="whitespace-pre-line leading-relaxed">{renderMessage(msg.text)}</div>
+                    </div>
 
-              {/* Quick Prompts */}
-              {messages.length === 1 && (
-                <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100">
-                  <div className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">Hoặc chọn một hành động:</div>
-                  <div className="flex flex-wrap gap-2.5">
-                    {["Tôi bị đau đầu", "Tôi bị sốt", "Đặt lịch khám", "Xem hồ sơ"].map((p, i) => (
-                      <button key={i} onClick={() => {
-                        if (p === "Đặt lịch khám") setActiveView("search");
-                        else if (p === "Xem hồ sơ") setActiveView("records");
-                        else sendChat(p);
-                      }} className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all text-sm font-medium shadow-sm hover:shadow active:scale-95 text-slate-600">
-                        {p}
-                      </button>
-                    ))}
+                    {/* Moved suggested actions down above input */}
+                  </div>
+                </motion.div>
+              ))}
+
+              {isTyping && (
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0 shadow-sm">
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="px-4 py-3 rounded-2xl bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50 via-white to-emerald-50 border border-slate-200 rounded-tl-sm">
+                    <div className="flex gap-1">
+                      <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                      <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.15 }} className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                      <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.3 }} className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                    </div>
                   </div>
                 </div>
               )}
+              <div ref={scrollRef} />
+            </div>
+          </ScrollArea>
 
-              {/* Input Box */}
-              <div className="p-4 bg-white border-t border-slate-100 rounded-b-3xl">
-                <div className="flex gap-3 items-end bg-slate-50 rounded-2xl p-2 border border-slate-200 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100 transition-all">
-                  <Textarea
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(input); } }}
-                    placeholder="Mô tả triệu chứng hoặc đặt câu hỏi..."
-                    className="resize-none min-h-[44px] max-h-32 border-0 bg-transparent focus-visible:ring-0 px-2 py-3 text-[15px]"
-                    rows={1}
-                  />
-                  <Button
-                    size="icon"
-                    className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md transition-transform active:scale-95"
-                    onClick={() => sendChat(input)}
-                    disabled={!input.trim() || isTyping}
+          {/* Chat Input */}
+          <div className="shrink-0 p-4 bg-white border-t border-emerald-100/40">
+            {/* Suggested Action Buttons (Only for the LAST message) */}
+            {messages.length > 0 && messages[messages.length - 1].suggestedActions && (
+              <div className="max-w-3xl mx-auto flex flex-wrap gap-2 mb-3">
+                {messages[messages.length - 1].suggestedActions?.map((sa, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSuggestedAction(sa)}
+                    className="px-3.5 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300 transition-all active:scale-95 shadow-sm flex items-center gap-1.5"
                   >
-                    <Send className="w-5 h-5" />
-                  </Button>
-                </div>
+                    <Sparkles className="w-3.5 h-3.5" />
+                    {sa.label}
+                  </button>
+                ))}
               </div>
+            )}
+            <div className="max-w-3xl mx-auto flex items-end gap-2">
+              <div className="flex-1 relative">
+                <Textarea
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(input); } }}
+                  placeholder="Nhập triệu chứng hoặc câu hỏi..."
+                  className="resize-none min-h-[44px] max-h-32 rounded-2xl bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50 via-white to-emerald-50 border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 px-4 py-3 text-sm pr-12"
+                  rows={1}
+                />
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                className={`h-11 w-11 rounded-xl shrink-0 transition-all ${isListening ? "bg-red-50 text-red-600 border-red-200 animate-pulse" : "border-slate-200 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200"}`}
+                onClick={() => {
+                  setIsListening(!isListening);
+                  if (!isListening) toast.info("Đang lắng nghe...");
+                  else toast.info("Đã tắt mic");
+                }}
+              >
+                <Mic className="w-4 h-4" />
+              </Button>
+              <Button
+                size="icon"
+                className={`h-11 w-11 rounded-xl shrink-0 transition-all ${input.trim() ? "bg-emerald-600 hover:bg-emerald-700 shadow-md" : "bg-slate-200 text-slate-400"}`}
+                onClick={() => sendChat(input)}
+                disabled={!input.trim() || isTyping}
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+            <p className="text-center text-[10px] text-slate-400 mt-2 font-medium">AI mang tính tham khảo, không thay thế chẩn đoán y khoa.</p>
+          </div>
+        </div>
+      )}
+
+      {/* ===== SUB-PAGE VIEWS ===== */}
+      {activeView !== "dashboard" && activeView !== "chat" && (
+        <div className="min-h-screen flex flex-col relative">
+          <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50 via-white to-emerald-50 pointer-events-none" />
+          <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-emerald-100/40 px-4 h-14 flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/patient")} className="rounded-full hover:bg-slate-100">
+              <ArrowLeft className="w-5 h-5 text-slate-600" />
+            </Button>
+            <h2 className="font-bold text-slate-800 text-base">
+              {activeView === "search" ? "Tìm bác sĩ" :
+               activeView === "appointments" ? "Lịch hẹn" :
+               activeView === "records" ? "Hồ sơ Bệnh án" :
+               activeView === "tracking" ? "Theo dõi Chỉ số" :
+               activeView === "messages" ? "Tin nhắn Bác sĩ" :
+               activeView === "profile" ? "Hồ sơ Cá nhân" : ""}
+            </h2>
+          </header>
+          <div className="flex-1 overflow-auto pb-24 relative z-10">
+            <div className="max-w-5xl mx-auto w-full p-4 sm:p-6">
+              <AnimatePresence mode="wait">
+                <motion.div key={activeView} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                  {activeView === "search" && <SearchSection search={search} setSearch={setSearch} specFilter={specFilter} setSpecFilter={setSpecFilter} doctors={filtered} onPick={setSelectedDoctor} onBook={setBookingDoctor} />}
+                  {activeView === "appointments" && <Appointments 
+                    appointments={appointments} 
+                    onCancel={cancelAppt} 
+                    onEdit={setEditing} 
+                    onClickDoctor={(name) => {
+                      const doc = DOCTORS.find((d: any) => d.name === name);
+                      if (doc) setSelectedDoctor(doc);
+                    }}
+                    onClickAppt={setViewingAppt}
+                  />}
+                  {activeView === "records" && <Records />}
+                  {activeView === "tracking" && <Tracking onBook={() => { setBookingDoctor(DOCTORS[0]); navigate("/patient/search"); }} skipConfirm={skipConfirm} onSkip={() => setSkipConfirm(true)} onCancelSkip={() => setSkipConfirm(false)} />}
+                  {activeView === "messages" && <MessagesTab threads={myThreads} activeThreadId={activeThreadId} setActiveThreadId={setActiveThreadId} reply={reply} setReply={setReply} onSendReply={() => {
+                    if (!reply.trim() || !activeThreadId) return;
+                    store.appendMessage(activeThreadId, { f: "user", txt: reply, t: "vừa xong" }); setReply("");
+                  }} onNewThread={() => setNewMsgDoctor(DOCTORS[0])} />}
+                  {activeView === "profile" && <Profile />}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
-        ) : (
-          <div className="flex-1 overflow-auto bg-slate-50">
-            <div className="max-w-6xl mx-auto w-full p-4 md:p-6 pb-24 pt-8">
-              {activeView !== "overview" && (
-                <div className="flex items-center gap-4 mb-6 animate-in slide-in-from-left-4">
-                  <Button variant="ghost" size="icon" onClick={() => setActiveView("overview")} className="rounded-full hover:bg-slate-200 bg-slate-100 shadow-sm border border-slate-200">
-                    <ArrowLeft className="w-5 h-5 text-slate-700" />
-                  </Button>
-                  <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">
-                    {NAV_ITEMS.find(n => n.key === activeView)?.label || "Tính năng"}
-                  </h2>
-                </div>
-              )}
-              
-              {activeView === "overview" && <Overview onJump={setActiveView} appts={appointments} threads={myThreads} />}
-              {activeView === "search" && <SearchSection search={search} setSearch={setSearch} specFilter={specFilter} setSpecFilter={setSpecFilter} doctors={filtered} onPick={setSelectedDoctor} onBook={setBookingDoctor} />}
-              {activeView === "appointments" && <Appointments appointments={appointments} onCancel={cancelAppt} onEdit={setEditing} />}
-              {activeView === "messages" && <MessagesTab threads={myThreads} activeThreadId={activeThreadId} setActiveThreadId={setActiveThreadId} reply={reply} setReply={setReply} onSendReply={() => {
-                if (!reply.trim() || !activeThreadId) return;
-                store.appendMessage(activeThreadId, { f: "user", txt: reply, t: "vừa xong" }); setReply("");
-              }} onNewThread={() => setNewMsgDoctor(DOCTORS[0])} />}
-              {activeView === "records" && <Records />}
-              {activeView === "tracking" && <Tracking onBook={() => { setBookingDoctor(DOCTORS[0]); setActiveView("search"); toast.info("Đã điền BS. Nguyễn Văn An"); }} skipConfirm={skipConfirm} onSkip={() => setSkipConfirm(true)} onCancelSkip={() => setSkipConfirm(false)} />}
-              {activeView === "profile" && <Profile />}
-            </div>
-          </div>
-        )}
-      </main>
+          
+          {/* Floating Chatbot Button */}
+          <motion.button
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => navigate("/patient/chat")}
+            className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_8px_32px_rgba(16,185,129,0.4)] flex items-center justify-center border-2 border-white/20 hover:shadow-[0_12px_40px_rgba(16,185,129,0.6)] transition-all"
+          >
+            <Bot className="w-7 h-7" />
+          </motion.button>
+        </div>
+      )}
 
-
+      {/* Floating Chat Button (visible on sub-pages, not on dashboard or chat) */}
+      {activeView !== "dashboard" && activeView !== "chat" && (
+        <motion.button
+          initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 260, damping: 20 }}
+          onClick={openChat}
+          className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-2xl shadow-emerald-500/30 flex flex-col items-center justify-center hover:scale-110 active:scale-95 transition-transform border-[3px] border-white"
+        >
+          <Bot className="w-7 h-7" />
+        </motion.button>
+      )}
 
       {/* Dialogs */}
       <DoctorDetailDialog doctor={selectedDoctor} onClose={() => setSelectedDoctor(null)} onBook={setBookingDoctor} />
       <BookingDialog doctor={bookingDoctor} bookDate={bookDate} onBookDateChange={setBookDate} bookTime={bookTime} onBookTimeChange={setBookTime} onConfirm={handleBook} onCancel={() => setBookingDoctor(null)} />
       <EditAppointmentDialog editing={editing} onEditingChange={setEditing} editingOriginal={editingOriginal} onUpdate={updateAppt} onCancel={() => { setEditing(null); setEditingOriginal(null); }} appointments={appointments} doctors={DOCTORS} />
       <NewMessageDialog doctor={newMsgDoctor} onDoctorChange={setNewMsgDoctor} content={newMsgContent} onContentChange={setNewMsgContent} doctors={DOCTORS} onSend={submitNewMsg} onCancel={() => { setNewMsgDoctor(null); setNewMsgContent(""); }} />
+    
+      <AppointmentDetailDialog
+        appt={viewingAppt}
+        onClose={() => setViewingAppt(null)}
+      />
+
+      {/* Chat History Dialog */}
+      <Dialog open={showChatHistory} onOpenChange={setShowChatHistory}>
+        <DialogContent className="sm:max-w-md bg-white/80 backdrop-blur-3xl border-white/50 shadow-2xl p-0 overflow-hidden" style={{ borderRadius: "24px" }}>
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-100 bg-white/50">
+            <DialogTitle className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <History className="w-5 h-5 text-emerald-600" />
+              Lịch sử Chat
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-4 bg-slate-50/50 max-h-[60vh] overflow-y-auto space-y-3">
+            {chatSessions.length === 0 ? (
+              <div className="text-center py-8 text-slate-400 text-sm">Chưa có lịch sử trò chuyện.</div>
+            ) : (
+              [...chatSessions].reverse().map(session => (
+                <div key={session.id} className="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:border-emerald-200 hover:shadow-emerald-500/10 transition-all cursor-pointer" onClick={() => {
+                  setMessages(session.msgs);
+                  setShowChatHistory(false);
+                  toast.success("Đã tải lại lịch sử chat");
+                }}>
+                  <div className="text-xs text-slate-400 mb-2">{new Date(session.date).toLocaleString('vi-VN')}</div>
+                  <div className="text-sm text-slate-700 font-medium line-clamp-2">
+                    {session.msgs.find((m: any) => m.role === "me")?.text || "Cuộc trò chuyện mới"}
+                  </div>
+                  <div className="mt-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded inline-block">
+                    {session.msgs.length} tin nhắn
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

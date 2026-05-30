@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 export type Msg = { f: "user" | "staff"; txt: string; t: string };
 
 export type Thread = {
@@ -31,11 +33,23 @@ export type Appointment = {
   vitals?: { bp: string; hr: string; temp: string; spo2: string };
 };
 
+export type Notification = {
+  id: string;
+  target: string;
+  title: string;
+  content: string;
+  time: string;
+  status: string;
+  isRead: boolean;
+  createdAt: string;
+};
+
 type State = {
   threads: Thread[];
   appointments: Appointment[];
   doctors: any[];
   articles: any[];
+  notifications: Notification[];
 };
 
 const initial: State = {
@@ -43,6 +57,7 @@ const initial: State = {
   appointments: [],
   doctors: [],
   articles: [],
+  notifications: [],
 };
 
 let state: State = initial;
@@ -82,7 +97,7 @@ export const store = {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    fetch("http://localhost:3000/api/threads", {
+    fetch(`${API_URL}/api/threads`, {
       method: "POST",
       headers,
       body: JSON.stringify(t)
@@ -106,7 +121,7 @@ export const store = {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    fetch(`http://localhost:3000/api/threads/${threadId}/messages`, {
+    fetch(`${API_URL}/api/threads/${threadId}/messages`, {
       method: "POST",
       headers,
       body: JSON.stringify({ ...msg, newStatus })
@@ -121,7 +136,7 @@ export const store = {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    fetch(`http://localhost:3000/api/threads/${threadId}`, {
+    fetch(`${API_URL}/api/threads/${threadId}`, {
       method: "PATCH",
       headers,
       body: JSON.stringify({ status })
@@ -139,7 +154,7 @@ export const store = {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    fetch("http://localhost:3000/api/appointments", {
+    fetch(`${API_URL}/api/appointments`, {
       method: "POST",
       headers,
       body: JSON.stringify({
@@ -180,7 +195,7 @@ export const store = {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    fetch(`http://localhost:3000/api/appointments/${id}`, {
+    fetch(`${API_URL}/api/appointments/${id}`, {
       method: "PATCH",
       headers,
       body: JSON.stringify({
@@ -204,6 +219,35 @@ export const store = {
         setState(s => ({ ...s, appointments: s.appointments.map(a => String(a.id) === String(prev.id) ? prev : a) }));
       }
     });
+  },
+
+  // Notifications
+  markNotificationRead: (id: string) => {
+    setState(s => ({ ...s, notifications: s.notifications.map(n => n.id === id ? { ...n, isRead: true } : n) }));
+    
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    fetch(`${API_URL}/api/notifications/${id}/read`, {
+      method: "PATCH",
+      headers
+    }).then(res => {
+      if (res.ok) fetchNotifications();
+    }).catch(console.error);
+  },
+  markAllNotificationsRead: () => {
+    setState(s => ({ ...s, notifications: s.notifications.map(n => ({ ...n, isRead: true })) }));
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    fetch(`${API_URL}/api/notifications/read-all`, {
+      method: "PATCH",
+      headers
+    }).then(res => {
+      if (res.ok) fetchNotifications();
+    }).catch(console.error);
   },
 };
 
@@ -230,7 +274,7 @@ export const fetchAppointments = async () => {
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    const res = await fetch("http://localhost:3000/api/appointments", { headers });
+    const res = await fetch(`${API_URL}/api/appointments`, { headers });
     if (handleUnauthorizedResponse(res)) return;
     if (res.ok) {
       const data: Record<string, unknown>[] = await res.json();
@@ -269,7 +313,7 @@ export const fetchThreads = async () => {
     const token = localStorage.getItem("token");
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
-    const res = await fetch("http://localhost:3000/api/threads", { headers });
+    const res = await fetch(`${API_URL}/api/threads`, { headers });
     if (handleUnauthorizedResponse(res)) return;
     if (res.ok) {
       const threads = await res.json();
@@ -282,7 +326,12 @@ export const fetchThreads = async () => {
 
 export const fetchDoctors = async () => {
   try {
-    const res = await fetch("http://localhost:3000/api/doctors");
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_URL}/api/doctors`, { headers });
+    if (handleUnauthorizedResponse(res)) return;
     if (res.ok) {
       const data = await res.json();
       const mapped = data.map((d: any) => ({
@@ -298,7 +347,12 @@ export const fetchDoctors = async () => {
 
 export const fetchArticles = async () => {
   try {
-    const res = await fetch("http://localhost:3000/api/articles");
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_URL}/api/articles`, { headers });
+    if (handleUnauthorizedResponse(res)) return;
     if (res.ok) {
       const articles = await res.json();
       setState(s => ({ ...s, articles }));
@@ -308,11 +362,29 @@ export const fetchArticles = async () => {
   }
 };
 
+export const fetchNotifications = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_URL}/api/notifications`, { headers });
+    if (handleUnauthorizedResponse(res)) return;
+    if (res.ok) {
+      const notifications = await res.json();
+      setState(s => ({ ...s, notifications }));
+    }
+  } catch (error) {
+    console.error("Failed to fetch notifications:", error);
+  }
+};
+
 export const fetchAllData = () => {
   fetchAppointments();
   fetchThreads();
   fetchDoctors();
   fetchArticles();
+  fetchNotifications();
 };
 
 if (typeof window !== "undefined") {
