@@ -67,3 +67,44 @@ model PatientRecord {
   createdAt   DateTime @default(now())
 }
 
+model Doctor {
+  id        Int      @id @default(autoincrement())
+  name      String
+  spec      String
+  rating    Float
+  fee       String
+  clinic    String
+  avail     String   // JSON string of available times like '["08:00", "09:00"]'
+}
+
+model Thread {
+  id          Int       @id @default(autoincrement())
+  staffId     Int
+  staffName   String
+  staffSpec   String
+  userRole    String
+  userName    String
+  topic       String
+  status      String    // Đang diễn ra, Đã kết thúc, Chờ phản hồi
+  last        String
+  updatedAt   DateTime  @updatedAt
+  messages    Message[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  threadId  Int
+  from      String   // "user" or "staff"
+  txt       String
+  timeStr   String   // string representation of time like "5 phút trước" or "09:00"
+  thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+}
+
+model Article {
+  id          Int      @id @default(autoincrement())
+  title       String
+  category    String
+  reads       String
+  time        String
+}
+

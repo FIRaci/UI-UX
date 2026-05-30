@@ -11,13 +11,7 @@ export type Triage = {
   vitals: { bp: string; hr: string; temp: string; spo2: string };
 };
 
-export const INITIAL_QUEUE: Triage[] = [
-  { id: 1, level: "Khẩn cấp", patient: "Trần Văn Hậu", age: 58, symptoms: "Đau ngực dữ dội, khó thở", waited: "2 phút", vitals: { bp: "160/100", hr: "112", temp: "37.2°C", spo2: "94%" } },
-  { id: 2, level: "Cao", patient: "Đặng Quỳnh Anh", age: 34, symptoms: "Sốt cao, đau đầu kéo dài 3 ngày", waited: "12 phút", vitals: { bp: "120/80", hr: "98", temp: "39.1°C", spo2: "97%" } },
-  { id: 3, level: "Trung bình", patient: "Phạm Bích Ngọc", age: 47, symptoms: "Đau lưng dưới, tê chân phải", waited: "25 phút", vitals: { bp: "125/82", hr: "78", temp: "36.7°C", spo2: "98%" } },
-  { id: 4, level: "Trung bình", patient: "Lê Văn Tú", age: 41, symptoms: "Tái khám tăng huyết áp", waited: "30 phút", vitals: { bp: "138/88", hr: "82", temp: "36.8°C", spo2: "98%" } },
-  { id: 5, level: "Thấp", patient: "Mai Hồng Yến", age: 29, symptoms: "Khám sức khỏe định kỳ", waited: "45 phút", vitals: { bp: "118/76", hr: "72", temp: "36.5°C", spo2: "99%" } },
-];
+export const INITIAL_QUEUE: Triage[] = [];
 
 export const URGENT_ALERT = {
   patient: "Trần Văn Hậu",

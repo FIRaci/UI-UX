@@ -86,26 +86,26 @@ export function AppShell({
       )}
 
       {/* Sidebar */}
-      <aside className={`${showMobile ? "fixed inset-y-0 left-0 z-30" : "hidden lg:flex"} w-64 shrink-0 flex-col`} style={{
-        background: "linear-gradient(180deg, #0C1A35 0%, #0F2244 100%)",
+      <aside className={`${showMobile ? "fixed inset-y-0 left-0 z-30" : "hidden lg:flex"} w-64 shrink-0 flex-col transition-all duration-300`} style={{
+        background: "linear-gradient(180deg, #090E17 0%, #111827 100%)",
         color: "#fff",
-        boxShadow: "4px 0 24px rgba(15, 34, 68, 0.15)",
+        boxShadow: "4px 0 24px rgba(0, 0, 0, 0.1)",
       }}>
         {/* Brand Header */}
-        <div className="p-5 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="p-6 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white" style={{
             boxShadow: "0 4px 12px rgba(59,130,246,0.4)"
           }}>
             <HeartPulse className="w-5.5 h-5.5" />
           </div>
           <div>
-            <div className="tracking-tight leading-tight font-bold text-white text-base">MediCare AI</div>
-            <div className="text-[10px] uppercase font-bold tracking-wider mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>{roleLabel}</div>
+            <div className="tracking-tight leading-tight font-black text-white text-[17px]">MediCare AI</div>
+            <div className="text-[10px] uppercase font-bold tracking-widest mt-0.5 text-blue-400">{roleLabel}</div>
           </div>
         </div>
 
         {/* Navigation Items */}
-        <nav className="p-3 flex-1 space-y-1.5 overflow-auto">
+        <nav className="p-4 flex-1 space-y-1.5 overflow-auto custom-scrollbar">
           {nav.map(item => {
             const Icon = item.icon;
             const isActive = active === item.key;
@@ -113,16 +113,16 @@ export function AppShell({
               <button
                 key={item.key}
                 onClick={() => { onNav(item.key); setShowMobile(false); }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left outline-none ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-300 text-left outline-none hover:translate-x-1 active:scale-95 ${
                   isActive ? "text-white" : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
                 style={{
-                  background: isActive ? "linear-gradient(135deg, #3B82F6, #2563EB)" : "transparent",
-                  boxShadow: isActive ? "0 4px 12px rgba(59,130,246,0.3)" : "none",
-                  fontWeight: isActive ? 600 : 400,
+                  background: isActive ? "linear-gradient(135deg, #2563EB, #3B82F6)" : "transparent",
+                  boxShadow: isActive ? "0 8px 16px -4px rgba(37,99,235,0.4)" : "none",
+                  fontWeight: isActive ? 600 : 500,
                 }}
               >
-                <Icon className={`w-4.5 h-4.5 ${isActive ? "text-white" : "text-slate-400"}`} />
+                <Icon className={`w-5 h-5 transition-colors duration-300 ${isActive ? "text-white drop-shadow-sm" : "text-slate-500 group-hover:text-slate-300"}`} />
                 {item.label}
               </button>
             );
@@ -157,11 +157,11 @@ export function AppShell({
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-slate-50/50">
         {/* Premium Header */}
-        <header className="h-16 bg-white flex items-center justify-between px-6" style={{
-          borderBottom: "1px solid #E2E8F0",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.04)"
+        <header className="h-16 bg-white/80 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-20" style={{
+          borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
+          boxShadow: "0 4px 20px -10px rgba(0,0,0,0.05)"
         }}>
           <div className="flex items-center gap-3">
             <button
@@ -178,8 +178,8 @@ export function AppShell({
               </svg>
             </button>
             <div>
-              <h3 className="tracking-tight leading-tight font-bold text-slate-800 text-base">{title}</h3>
-              <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
+              <h3 className="tracking-tight leading-tight font-extrabold text-slate-800 text-lg">{title}</h3>
+              <p className="text-xs text-slate-500 mt-0.5 font-medium">{subtitle}</p>
             </div>
           </div>
 

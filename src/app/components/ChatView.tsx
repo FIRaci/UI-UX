@@ -21,11 +21,6 @@ const ROLE_CONFIG: Record<string, { welcome: string; prompts: string[]; avatar: 
     prompts: ["Phân tích hồ sơ bệnh nhân", "Đề xuất chẩn đoán", "Kiểm tra tương tác thuốc", "Tra cứu y văn"],
     avatar: "BS",
   },
-  chuyengia: {
-    welcome: "Xin chào chuyên gia! Tôi là trợ lý AI. Tôi có thể hỗ trợ phân tích dữ liệu sức khỏe và phát hiện điểm đau.",
-    prompts: ["Phân tích điểm đau", "Đề xuất cải thiện", "Thống kê sức khỏe", "Cảnh báo bất thường"],
-    avatar: "CG",
-  },
   tuvan: {
     welcome: "Xin chào! Tôi là trợ lý AI hỗ trợ tư vấn. Hãy cho tôi biết bạn cần hỗ trợ gì về đặt lịch hoặc gói khám?",
     prompts: ["Gói khám sức khỏe", "Đặt lịch hẹn", "Tư vấn sức khỏe", "Bảo hiểm y tế"],
@@ -47,7 +42,6 @@ const ROLE_RESPONSES: Record<string, (msg: string) => string> = {
     return "Cảm ơn bạn đã chia sẻ! Để tôi phân tích kỹ hơn, bạn có thể cho tôi biết thêm chi tiết về tình trạng của bạn không?";
   },
   bacsi: (msg: string) => "Cảm ơn bác sĩ! Tôi đã phân tích thông tin và sẵn sàng hỗ trợ chẩn đoán. Bác sĩ có thể cung cấp thêm thông tin về triệu chứng hoặc kết quả xét nghiệm?",
-  chuyengia: (msg: string) => "Cảm ơn chuyên gia! Dữ liệu đã được ghi nhận. Tôi sẽ tiến hành phân tích chuyên sâu và đưa ra đề xuất cải thiện.",
   tuvan: (msg: string) => "Cảm ơn bạn! Tôi đã nhận được yêu cầu và đang tìm kiếm thông tin phù hợp. Bạn muốn đặt lịch khám ở phòng khám nào?",
   quanly: (msg: string) => "Cảm ơn quản lý! Tôi đang tổng hợp dữ liệu vận hành. Bạn muốn xem báo cáo nào trước?",
 };

@@ -5,7 +5,8 @@ describe('AdminDashboard', () => {
   it('renders all navigation tabs', () => {
     render(<AdminDashboard onLogout={() => {}} role="admin" />);
 
-    expect(screen.getByText('Tổng quan')).toBeInTheDocument();
+    const overviewTexts = screen.getAllByText('Tổng quan');
+    expect(overviewTexts.length).toBeGreaterThan(0);
     expect(screen.getByText('Quản lý bệnh nhân')).toBeInTheDocument();
     expect(screen.getByText('Báo cáo & thống kê')).toBeInTheDocument();
     expect(screen.getByText('Lịch khám hệ thống')).toBeInTheDocument();

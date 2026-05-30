@@ -41,29 +41,29 @@ export function DoctorShifts() {
 
   return (
     <>
-      <Card className="p-5 animate-fade-in">
-        <h4 className="tracking-tight mb-3">Lịch làm việc của bác sĩ</h4>
-        <div className="space-y-3">
+      <Card className="p-6 bg-white/90 backdrop-blur-xl border border-white shadow-[0_10px_40px_rgb(0,0,0,0.05)] transition-all duration-300 animate-slide-up" style={{ borderRadius: "28px" }}>
+        <h4 className="text-xl font-extrabold tracking-tight text-slate-800 mb-6">Lịch làm việc của bác sĩ</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {doctors.map(d => (
-            <Card key={d.id} className="p-4 card-hover">
+            <Card key={d.id} className="p-5 bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group" style={{ borderRadius: "20px" }}>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <Avatar><AvatarFallback className="bg-rose-100 text-rose-700">{d.name.split(" ").pop()?.[0]}</AvatarFallback></Avatar>
+                  <Avatar className="w-12 h-12 shadow-sm border border-slate-100 group-hover:scale-105 transition-transform"><AvatarFallback className="bg-gradient-to-br from-indigo-100 to-blue-50 text-blue-700 font-bold">{d.name.split(" ").pop()?.[0]}</AvatarFallback></Avatar>
                   <div>
-                    <div>{d.name}</div>
-                    <Badge variant="secondary" className="mt-1">{d.spec}</Badge>
+                    <div className="font-extrabold text-slate-800 text-[15px] leading-tight">{d.name}</div>
+                    <Badge variant="secondary" className="mt-1.5 bg-blue-50 text-blue-700 border-none hover:bg-blue-100">{d.spec}</Badge>
                   </div>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => {
+                <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50" onClick={() => {
                   setShiftDoctor(d);
                   setShiftDay("T2"); setShiftStart("08:00"); setShiftEnd("12:00");
-                }}><Plus className="w-3.5 h-3.5 mr-1" />Thêm ca</Button>
+                }}><Plus className="w-4 h-4" /></Button>
               </div>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-5 flex flex-wrap gap-2">
                 {d.shifts.map((s, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-lg bg-slate-100 text-sm flex items-center gap-2">
+                  <span key={i} className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-[13px] font-semibold text-slate-600 flex items-center gap-2 shadow-sm hover:border-slate-200 transition-colors">
                     {s}
-                    <button className="text-rose-600 hover:text-rose-800" onClick={() => {
+                    <button className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1 rounded-md transition-colors" onClick={() => {
                       toast("Xác nhận xóa ca này?", {
                         description: `Ca: ${s}`,
                         action: {

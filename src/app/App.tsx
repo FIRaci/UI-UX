@@ -6,7 +6,6 @@ import { SEO } from "./components/SEO";
 
 const PatientDashboard = lazy(() => import("./components/PatientDashboard").then(m => ({ default: m.PatientDashboard })));
 const DoctorDashboard = lazy(() => import("./components/DoctorDashboard").then(m => ({ default: m.DoctorDashboard })));
-const ExpertDashboard = lazy(() => import("./components/ExpertDashboard").then(m => ({ default: m.ExpertDashboard })));
 const ConsultantDashboard = lazy(() => import("./components/ConsultantDashboard").then(m => ({ default: m.ConsultantDashboard })));
 const AdminDashboard = lazy(() => import("./components/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
 
@@ -18,10 +17,6 @@ const ROLE_SEO: Record<string, { title: string; description: string }> = {
   bacsi: {
     title: "Bác sĩ — Quản lý ca khám & hội chẩn AI | MediCare AI",
     description: "Hệ thống hỗ trợ bác sĩ phân loại ca chờ, hội chẩn online và ghi chú lâm sàng có AI gợi ý.",
-  },
-  chuyengia: {
-    title: "Chuyên gia — Hội chẩn & Nghiên cứu y khoa | MediCare AI",
-    description: "Trung tâm hội chẩn chuyên gia, ca bệnh phức tạp và nghiên cứu y khoa ứng dụng AI.",
   },
   tuvan: {
     title: "Tư vấn viên — Kết nối bệnh nhân & chuyên gia | MediCare AI",
@@ -57,7 +52,6 @@ export default function App() {
       <Suspense fallback={<div className="size-full flex items-center justify-center text-slate-400 text-sm">Đang tải...</div>}>
         {role === "benhnhan" && <PatientDashboard onLogout={handleLogout} role={role} />}
         {role === "bacsi" && <DoctorDashboard onLogout={handleLogout} role={role} />}
-        {role === "chuyengia" && <ExpertDashboard onLogout={handleLogout} role={role} />}
         {role === "tuvan" && <ConsultantDashboard onLogout={handleLogout} role={role} />}
         {role === "quanly" && <AdminDashboard onLogout={handleLogout} role={role} />}
       </Suspense>

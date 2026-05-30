@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useStore, store } from "../../store";
 import { ChatView } from "../ChatView";
 import { useAppNavigate } from "../../hooks/useAppNavigate";
-import { ME_NAME, INITIAL_QUEUE, NOTE_TEMPLATES, type Triage } from "./constants";
+import { ME_NAME, NOTE_TEMPLATES, type Triage } from "./constants";
 import { ConsultationRoom } from "./ConsultationRoom";
 import { OverviewPanel } from "./overview-panel";
 import { SchedulePanel } from "./schedule-panel";
@@ -18,7 +18,7 @@ import { Dialogs } from "./dialogs";
 
 export function DoctorDashboard({ onLogout, role }: { onLogout: () => void; role: string }) {
   const [active, setActive] = useState("overview");
-  const [queue, setQueue] = useState<Triage[]>(INITIAL_QUEUE);
+  const [queue, setQueue] = useState<Triage[]>([]);
   const [levelFilter, setLevelFilter] = useState<string>("all");
   const [scheduleLevelFilter, setScheduleLevelFilter] = useState<string>("all");
   const [consultPatient, setConsultPatient] = useState<Triage | null>(null);
@@ -66,6 +66,19 @@ export function DoctorDashboard({ onLogout, role }: { onLogout: () => void; role
 
   useEffect(() => { loadRecords(); }, []);
   useEffect(() => { if (!activeThreadId && threads[0]) setActiveThreadId(threads[0].id); }, [threads, activeThreadId]);
+  useEffect(() => {
+    if (todayUpcoming.length > 0 && queue.length === 0) {
+      setQueue(todayUpcoming.map((a, i) => ({
+        id: Number(a.id),
+        level: a.level || "Thấp",
+        patient: a.patientName,
+        age: a.age || 30,
+        symptoms: a.symptoms || "Khám định kỳ",
+        waited: `${i * 5 + 2} phút`,
+        vitals: a.vitals || { bp: "120/80", hr: "80", temp: "37°C", spo2: "98%" }
+      })));
+    }
+  }, [todayUpcoming]);
 
   useAppNavigate(
     ["overview", "schedule", "patients", "records", "consult", "chat"],

@@ -4,7 +4,7 @@ import { Badge } from "../ui/badge";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Sparkles, Star, Clock } from "lucide-react";
 import type { DoctorRec } from "./constants";
-import { DOCTORS } from "./constants";
+import { useStore } from "../../store";
 
 interface DoctorListProps {
   onViewDoctor: (d: DoctorRec) => void;
@@ -12,6 +12,18 @@ interface DoctorListProps {
 }
 
 export function DoctorList({ onViewDoctor, onBookDoctor }: DoctorListProps) {
+  const doctors = useStore(s => s.doctors);
+  const mappedDoctors: DoctorRec[] = doctors.slice(0, 4).map(d => ({
+    id: d.id,
+    name: d.name,
+    specialty: d.spec,
+    matchReason: `Chuyên gia về ${d.spec.toLowerCase()}`,
+    rating: d.rating,
+    availability: "Còn lịch trống",
+    tags: [d.spec],
+    nextSlot: "Sắp tới"
+  }));
+
   return (
     <div className="space-y-4">
       <Card className="p-4 bg-gradient-to-r from-violet-50 to-teal-50 border-violet-200" style={{ borderRadius: "14px" }}>
@@ -22,7 +34,7 @@ export function DoctorList({ onViewDoctor, onBookDoctor }: DoctorListProps) {
       </Card>
 
       <div className="grid md:grid-cols-2 gap-4">
-        {DOCTORS.map(doc => (
+        {mappedDoctors.map(doc => (
           <Card key={doc.id} className="p-5 hover:shadow-md hover:border-emerald-100 transition-all duration-300 border border-slate-100 card-hover" style={{ borderRadius: "16px" }}>
             <div className="flex items-start gap-3">
               <Avatar className="w-14 h-14 border border-slate-100 shadow-sm">

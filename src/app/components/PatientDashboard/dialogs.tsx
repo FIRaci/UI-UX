@@ -9,7 +9,7 @@ import { Textarea } from "../ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "../ui/dialog";
 import { Star, MapPin } from "lucide-react";
 import { toast } from "sonner";
-import { DOCTORS, type Doctor } from "./constants";
+import { type Doctor } from "./constants";
 import type { Appointment } from "../../store";
 
 export function DoctorDetailDialog({ doctor, onClose, onBook }: {
@@ -108,6 +108,7 @@ export function EditAppointmentDialog({ editing, onEditingChange, editingOrigina
   onUpdate: () => void;
   onCancel: () => void;
   appointments: Appointment[];
+  doctors: Doctor[];
 }) {
   return (
     <Dialog open={!!editing} onOpenChange={() => { onCancel(); }}>
@@ -121,7 +122,7 @@ export function EditAppointmentDialog({ editing, onEditingChange, editingOrigina
               </div>
             )}
             {(() => {
-              const doc = DOCTORS.find(d => d.name === editing.doctorName);
+              const doc = doctors.find(d => d.name === editing.doctorName);
               return (
                 <div className="space-y-3">
                   <div className="space-y-1.5">

@@ -51,7 +51,7 @@ describe('AppShell', () => {
   it('active nav item has blue gradient background', () => {
     renderShell();
     const homeBtn = screen.getByText('Trang chủ').closest('button')!;
-    expect(homeBtn).toHaveStyle({ background: 'linear-gradient(135deg, #3B82F6, #2563EB)' });
+    expect(homeBtn).toHaveStyle({ background: 'linear-gradient(135deg, #2563EB, #3B82F6)' });
   });
 
   it('clicking a nav item calls onNav with correct key', () => {

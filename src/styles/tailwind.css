@@ -1,6 +1,10 @@
 @import 'tailwindcss' source(none);
 @source '../**/*.{js,ts,jsx,tsx}';
 
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
 @import 'tw-animate-css';
 
 @keyframes fade-in {

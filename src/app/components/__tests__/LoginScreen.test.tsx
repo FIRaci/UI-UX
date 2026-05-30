@@ -18,13 +18,12 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 describe('LoginScreen', () => {
-  it('renders all 5 roles', () => {
+  it('renders all 4 roles', () => {
     render(<LoginScreen onLogin={() => {}} />);
     
     expect(screen.getByText('Người cần khám bệnh')).toBeInTheDocument();
     expect(screen.getByText('Người cần tư vấn')).toBeInTheDocument();
     expect(screen.getAllByText('Bác sĩ').length).toBeGreaterThan(0);
-    expect(screen.getByText('Chuyên gia UI/UX')).toBeInTheDocument();
     expect(screen.getByText('Quản lý phòng khám')).toBeInTheDocument();
   });
 
@@ -33,7 +32,7 @@ describe('LoginScreen', () => {
     
     // Check if the form elements appear
     expect(screen.getByPlaceholderText('benhnhan / bacsi / quanly...')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('123456')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Đăng nhập' })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('••••••')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Đăng nhập hệ thống' })).toBeInTheDocument();
   });
 });

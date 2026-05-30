@@ -1,55 +1,122 @@
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
-import { Clock, Search, MessagesSquare, FileHeart } from "lucide-react";
+import { Clock, Search, MessagesSquare, FileHeart, ChevronRight, Activity, ArrowRight, ActivitySquare, HeartPulse, Bot, CalendarDays } from "lucide-react";
 import type { Appointment } from "../../store";
-
-function StatCard({ label, value, color, delay }: { label: string; value: string; color: string; delay?: string }) {
-  return (
-    <Card className="p-4 bg-white border border-slate-100 shadow-sm animate-slide-up" style={{ borderRadius: "16px", animationDelay: delay }}>
-      <div className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-semibold ${color}`}>{label}</div>
-      <div className="mt-3 text-3xl font-bold text-slate-800 tracking-tight">{value}</div>
-    </Card>
-  );
-}
 
 export function Overview({ onJump, appts, threads }: { onJump: (v: string) => void; appts: Appointment[]; threads: any[] }) {
   const upcoming = appts.find((a: Appointment) => a.status === "Sắp tới");
+  
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in">
-        <StatCard label="Lịch hẹn sắp tới" value={appts.filter((a: Appointment) => a.status === "Sắp tới").length.toString()} color="bg-sky-50 text-sky-700 border-sky-100" delay="0.05s" />
-        <StatCard label="Đã khám" value={appts.filter((a: Appointment) => a.status === "Hoàn thành").length.toString()} color="bg-emerald-50 text-emerald-700 border-emerald-100" delay="0.1s" />
-        <StatCard label="Tin nhắn" value={threads.length.toString()} color="bg-violet-50 text-violet-700 border-violet-100" delay="0.15s" />
-        <StatCard label="Điểm sức khỏe" value="86/100" color="bg-amber-50 text-amber-700 border-amber-100" delay="0.2s" />
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <Card className="p-6 lg:col-span-2 bg-gradient-to-br from-sky-600 via-sky-700 to-emerald-700 text-white shadow-md relative overflow-hidden animate-slide-up card-hover" style={{ borderRadius: "20px" }}>
-          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="text-xs font-semibold opacity-90 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Lịch hẹn khám gần nhất</div>
-          {upcoming ? (
-            <>
-              <h2 className="mt-3 text-2xl font-bold tracking-tight">{upcoming.doctorName}</h2>
-              <p className="opacity-95 mt-1 text-sm font-medium">{upcoming.doctorSpec} • {upcoming.date} lúc {upcoming.time} • {upcoming.clinic}</p>
-              <div className="mt-5 flex gap-2.5">
-                <Button variant="secondary" className="rounded-xl text-xs px-4" onClick={() => onJump("appointments")}>Xem chi tiết</Button>
-                <Button variant="outline" className="bg-white/10 text-white border-white/20 hover:bg-white/20 rounded-xl text-xs px-4" onClick={() => onJump("messages")}>Nhắn tin bác sĩ</Button>
+    <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
+      
+      {/* Hero Section / Health Status */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2 p-8 bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900 text-white shadow-2xl shadow-blue-900/20 relative overflow-hidden border-0 group" style={{ borderRadius: "32px" }}>
+          {/* Decorative glowing orbs */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl -z-10 translate-x-1/3 -translate-y-1/3 group-hover:bg-blue-400/30 transition-colors duration-700" />
+          <div className="absolute bottom-0 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl -z-10 translate-y-1/3 group-hover:bg-emerald-400/20 transition-colors duration-700" />
+          
+          <div className="flex flex-col h-full justify-between relative z-10">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-semibold text-blue-100 tracking-wide uppercase mb-6">
+                <HeartPulse className="w-3.5 h-3.5 text-rose-400" /> <span>Tổng quan Sức khỏe</span>
               </div>
-            </>
+              
+              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight mb-4">
+                Sức khỏe của bạn <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-cyan-200">đang rất ổn định</span>
+              </h2>
+              <p className="text-blue-100/80 text-[15px] max-w-md leading-relaxed">
+                Chỉ số sức khỏe hiện tại đạt 86/100. Hãy tiếp tục duy trì chế độ sinh hoạt và uống nước đều đặn.
+              </p>
+            </div>
+            
+            <div className="mt-10 flex flex-wrap gap-4">
+              <Button onClick={() => onJump("chat")} className="h-14 px-8 rounded-2xl bg-white text-blue-900 hover:bg-blue-50 font-bold text-[15px] shadow-[0_8px_30px_rgba(255,255,255,0.2)] hover:shadow-[0_8px_30px_rgba(255,255,255,0.3)] transition-all hover:scale-105 border-0">
+                <Bot className="w-5 h-5 mr-2" /> Trò chuyện với AI ngay
+              </Button>
+              <Button onClick={() => onJump("records")} variant="outline" className="h-14 px-8 rounded-2xl bg-white/5 border-white/20 text-white hover:bg-white/10 font-semibold text-[15px] backdrop-blur-md">
+                Xem chi tiết hồ sơ
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        {/* Upcoming Appointment */}
+        <Card className="p-7 bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] border border-slate-100 relative overflow-hidden group flex flex-col" style={{ borderRadius: "32px" }}>
+          <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-700">
+            <Clock className="w-32 h-32" />
+          </div>
+          
+          <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full self-start mb-6 uppercase tracking-wider">
+            <CalendarDays className="w-4 h-4" /> Lịch khám sắp tới
+          </div>
+          
+          {upcoming ? (
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="text-[13px] font-semibold text-slate-400 mb-1">{upcoming.date} • {upcoming.time}</div>
+              <h3 className="text-2xl font-extrabold text-slate-800 tracking-tight leading-tight mb-2">{upcoming.doctorName}</h3>
+              <p className="text-slate-500 font-medium text-[15px]">{upcoming.doctorSpec}</p>
+              
+              <div className="mt-8">
+                <Button onClick={() => onJump("appointments")} className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold">
+                  Xem chi tiết lịch hẹn
+                </Button>
+              </div>
+            </div>
           ) : (
-            <div className="mt-4">
-              <p className="opacity-90 text-sm">Bạn không có lịch hẹn khám nào sắp tới.</p>
-              <Button variant="secondary" className="rounded-xl text-xs px-4 mt-3" onClick={() => onJump("search")}>Đặt lịch ngay</Button>
+            <div className="flex-1 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+                <CalendarDays className="w-8 h-8 text-slate-300" />
+              </div>
+              <p className="text-slate-500 font-medium mb-6">Bạn không có lịch hẹn khám nào trong tuần này.</p>
+              <Button onClick={() => onJump("search")} className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md shadow-blue-500/20">
+                Đặt lịch khám mới
+              </Button>
             </div>
           )}
         </Card>
-        <Card className="p-5 bg-white border border-slate-100 shadow-sm card-hover" style={{ borderRadius: "20px" }}>
-          <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-4">Hành động nhanh</h4>
-          <div className="grid gap-2.5">
-            <Button variant="outline" className="rounded-xl justify-start text-xs border-slate-200 text-slate-700 hover:bg-slate-50" onClick={() => onJump("search")}><Search className="w-4 h-4 mr-2.5 text-slate-400" /> Tìm bác sĩ chuyên khoa</Button>
-            <Button variant="outline" className="rounded-xl justify-start text-xs border-slate-200 text-slate-700 hover:bg-slate-50" onClick={() => onJump("messages")}><MessagesSquare className="w-4 h-4 mr-2.5 text-slate-400" /> Hỏi đáp bác sĩ trực tuyến</Button>
-            <Button variant="outline" className="rounded-xl justify-start text-xs border-slate-200 text-slate-700 hover:bg-slate-50" onClick={() => onJump("records")}><FileHeart className="w-4 h-4 mr-2.5 text-slate-400" /> Tra cứu hồ sơ bệnh án</Button>
+      </div>
+
+      {/* Quick Services Bento Grid */}
+      <h3 className="text-xl font-extrabold text-slate-800 tracking-tight mt-8 mb-4 px-2">Dịch vụ & Tính năng</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        {/* Chatbot shortcut */}
+        <Card onClick={() => onJump("chat")} className="p-6 bg-gradient-to-br from-indigo-50 to-blue-50 border-0 shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group" style={{ borderRadius: "24px" }}>
+          <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center mb-5 shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
+            <MessagesSquare className="w-6 h-6" />
           </div>
+          <h4 className="text-lg font-bold text-slate-800 mb-1">Tư vấn sức khỏe AI</h4>
+          <p className="text-sm text-slate-600 font-medium">Hỏi đáp trực tiếp với trợ lý thông minh</p>
         </Card>
+
+        {/* Search Doctors shortcut */}
+        <Card onClick={() => onJump("search")} className="p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group" style={{ borderRadius: "24px" }}>
+          <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <Search className="w-6 h-6" />
+          </div>
+          <h4 className="text-lg font-bold text-slate-800 mb-1">Tìm Bác sĩ</h4>
+          <p className="text-sm text-slate-500 font-medium">Danh sách các chuyên gia y tế hàng đầu</p>
+        </Card>
+
+        {/* Tracking shortcut */}
+        <Card onClick={() => onJump("tracking")} className="p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group" style={{ borderRadius: "24px" }}>
+          <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <ActivitySquare className="w-6 h-6" />
+          </div>
+          <h4 className="text-lg font-bold text-slate-800 mb-1">Theo dõi chỉ số</h4>
+          <p className="text-sm text-slate-500 font-medium">Huyết áp, nhịp tim, đường huyết</p>
+        </Card>
+
+        {/* Records shortcut */}
+        <Card onClick={() => onJump("records")} className="p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group" style={{ borderRadius: "24px" }}>
+          <div className="w-12 h-12 rounded-2xl bg-violet-100 text-violet-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <FileHeart className="w-6 h-6" />
+          </div>
+          <h4 className="text-lg font-bold text-slate-800 mb-1">Hồ sơ bệnh án</h4>
+          <p className="text-sm text-slate-500 font-medium">Lưu trữ kết quả khám và đơn thuốc</p>
+        </Card>
+
       </div>
     </div>
   );

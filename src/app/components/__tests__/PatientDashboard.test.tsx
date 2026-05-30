@@ -1,8 +1,10 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PatientDashboard } from '../PatientDashboard';
+import { vi } from 'vitest';
 
 beforeAll(() => {
   vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('no network')));
+  window.HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 
 afterAll(() => {
@@ -10,33 +12,23 @@ afterAll(() => {
 });
 
 describe('PatientDashboard', () => {
-  it('renders the PatientDashboard tabs: "Tổng quan", "Bác sĩ", "Cuộc hẹn"', () => {
+  it('renders the top navigation buttons', () => {
     render(<PatientDashboard onLogout={vi.fn()} role="patient" />);
     expect(screen.getByText('Tổng quan')).toBeInTheDocument();
     expect(screen.getByText('Tìm bác sĩ')).toBeInTheDocument();
-    expect(screen.getByText('Lịch hẹn của tôi')).toBeInTheDocument();
+    expect(screen.getByText('Lịch hẹn')).toBeInTheDocument();
+    expect(screen.getByText('Tin nhắn')).toBeInTheDocument();
   });
 
-  it('first tab ("Tổng quan") is active by default', () => {
+  it('default view is Overview', () => {
     render(<PatientDashboard onLogout={vi.fn()} role="patient" />);
-    expect(screen.getByText('Hành động nhanh')).toBeInTheDocument();
-    const overviewBtn = screen.getByText('Tổng quan').closest('button');
-    expect(overviewBtn).toHaveStyle(
-      'background: linear-gradient(135deg, #3B82F6, #2563EB)'
-    );
+    expect(screen.getByText(/Sức khỏe của bạn/)).toBeInTheDocument();
+    expect(screen.getByText('Tổng quan Sức khỏe')).toBeInTheDocument();
   });
 
-  it('clicking "Lịch hẹn" tab changes active tab', () => {
+  it('clicking "Tìm bác sĩ" changes active view', () => {
     render(<PatientDashboard onLogout={vi.fn()} role="patient" />);
-    fireEvent.click(screen.getByText('Lịch hẹn của tôi'));
-    expect(screen.getByText('Sắp tới')).toBeInTheDocument();
-  });
-
-  it('main dashboard wrapper renders with patient-related content', () => {
-    render(<PatientDashboard onLogout={vi.fn()} role="patient" />);
-    expect(screen.getByText('Bảng điều khiển')).toBeInTheDocument();
-    const roleElements = screen.getAllByText('Bệnh nhân');
-    expect(roleElements.length).toBe(2);
-    expect(screen.getByText(/Xin chào/)).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Tìm bác sĩ'));
+    expect(screen.getByPlaceholderText('Tìm theo tên bác sĩ, chuyên khoa...')).toBeInTheDocument();
   });
 });

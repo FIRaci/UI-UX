@@ -7,44 +7,122 @@ const prisma = new PrismaClient();
 
 async function seedDatabase() {
   try {
+    const userCount = await prisma.user.count();
+    if (userCount === 0) {
+      console.log("Seeding users...");
+      const hashedPassword = await Bun.password.hash("123456", { algorithm: "bcrypt", cost: 4 });
+      await prisma.user.createMany({
+        data: [
+          { username: "benhnhan", password: hashedPassword, role: "benhnhan", name: "Nguyễn Minh Khoa" },
+          { username: "tuvan", password: hashedPassword, role: "tuvan", name: "CV. Đỗ Thanh Hằng" },
+          { username: "bacsi", password: hashedPassword, role: "bacsi", name: "BS. Nguyễn Văn An" },
+          { username: "bs_binh", password: hashedPassword, role: "bacsi", name: "BS. Trần Thị Bình" },
+          { username: "bs_cuong", password: hashedPassword, role: "bacsi", name: "BS. Lê Hoàng Cường" },
+          { username: "bs_dung", password: hashedPassword, role: "bacsi", name: "BS. Phạm Mai Dung" },
+          { username: "bs_dat", password: hashedPassword, role: "bacsi", name: "BS. Vũ Quốc Đạt" },
+          { username: "bs_hoa", password: hashedPassword, role: "bacsi", name: "BS. Đinh Thị Hoa" },
+          { username: "bs_linh", password: hashedPassword, role: "bacsi", name: "BS. Hoàng Thùy Linh" },
+          { username: "bs_minh", password: hashedPassword, role: "bacsi", name: "BS. Trương Quang Minh" },
+          { username: "bs_thanh", password: hashedPassword, role: "bacsi", name: "BS. Nguyễn Ngọc Thanh" },
+          { username: "bs_phong", password: hashedPassword, role: "bacsi", name: "BS. Lê Hải Phong" },
+          { username: "quanly", password: hashedPassword, role: "quanly", name: "Quản lý Phòng khám" },
+        ]
+      });
+    }
+
+    const doctorCount = await prisma.doctor.count();
+    if (doctorCount === 0) {
+      console.log("Seeding doctors...");
+      await prisma.doctor.createMany({
+        data: [
+          { name: "BS. Nguyễn Văn An", spec: "Tim mạch", rating: 4.9, fee: "300.000đ", clinic: "CN Q1", avail: '["08:00", "09:00", "10:30", "14:00"]' },
+          { name: "BS. Trần Thị Bình", spec: "Da liễu", rating: 4.8, fee: "250.000đ", clinic: "CN Q3", avail: '["09:30", "11:00", "15:00"]' },
+          { name: "BS. Lê Hoàng Cường", spec: "Nhi khoa", rating: 4.7, fee: "280.000đ", clinic: "CN Tân Bình", avail: '["08:30", "10:00", "13:30", "16:00"]' },
+          { name: "BS. Phạm Mai Dung", spec: "Tai mũi họng", rating: 4.9, fee: "320.000đ", clinic: "CN Q1", avail: '["09:00", "11:30", "14:30"]' },
+          { name: "BS. Vũ Quốc Đạt", spec: "Cơ xương khớp", rating: 4.6, fee: "350.000đ", clinic: "CN Q7", avail: '["08:00", "10:30", "15:30"]' },
+          { name: "BS. Đinh Thị Hoa", spec: "Sản phụ khoa", rating: 4.9, fee: "400.000đ", clinic: "CN Phú Nhuận", avail: '["08:00", "09:30", "14:00", "15:30"]' },
+          { name: "BS. Hoàng Thùy Linh", spec: "Nội tiết", rating: 4.8, fee: "250.000đ", clinic: "CN Q10", avail: '["08:30", "11:00", "16:00"]' },
+          { name: "BS. Trương Quang Minh", spec: "Thần kinh", rating: 4.7, fee: "450.000đ", clinic: "CN Q1", avail: '["09:00", "10:30", "14:00", "16:30"]' },
+          { name: "BS. Nguyễn Ngọc Thanh", spec: "Tiêu hóa", rating: 4.8, fee: "300.000đ", clinic: "CN Q3", avail: '["08:00", "10:00", "13:30", "15:00"]' },
+          { name: "BS. Lê Hải Phong", spec: "Mắt", rating: 4.9, fee: "250.000đ", clinic: "CN Tân Bình", avail: '["09:30", "11:30", "14:30", "16:00"]' }
+        ]
+      });
+    }
+
     const apptCount = await prisma.appointment.count();
     if (apptCount === 0) {
-      console.log("Seeding initial appointments...");
-      const initialAppts = [
-        { patientName: "Trần Văn Hậu", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-14", time: "08:00", clinic: "CN Q1", status: "Sắp tới", age: 58, symptoms: "Đau ngực dữ dội, khó thở", level: "Khẩn cấp", vitalsBp: "160/100", vitalsHr: "112", vitalsTemp: "37.2°C", vitalsSpo2: "94%" },
-        { patientName: "Đặng Quỳnh Anh", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-14", time: "08:45", clinic: "CN Q1", status: "Sắp tới", age: 34, symptoms: "Sốt cao, đau đầu kéo dài 3 ngày", level: "Cao", vitalsBp: "120/80", vitalsHr: "98", vitalsTemp: "39.1°C", vitalsSpo2: "97%" },
-        { patientName: "Phạm Bích Ngọc", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-14", time: "09:30", clinic: "CN Q1", status: "Sắp tới", age: 47, symptoms: "Đau lưng dưới, tê chân phải", level: "Trung bình", vitalsBp: "125/82", vitalsHr: "78", vitalsTemp: "36.7°C", vitalsSpo2: "98%" },
-        { patientName: "Lê Văn Tú", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-14", time: "10:00", clinic: "CN Q1", status: "Sắp tới", age: 41, symptoms: "Tái khám tăng huyết áp", level: "Trung bình", vitalsBp: "138/88", vitalsHr: "82", vitalsTemp: "36.8°C", vitalsSpo2: "98%" },
-        { patientName: "Mai Hồng Yến", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-14", time: "10:45", clinic: "CN Q1", status: "Sắp tới", age: 29, symptoms: "Khám sức khỏe định kỳ", level: "Thấp", vitalsBp: "118/76", vitalsHr: "72", vitalsTemp: "36.5°C", vitalsSpo2: "99%" },
-        { patientName: "Nguyễn Minh Khoa", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-10", time: "09:00", clinic: "CN Q1", status: "Sắp tới" },
-        { patientName: "Nguyễn Minh Khoa", doctorName: "BS. Phạm Mai Dung", doctorSpec: "Tai mũi họng", date: "2026-04-22", time: "14:30", clinic: "CN Q1", status: "Hoàn thành" },
-        { patientName: "Nguyễn Minh Khoa", doctorName: "BS. Trần Thị Bình", doctorSpec: "Da liễu", date: "2026-04-05", time: "10:00", clinic: "CN Q3", status: "Hoàn thành" },
-        { patientName: "Trần Thu Hà", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-08", time: "09:30", clinic: "CN Q1", status: "Sắp tới" },
-      ];
-      await prisma.appointment.createMany({ data: initialAppts });
+      console.log("Seeding appointments...");
+      await prisma.appointment.createMany({
+        data: [
+          { patientName: "Nguyễn Minh Khoa", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-15", time: "09:00", clinic: "CN Q1", status: "Sắp tới", age: 35, symptoms: "Khám định kỳ", level: "Thấp" },
+          { patientName: "Trần Văn Hậu", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-14", time: "08:00", clinic: "CN Q1", status: "Hoàn thành", age: 58, symptoms: "Đau ngực dữ dội", level: "Khẩn cấp", vitalsBp: "160/100", vitalsHr: "112", vitalsTemp: "37.2°C", vitalsSpo2: "94%" },
+          { patientName: "Phạm Thanh Tâm", doctorName: "BS. Trần Thị Bình", doctorSpec: "Da liễu", date: "2026-05-20", time: "10:00", clinic: "CN Q3", status: "Sắp tới", age: 28, symptoms: "Nổi mẩn đỏ", level: "Trung bình" }
+        ]
+      });
+    }
+
+    const threadCount = await prisma.thread.count();
+    if (threadCount === 0) {
+      console.log("Seeding threads...");
+      const thread1 = await prisma.thread.create({
+        data: {
+          staffId: 1, staffName: "BS. Nguyễn Văn An", staffSpec: "Tim mạch",
+          userRole: "benhnhan", userName: "Nguyễn Minh Khoa", topic: "Tư vấn kết quả xét nghiệm",
+          status: "Đang diễn ra", last: "Bác sĩ ơi, chỉ số cholesterol của tôi có cao quá không?"
+        }
+      });
+      await prisma.message.createMany({
+        data: [
+          { threadId: thread1.id, from: "user", txt: "Chào bác sĩ, tôi vừa nhận kết quả máu.", timeStr: "10 phút trước" },
+          { threadId: thread1.id, from: "staff", txt: "Chào bạn, bạn gửi kết quả qua đây để tôi xem nhé.", timeStr: "5 phút trước" },
+          { threadId: thread1.id, from: "user", txt: "Bác sĩ ơi, chỉ số cholesterol của tôi có cao quá không?", timeStr: "vừa xong" }
+        ]
+      });
+
+      const thread2 = await prisma.thread.create({
+        data: {
+          staffId: 2, staffName: "CV. Đỗ Thanh Hằng", staffSpec: "Tâm lý",
+          userRole: "tuvan", userName: "Phạm Thanh Tâm", topic: "Tâm lý",
+          status: "Đã kết thúc", last: "Cảm ơn chuyên gia, tôi sẽ thử."
+        }
+      });
+      await prisma.message.createMany({
+        data: [
+          { threadId: thread2.id, from: "user", txt: "Dạo này tôi hay mất ngủ", timeStr: "Hôm qua" },
+          { threadId: thread2.id, from: "staff", txt: "Bạn hãy thử thiền 10 phút trước khi ngủ nhé.", timeStr: "Hôm qua" },
+          { threadId: thread2.id, from: "user", txt: "Cảm ơn chuyên gia, tôi sẽ thử.", timeStr: "Hôm qua" }
+        ]
+      });
+    }
+
+    const articleCount = await prisma.article.count();
+    if (articleCount === 0) {
+      console.log("Seeding articles...");
+      await prisma.article.createMany({
+        data: [
+          { title: "Cách nhận biết sớm đột quỵ", category: "Tim mạch", reads: "1.2k", time: "2 giờ trước" },
+          { title: "Dinh dưỡng cho người tiểu đường", category: "Nội tiết", reads: "856", time: "5 giờ trước" },
+          { title: "Bài tập giảm đau mỏi vai gáy", category: "Cơ xương khớp", reads: "2.1k", time: "1 ngày trước" }
+        ]
+      });
     }
 
     const painCount = await prisma.painPoint.count();
     if (painCount === 0) {
-      console.log("Seeding initial pain points...");
-      const initialPainPoints = [
-        { description: "Role Quản lý: Thiếu tính năng xuất báo cáo hàng loạt", category: "Quản lý - Biểu đồ khó hiểu", evaluation: "Vi phạm tính linh hoạt và hiệu quả sử dụng (Heuristic #7). Nên thêm Checkbox đa chọn." },
-        { description: "Role Bệnh nhân: Không biết cách hủy lịch", category: "Bệnh nhân - Khó đặt lịch", evaluation: "Vi phạm User Control and Freedom (Heuristic #3). Cần làm rõ nút Hủy trong Dashboard." }
-      ];
-      await prisma.painPoint.createMany({ data: initialPainPoints });
+      await prisma.painPoint.createMany({
+        data: [
+          { description: "Role Quản lý: Thiếu tính năng xuất báo cáo hàng loạt", category: "Quản lý - Biểu đồ khó hiểu", evaluation: "Vi phạm tính linh hoạt" }
+        ]
+      });
     }
 
     const recordCount = await prisma.patientRecord.count();
     if (recordCount === 0) {
-      console.log("Seeding initial patient records...");
-      const initialRecords = [
-        { patientName: "Nguyễn Minh Khoa", title: "Khám tổng quát định kỳ", date: "2026-04-22", doctor: "BS. Phạm Mai Dung", note: "Sức khỏe tổng thể tốt, huyết áp ổn định.", type: "benhan" },
-        { patientName: "Nguyễn Minh Khoa", title: "Viêm họng cấp", date: "2026-02-10", doctor: "BS. Lê Hoàng Cường", note: "Kê đơn thuốc kháng sinh 7 ngày.", type: "benhan" },
-        { patientName: "Nguyễn Minh Khoa", title: "Xét nghiệm máu", date: "2026-04-22", doctor: "Lab Trung tâm", note: "Trong giới hạn bình thường.", type: "ketqua" },
-        { patientName: "Nguyễn Minh Khoa", title: "Siêu âm bụng", date: "2026-04-22", doctor: "Lab Trung tâm", note: "Không phát hiện bất thường.", type: "ketqua" },
-        { patientName: "Nguyễn Minh Khoa", title: "Đơn thuốc viêm họng", date: "2026-02-10", doctor: "BS. Lê Hoàng Cường", note: "Amoxicillin 500mg • Paracetamol 500mg • Vitamin C", type: "donthuoc" }
-      ];
-      await prisma.patientRecord.createMany({ data: initialRecords });
+      await prisma.patientRecord.createMany({
+        data: [
+          { patientName: "Nguyễn Minh Khoa", title: "Khám tổng quát định kỳ", date: "2026-04-22", doctor: "BS. Phạm Mai Dung", note: "Sức khỏe tổng thể tốt.", type: "benhan" }
+        ]
+      });
     }
   } catch (error) {
     console.error("Error seeding database:", error);
@@ -129,13 +207,7 @@ const app = new Elysia()
           where: { username: body.username },
         });
 
-        // Quick login support for "123456" for testing roles
         if (!user) {
-          if (["benhnhan", "tuvan", "bacsi", "chuyengia", "quanly"].includes(body.username) && body.password === "123456") {
-             // Mock success for testing default roles
-             const token = await jwt.sign({ username: body.username, role: body.username });
-             return { success: true, token, user: { username: body.username, role: body.username } };
-          }
           set.status = 401;
           return { error: "Sai tài khoản hoặc mật khẩu" };
         }
@@ -169,49 +241,6 @@ const app = new Elysia()
           return { error: "Không được phép truy cập (Thiếu token xác thực hoặc đã hết hạn)" };
         }
       })
-      .get("/painpoints", async ({ user, set }) => {
-        if (user?.role !== "chuyengia" && user?.role !== "quanly") {
-          set.status = 403;
-          return { error: "Quyền truy cập bị từ chối" };
-        }
-        try {
-          return await prisma.painPoint.findMany({
-            orderBy: { createdAt: "desc" }
-          });
-        } catch (error) {
-          set.status = 500;
-          return { error: "Lỗi cơ sở dữ liệu khi truy vấn pain points" };
-        }
-      })
-      .post(
-        "/painpoints",
-        async ({ user, body, set }) => {
-          if (user?.role !== "chuyengia") {
-            set.status = 403;
-            return { error: "Quyền truy cập bị từ chối" };
-          }
-          try {
-            const painPoint = await prisma.painPoint.create({
-              data: {
-                description: body.description,
-                category: body.category,
-                evaluation: body.evaluation,
-              },
-            });
-            return painPoint;
-          } catch (error) {
-            set.status = 500;
-            return { error: "Lỗi cơ sở dữ liệu khi lưu pain point" };
-          }
-        },
-        {
-          body: t.Object({
-            description: t.String(),
-            category: t.String(),
-            evaluation: t.String(),
-          }),
-        }
-      )
       .get("/appointments", async ({ user, set }) => {
         if (!user) {
           set.status = 401;
@@ -416,6 +445,182 @@ const app = new Elysia()
           }),
         }
       )
+      .get("/doctors", async ({ set }) => {
+        try {
+          return await prisma.doctor.findMany();
+        } catch (error) {
+          set.status = 500;
+          return { error: "Lỗi cơ sở dữ liệu" };
+        }
+      })
+      .get("/articles", async ({ set }) => {
+        try {
+          return await prisma.article.findMany();
+        } catch (error) {
+          set.status = 500;
+          return { error: "Lỗi cơ sở dữ liệu" };
+        }
+      })
+      .get("/threads", async ({ user, set }) => {
+        if (!user) {
+          set.status = 401;
+          return { error: "Quyền truy cập bị từ chối" };
+        }
+        try {
+          // Both patients and staff need to see their threads.
+          // In a real app we would filter by user.id or staff.id.
+          // For now, we return all threads to keep frontend logic simpler,
+          // but including messages so they map to frontend type Thread.
+          const threads = await prisma.thread.findMany({
+            include: { messages: true },
+            orderBy: { updatedAt: "desc" }
+          });
+          // map to frontend format
+          return threads.map(th => ({
+            id: th.id,
+            staffId: th.staffId,
+            staffName: th.staffName,
+            staffSpec: th.staffSpec,
+            userRole: th.userRole,
+            userName: th.userName,
+            topic: th.topic,
+            status: th.status,
+            last: th.last,
+            updatedAt: th.updatedAt.getTime(),
+            msgs: th.messages.map(m => ({
+              f: m.from,
+              txt: m.txt,
+              t: m.timeStr
+            }))
+          }));
+        } catch (error) {
+          set.status = 500;
+          return { error: "Lỗi cơ sở dữ liệu" };
+        }
+      })
+      .post("/threads", async ({ user, body, set }) => {
+        if (!user) {
+          set.status = 401;
+          return { error: "Quyền truy cập bị từ chối" };
+        }
+        try {
+          const thread = await prisma.thread.create({
+            data: {
+              staffId: body.staffId,
+              staffName: body.staffName,
+              staffSpec: body.staffSpec,
+              userRole: body.userRole,
+              userName: body.userName,
+              topic: body.topic,
+              status: body.status,
+              last: body.last,
+              messages: {
+                create: body.msgs.map((m: any) => ({
+                  from: m.f,
+                  txt: m.txt,
+                  timeStr: m.t
+                }))
+              }
+            },
+            include: { messages: true }
+          });
+          return {
+            id: thread.id,
+            staffId: thread.staffId,
+            staffName: thread.staffName,
+            staffSpec: thread.staffSpec,
+            userRole: thread.userRole,
+            userName: thread.userName,
+            topic: thread.topic,
+            status: thread.status,
+            last: thread.last,
+            updatedAt: thread.updatedAt.getTime(),
+            msgs: thread.messages.map(m => ({
+              f: m.from,
+              txt: m.txt,
+              t: m.timeStr
+            }))
+          };
+        } catch (error) {
+          set.status = 500;
+          return { error: "Lỗi cơ sở dữ liệu" };
+        }
+      }, {
+        body: t.Object({
+          staffId: t.Integer(),
+          staffName: t.String(),
+          staffSpec: t.String(),
+          userRole: t.String(),
+          userName: t.String(),
+          topic: t.String(),
+          status: t.String(),
+          last: t.String(),
+          msgs: t.Array(t.Object({
+            f: t.String(),
+            txt: t.String(),
+            t: t.String()
+          }))
+        })
+      })
+      .post("/threads/:id/messages", async ({ params, user, body, set }) => {
+        if (!user) {
+          set.status = 401;
+          return { error: "Quyền truy cập bị từ chối" };
+        }
+        try {
+          await prisma.message.create({
+            data: {
+              threadId: parseInt(params.id),
+              from: body.f,
+              txt: body.txt,
+              timeStr: body.t
+            }
+          });
+          
+          const newStatus = body.newStatus;
+          // Update thread last message and timestamp
+          await prisma.thread.update({
+            where: { id: parseInt(params.id) },
+            data: {
+              last: body.txt,
+              ...(newStatus ? { status: newStatus } : {})
+            }
+          });
+          return { success: true };
+        } catch (error) {
+          set.status = 500;
+          return { error: "Lỗi cơ sở dữ liệu" };
+        }
+      }, {
+        body: t.Object({
+          f: t.String(),
+          txt: t.String(),
+          t: t.String(),
+          newStatus: t.Optional(t.String())
+        })
+      })
+      .patch("/threads/:id", async ({ params, user, body, set }) => {
+        if (!user) {
+          set.status = 401;
+          return { error: "Quyền truy cập bị từ chối" };
+        }
+        try {
+          const updated = await prisma.thread.update({
+            where: { id: parseInt(params.id) },
+            data: {
+              status: body.status
+            }
+          });
+          return updated;
+        } catch (error) {
+          set.status = 500;
+          return { error: "Lỗi cơ sở dữ liệu" };
+        }
+      }, {
+        body: t.Object({
+          status: t.String()
+        })
+      })
   )
   .get("/", () => "MediCare AI Backend is running!");
 
