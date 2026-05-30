@@ -86,7 +86,7 @@ export function AppShell({
       )}
 
       {/* Sidebar */}
-      <aside className={`${showMobile ? "fixed inset-y-0 left-0 z-30" : "hidden lg:flex"} w-64 shrink-0 flex-col transition-all duration-300`} style={{
+      <aside className={`${showMobile ? "fixed inset-y-0 left-0 z-30" : "hidden lg:flex lg:sticky lg:top-0 lg:h-screen"} w-64 shrink-0 flex-col transition-all duration-300`} style={{
         background: "linear-gradient(180deg, #090E17 0%, #111827 100%)",
         color: "#fff",
         boxShadow: "4px 0 24px rgba(0, 0, 0, 0.1)",
@@ -113,9 +113,8 @@ export function AppShell({
               <button
                 key={item.key}
                 onClick={() => { onNav(item.key); setShowMobile(false); }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-300 text-left outline-none hover:translate-x-1 active:scale-95 ${
-                  isActive ? "text-white" : "text-slate-400 hover:text-white hover:bg-white/5"
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-300 text-left outline-none hover:translate-x-1 active:scale-95 ${isActive ? "text-white" : "text-slate-400 hover:text-white hover:bg-white/5"
+                  }`}
                 style={{
                   background: isActive ? "linear-gradient(135deg, #2563EB, #3B82F6)" : "transparent",
                   boxShadow: isActive ? "0 8px 16px -4px rgba(37,99,235,0.4)" : "none",
