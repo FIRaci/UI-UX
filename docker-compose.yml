@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend.Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend/dev.db:/app/dev.db
+    environment:
+      - DATABASE_URL=file:./dev.db
+      - JWT_SECRET=super-secret
+      - AI_SERVICE_URL=http://ai_service:8000
+    depends_on:
+      - ai_service
+
+  ai_service:
+    build:
+      context: ./ai_service
+      dockerfile: ../docker/ai.Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}

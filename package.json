@@ -1,17 +1,15 @@
 {
-  "name": "@figma/my-make-file",
+  "name": "medicare-ai",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite"
+    "dev": "vite",
+    "test": "vitest run",
+    "test:e2e": "node node_modules/@playwright/test/cli.js test"
   },
   "dependencies": {
-    "@emotion/react": "11.14.0",
-    "@emotion/styled": "11.14.1",
-    "@mui/icons-material": "7.3.5",
-    "@mui/material": "7.3.5",
     "@popperjs/core": "2.11.8",
     "@radix-ui/react-accordion": "1.2.3",
     "@radix-ui/react-alert-dialog": "1.1.6",
@@ -56,7 +54,7 @@
     "react-popper": "2.3.0",
     "react-resizable-panels": "2.1.7",
     "react-responsive-masonry": "2.7.1",
-    "react-router": "7.13.0",
+    "react-router-dom": "^7.16.0",
     "react-slick": "0.31.0",
     "recharts": "2.15.2",
     "sonner": "2.0.3",
@@ -65,12 +63,18 @@
     "vaul": "1.1.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/vite": "4.1.12",
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^14.2.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "4.7.0",
+    "concurrently": "^9.2.1",
+    "jsdom": "^24.0.0",
     "tailwindcss": "4.1.12",
-    "vite": "6.3.5"
+    "vite": "6.3.5",
+    "vitest": "^1.4.0"
   },
   "peerDependencies": {
     "react": "18.3.1",

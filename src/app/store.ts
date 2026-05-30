@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 export type Msg = { f: "user" | "staff"; txt: string; t: string };
 
 export type Thread = {
@@ -17,7 +19,7 @@ export type Thread = {
 };
 
 export type Appointment = {
-  id: number;
+  id: number | string;
   patientName: string;
   doctorName: string;
   doctorSpec: string;
@@ -31,66 +33,31 @@ export type Appointment = {
   vitals?: { bp: string; hr: string; temp: string; spo2: string };
 };
 
-type State = { threads: Thread[]; appointments: Appointment[] };
+export type Notification = {
+  id: string;
+  target: string;
+  title: string;
+  content: string;
+  time: string;
+  status: string;
+  isRead: boolean;
+  createdAt: string;
+};
+
+type State = {
+  threads: Thread[];
+  appointments: Appointment[];
+  doctors: any[];
+  articles: any[];
+  notifications: Notification[];
+};
 
 const initial: State = {
-  threads: [
-    {
-      id: 1, staffId: 2, staffName: "BS. Nguyễn Văn An", staffSpec: "Tim mạch",
-      userRole: "benhnhan", userName: "Đặng Quỳnh Anh", topic: "Sau khám",
-      status: "Chờ phản hồi", last: "Bác sĩ ơi, em có nên uống thuốc lúc đói không ạ?",
-      updatedAt: Date.now() - 5 * 60 * 1000,
-      msgs: [{ f: "user", txt: "Bác sĩ ơi, em có nên uống thuốc lúc đói không ạ?", t: "5 phút trước" }],
-    },
-    {
-      id: 2, staffId: 2, staffName: "BS. Nguyễn Văn An", staffSpec: "Tim mạch",
-      userRole: "benhnhan", userName: "Trần Văn Hậu", topic: "Sau khám",
-      status: "Chờ phản hồi", last: "Sau khi khám về em vẫn còn đau ngực nhẹ, có sao không?",
-      updatedAt: Date.now() - 20 * 60 * 1000,
-      msgs: [{ f: "user", txt: "Sau khi khám về em vẫn còn đau ngực nhẹ, có sao không?", t: "20 phút trước" }],
-    },
-    {
-      id: 3, staffId: 2, staffName: "BS. Nguyễn Văn An", staffSpec: "Tim mạch",
-      userRole: "benhnhan", userName: "Mai Hồng Yến", topic: "Lịch tái khám",
-      status: "Đã kết thúc", last: "Em đã đặt lịch tái khám tuần sau",
-      updatedAt: Date.now() - 60 * 60 * 1000,
-      msgs: [{ f: "user", txt: "Em đã đặt lịch tái khám tuần sau", t: "1 giờ trước" }],
-    },
-    {
-      id: 4, staffId: 102, staffName: "CV. Đỗ Thanh Hằng", staffSpec: "Tâm lý",
-      userRole: "tuvan", userName: "Phạm Thanh Tâm", topic: "Tâm lý",
-      status: "Đang diễn ra", last: "Bạn có thể chia sẻ thêm không?",
-      updatedAt: Date.now() - 10 * 60 * 1000,
-      msgs: [
-        { f: "user", txt: "Em chào chị, dạo này em hay mất ngủ và lo âu", t: "09:01" },
-        { f: "staff", txt: "Chào bạn, mình hiểu cảm giác đó. Tình trạng này kéo dài bao lâu rồi?", t: "09:03" },
-        { f: "user", txt: "Khoảng 3 tuần ạ, từ khi áp lực công việc tăng", t: "09:04" },
-        { f: "staff", txt: "Bạn có thể chia sẻ thêm không?", t: "09:05" },
-      ],
-    },
-    {
-      id: 5, staffId: 104, staffName: "CV. Lý Mai Phương", staffSpec: "Dinh dưỡng",
-      userRole: "tuvan", userName: "Phạm Thanh Tâm", topic: "Dinh dưỡng",
-      status: "Đã kết thúc", last: "Cảm ơn chị, em sẽ thử áp dụng",
-      updatedAt: Date.now() - 24 * 60 * 60 * 1000,
-      msgs: [
-        { f: "user", txt: "Em muốn hỏi về chế độ ăn giảm cân ạ", t: "Hôm qua" },
-        { f: "staff", txt: "Mình gợi ý bạn ăn 1500-1700 kcal/ngày, ưu tiên rau xanh và protein nạc...", t: "Hôm qua" },
-        { f: "user", txt: "Cảm ơn chị, em sẽ thử áp dụng", t: "Hôm qua" },
-      ],
-    },
-  ],
-  appointments: [
-    { id: 1, patientName: "Trần Văn Hậu", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-14", time: "08:00", clinic: "CN Q1", status: "Sắp tới", age: 58, symptoms: "Đau ngực dữ dội, khó thở", level: "Khẩn cấp", vitals: { bp: "160/100", hr: "112", temp: "37.2°C", spo2: "94%" } },
-    { id: 2, patientName: "Đặng Quỳnh Anh", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-14", time: "08:45", clinic: "CN Q1", status: "Sắp tới", age: 34, symptoms: "Sốt cao, đau đầu kéo dài 3 ngày", level: "Cao", vitals: { bp: "120/80", hr: "98", temp: "39.1°C", spo2: "97%" } },
-    { id: 3, patientName: "Phạm Bích Ngọc", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-14", time: "09:30", clinic: "CN Q1", status: "Sắp tới", age: 47, symptoms: "Đau lưng dưới, tê chân phải", level: "Trung bình", vitals: { bp: "125/82", hr: "78", temp: "36.7°C", spo2: "98%" } },
-    { id: 4, patientName: "Lê Văn Tú", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-14", time: "10:00", clinic: "CN Q1", status: "Sắp tới", age: 41, symptoms: "Tái khám tăng huyết áp", level: "Trung bình", vitals: { bp: "138/88", hr: "82", temp: "36.8°C", spo2: "98%" } },
-    { id: 5, patientName: "Mai Hồng Yến", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-14", time: "10:45", clinic: "CN Q1", status: "Sắp tới", age: 29, symptoms: "Khám sức khỏe định kỳ", level: "Thấp", vitals: { bp: "118/76", hr: "72", temp: "36.5°C", spo2: "99%" } },
-    { id: 6, patientName: "Nguyễn Minh Khoa", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-10", time: "09:00", clinic: "CN Q1", status: "Sắp tới" },
-    { id: 7, patientName: "Nguyễn Minh Khoa", doctorName: "BS. Phạm Mai Dung", doctorSpec: "Tai mũi họng", date: "2026-04-22", time: "14:30", clinic: "CN Q1", status: "Hoàn thành" },
-    { id: 8, patientName: "Nguyễn Minh Khoa", doctorName: "BS. Trần Thị Bình", doctorSpec: "Da liễu", date: "2026-04-05", time: "10:00", clinic: "CN Q3", status: "Hoàn thành" },
-    { id: 9, patientName: "Trần Thu Hà", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: "2026-05-08", time: "09:30", clinic: "CN Q1", status: "Sắp tới" },
-  ],
+  threads: [],
+  appointments: [],
+  doctors: [],
+  articles: [],
+  notifications: [],
 };
 
 let state: State = initial;
@@ -107,23 +74,37 @@ export const useStore = <T,>(selector: (s: State) => T): T => selector(useStoreS
 export const store = {
   // Threads
   addThread: (t: Omit<Thread, "id" | "updatedAt">) => {
-    const existing = state.threads.find(
-      th => th.staffId === t.staffId && th.userName === t.userName && th.userRole === t.userRole
-        && th.status !== "Đã kết thúc"
-    );
-    if (existing) {
-      setState(s => ({
-        ...s,
-        threads: s.threads.map(th =>
-          th.id === existing.id
-            ? { ...th, msgs: [...th.msgs, ...t.msgs], last: t.last, updatedAt: Date.now(), status: "Chờ phản hồi" as const }
-            : th
-        ),
-      }));
-      return existing.id;
-    }
     const id = Date.now();
-    setState(s => ({ ...s, threads: [{ ...t, id, updatedAt: Date.now() }, ...s.threads] }));
+    setState(s => {
+      const existing = s.threads.find(
+        th => th.staffId === t.staffId && th.userName === t.userName && th.userRole === t.userRole
+          && th.status !== "Đã kết thúc"
+      );
+      if (existing) {
+        return {
+          ...s,
+          threads: s.threads.map(th =>
+            th.id === existing.id
+              ? { ...th, msgs: [...th.msgs, ...t.msgs], last: t.last, updatedAt: Date.now(), status: "Chờ phản hồi" as const }
+              : th
+          ),
+        };
+      }
+      return { ...s, threads: [{ ...t, id, updatedAt: Date.now() }, ...s.threads] };
+    });
+
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    fetch(`${API_URL}/api/threads`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(t)
+    }).then(res => {
+      if (res.ok) fetchThreads();
+    }).catch(console.error);
+
     return id;
   },
   appendMessage: (threadId: number, msg: Msg, newStatus?: Thread["status"]) => {
@@ -135,19 +116,138 @@ export const store = {
           : t
       ),
     }));
+
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    fetch(`${API_URL}/api/threads/${threadId}/messages`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ ...msg, newStatus })
+    }).then(res => {
+      if (res.ok) fetchThreads();
+    }).catch(console.error);
   },
   setThreadStatus: (threadId: number, status: Thread["status"]) => {
     setState(s => ({ ...s, threads: s.threads.map(t => t.id === threadId ? { ...t, status } : t) }));
+
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    fetch(`${API_URL}/api/threads/${threadId}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ status })
+    }).then(res => {
+      if (res.ok) fetchThreads();
+    }).catch(console.error);
   },
 
   // Appointments
   addAppointment: (a: Omit<Appointment, "id">) => {
-    const id = Date.now();
+    const id = String(Date.now());
     setState(s => ({ ...s, appointments: [{ ...a, id }, ...s.appointments] }));
+
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    fetch(`${API_URL}/api/appointments`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        patientName: a.patientName,
+        doctorName: a.doctorName,
+        doctorSpec: a.doctorSpec,
+        date: a.date,
+        time: a.time,
+        clinic: a.clinic,
+        status: a.status,
+        age: a.age,
+        symptoms: a.symptoms,
+        level: a.level,
+        vitalsBp: a.vitals?.bp,
+        vitalsHr: a.vitals?.hr,
+        vitalsTemp: a.vitals?.temp,
+        vitalsSpo2: a.vitals?.spo2
+      })
+    }).then(res => {
+      if (handleUnauthorizedResponse(res)) {
+        setState(s => ({ ...s, appointments: s.appointments.filter(x => x.id !== id) }));
+        return;
+      }
+      if (res.ok) {
+        fetchAppointments();
+      }
+    }).catch(err => {
+      console.error("Error adding appointment:", err);
+      setState(s => ({ ...s, appointments: s.appointments.filter(x => x.id !== id) }));
+    });
     return id;
   },
-  updateAppointment: (id: number, patch: Partial<Appointment>) => {
-    setState(s => ({ ...s, appointments: s.appointments.map(a => a.id === id ? { ...a, ...patch } : a) }));
+  updateAppointment: (id: number | string, patch: Partial<Appointment>) => {
+    const prev = state.appointments.find(a => String(a.id) === String(id));
+    setState(s => ({ ...s, appointments: s.appointments.map(a => String(a.id) === String(id) ? { ...a, ...patch } : a) }));
+
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    fetch(`${API_URL}/api/appointments/${id}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({
+        status: patch.status,
+        date: patch.date,
+        time: patch.time
+      })
+    }).then(res => {
+      if (handleUnauthorizedResponse(res)) {
+        if (prev) {
+          setState(s => ({ ...s, appointments: s.appointments.map(a => String(a.id) === String(prev.id) ? prev : a) }));
+        }
+        return;
+      }
+      if (res.ok) {
+        fetchAppointments();
+      }
+    }).catch(err => {
+      console.error("Error updating appointment:", err);
+      if (prev) {
+        setState(s => ({ ...s, appointments: s.appointments.map(a => String(a.id) === String(prev.id) ? prev : a) }));
+      }
+    });
+  },
+
+  // Notifications
+  markNotificationRead: (id: string) => {
+    setState(s => ({ ...s, notifications: s.notifications.map(n => n.id === id ? { ...n, isRead: true } : n) }));
+    
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    fetch(`${API_URL}/api/notifications/${id}/read`, {
+      method: "PATCH",
+      headers
+    }).then(res => {
+      if (res.ok) fetchNotifications();
+    }).catch(console.error);
+  },
+  markAllNotificationsRead: () => {
+    setState(s => ({ ...s, notifications: s.notifications.map(n => ({ ...n, isRead: true })) }));
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    fetch(`${API_URL}/api/notifications/read-all`, {
+      method: "PATCH",
+      headers
+    }).then(res => {
+      if (res.ok) fetchNotifications();
+    }).catch(console.error);
   },
 };
 
@@ -158,3 +258,135 @@ export const formatRelative = (ts: number): string => {
   if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
   return `${Math.floor(diff / 86400)} ngày trước`;
 };
+
+const handleUnauthorizedResponse = (res: Response) => {
+  if (res.status === 401) {
+    localStorage.removeItem("token");
+    window.dispatchEvent(new CustomEvent("app:unauthorized"));
+    return true;
+  }
+  return false;
+};
+
+export const fetchAppointments = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_URL}/api/appointments`, { headers });
+    if (handleUnauthorizedResponse(res)) return;
+    if (res.ok) {
+      const data: Record<string, unknown>[] = await res.json();
+      const mapped = data.map((a: Record<string, unknown>) => ({
+        id: a.id,
+        patientName: a.patientName,
+        doctorName: a.doctorName,
+        doctorSpec: a.doctorSpec,
+        date: a.date,
+        time: a.time,
+        clinic: a.clinic,
+        status: a.status as "Sắp tới" | "Hoàn thành" | "Đã hủy",
+        age: a.age ?? undefined,
+        symptoms: a.symptoms ?? undefined,
+        level: a.level as "Khẩn cấp" | "Cao" | "Trung bình" | "Thấp" | undefined,
+        vitals: (a.vitalsBp || a.vitalsHr || a.vitalsTemp || a.vitalsSpo2) ? {
+          bp: a.vitalsBp ?? "",
+          hr: a.vitalsHr ?? "",
+          temp: a.vitalsTemp ?? "",
+          spo2: a.vitalsSpo2 ?? ""
+        } : undefined
+      }));
+      setState(s => {
+        const serverMap = new Map(mapped.map(a => [String(a.id), a]));
+        const localPending = s.appointments.filter(a => !serverMap.has(String(a.id)));
+        return { ...s, appointments: [...localPending, ...mapped] };
+      });
+    }
+  } catch (error) {
+    console.error("Failed to fetch appointments:", error);
+  }
+};
+
+export const fetchThreads = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    const res = await fetch(`${API_URL}/api/threads`, { headers });
+    if (handleUnauthorizedResponse(res)) return;
+    if (res.ok) {
+      const threads = await res.json();
+      setState(s => ({ ...s, threads }));
+    }
+  } catch (error) {
+    console.error("Failed to fetch threads:", error);
+  }
+};
+
+export const fetchDoctors = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_URL}/api/doctors`, { headers });
+    if (handleUnauthorizedResponse(res)) return;
+    if (res.ok) {
+      const data = await res.json();
+      const mapped = data.map((d: any) => ({
+        ...d,
+        avail: typeof d.avail === 'string' ? JSON.parse(d.avail) : d.avail
+      }));
+      setState(s => ({ ...s, doctors: mapped }));
+    }
+  } catch (error) {
+    console.error("Failed to fetch doctors:", error);
+  }
+};
+
+export const fetchArticles = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_URL}/api/articles`, { headers });
+    if (handleUnauthorizedResponse(res)) return;
+    if (res.ok) {
+      const articles = await res.json();
+      setState(s => ({ ...s, articles }));
+    }
+  } catch (error) {
+    console.error("Failed to fetch articles:", error);
+  }
+};
+
+export const fetchNotifications = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_URL}/api/notifications`, { headers });
+    if (handleUnauthorizedResponse(res)) return;
+    if (res.ok) {
+      const notifications = await res.json();
+      setState(s => ({ ...s, notifications }));
+    }
+  } catch (error) {
+    console.error("Failed to fetch notifications:", error);
+  }
+};
+
+export const fetchAllData = () => {
+  fetchAppointments();
+  fetchThreads();
+  fetchDoctors();
+  fetchArticles();
+  fetchNotifications();
+};
+
+if (typeof window !== "undefined") {
+  fetchAllData();
+}
