@@ -12,9 +12,11 @@ RUN bun install
 COPY backend/prisma ./prisma
 RUN bunx prisma generate
 
-# Copy source code
+# Copy source code and start script
 COPY backend/src ./src
+COPY backend/start.sh ./start.sh
+RUN chmod +x ./start.sh
 
 EXPOSE 3000
 
-CMD ["bun", "run", "src/index.ts"]
+CMD ["./start.sh"]
