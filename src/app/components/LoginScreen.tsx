@@ -84,13 +84,13 @@ export function LoginScreen({ onLogin }: { onLogin: (role: Role) => void }) {
         
         {/* Left Side: Branding */}
         <div className="space-y-6 animate-in fade-in slide-in-from-left-8 duration-700">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md">
-              <HeartPulse className="w-6 h-6" />
+          <div className="flex items-center gap-5">
+            <div className="w-20 h-20 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg">
+              <HeartPulse className="w-10 h-10" />
             </div>
             <div>
-              <div className="text-2xl font-bold tracking-tight text-slate-900">MediCare AI</div>
-              <div className="text-xs text-slate-500 font-semibold tracking-wider uppercase">Hệ thống Y tế thông minh</div>
+              <div className="text-4xl font-extrabold tracking-tight text-slate-900">MediCare AI</div>
+              <div className="text-sm text-slate-500 font-bold tracking-wider uppercase mt-1">Hệ thống Y tế thông minh</div>
             </div>
           </div>
           <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-slate-900">
