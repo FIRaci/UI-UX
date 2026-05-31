@@ -86,17 +86,24 @@ export function MessagesTab({
                 onClick={() => { setActiveThreadId(t.id); setChatMode("chat"); }}
                 className="flex-1 flex items-start gap-3 text-left active:scale-[0.98]"
               >
-                <div className="relative">
-                  <Avatar><AvatarFallback className="bg-sky-100 text-sky-700">{t.staffName.split(" ").pop()?.[0]}</AvatarFallback></Avatar>
-                  {t.status === "Chờ phản hồi" && <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>}
+                <div className="relative shrink-0">
+                  <Avatar className="w-12 h-12">
+                    <AvatarFallback className="bg-sky-100 text-sky-700 text-lg font-bold">
+                      {t.staffName.split(" ").pop()?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  {t.status === "Chờ phản hồi" && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white"></div>}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center gap-2">
-                    <span className={`truncate text-sm ${t.status === "Chờ phản hồi" ? "font-bold text-slate-900" : "font-medium text-slate-700"}`}>{t.staffName}</span>
-                    <span className={`text-[10px] shrink-0 ${t.status === "Chờ phản hồi" ? "font-bold text-sky-600" : "text-slate-400"}`}>{formatRelative(t.updatedAt)}</span>
+                    <span className={`text-sm ${t.status === "Chờ phản hồi" ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>{t.staffName}</span>
+                    <span className={`text-[11px] shrink-0 ${t.status === "Chờ phản hồi" ? "font-bold text-sky-600" : "text-slate-400"}`}>{formatRelative(t.updatedAt)}</span>
                   </div>
-                  <div className="text-xs font-medium text-slate-500 mt-0.5">{t.topic}</div>
-                  <div className={`text-xs truncate mt-1 ${t.status === "Chờ phản hồi" ? "font-bold text-slate-800" : "text-slate-500"}`}>{t.last}</div>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span className="text-xs text-slate-500 line-clamp-1">
+                      {t.last}
+                    </span>
+                  </div>
                 </div>
               </button>
               <button
