@@ -282,12 +282,34 @@ export function Records() {
                   if (!pdfRef.current) return;
                   setIsDownloading(true);
                   try {
+                    const scrollEl = pdfRef.current.querySelector('.overflow-y-auto') as HTMLElement | null;
+                    const parentEl = pdfRef.current.parentElement as HTMLElement | null;
+                    if (scrollEl) {
+                      scrollEl.style.overflow = 'visible';
+                      scrollEl.style.maxHeight = 'none';
+                      scrollEl.style.flex = 'none';
+                    }
+                    if (parentEl) {
+                      parentEl.style.maxHeight = 'none';
+                      parentEl.style.overflow = 'visible';
+                    }
+                    await new Promise(r => setTimeout(r, 150));
                     const canvas = await html2canvas(pdfRef.current, {
                       scale: 2,
                       useCORS: true,
                       allowTaint: false,
                       logging: false,
+                      backgroundColor: '#ffffff',
                     });
+                    if (scrollEl) {
+                      scrollEl.style.overflow = '';
+                      scrollEl.style.maxHeight = '';
+                      scrollEl.style.flex = '';
+                    }
+                    if (parentEl) {
+                      parentEl.style.maxHeight = '';
+                      parentEl.style.overflow = '';
+                    }
                     const imgData = canvas.toDataURL("image/png");
                     const pdf = new jsPDF("p", "mm", "a4");
                     const pdfWidth = 190;
@@ -310,7 +332,8 @@ export function Records() {
                     const filename = `Phieu_Kham_${openItem.title.replace(/[/\\?%*:|"<>]/g, "_")}.pdf`;
                     pdf.save(filename);
                     toast.success("Tải PDF thành công");
-                  } catch {
+                  } catch (e) {
+                    console.error("PDF error:", e);
                     toast.error("Lỗi tạo PDF, vui lòng thử lại");
                   } finally {
                     setIsDownloading(false);
