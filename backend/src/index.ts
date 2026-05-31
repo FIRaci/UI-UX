@@ -60,15 +60,16 @@ async function seedDatabase() {
       });
     }
 
-    const apptCount = await prisma.appointment.count();
-    if (apptCount === 0) {
-      console.log("Seeding appointments...");
-      const today = new Date().toISOString().split("T")[0];
-      const nextMonth = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
-      const lastWeek1 = new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0];
-      const lastWeek2 = new Date(Date.now() - 8 * 86400000).toISOString().split("T")[0];
-      await prisma.appointment.createMany({
-        data: [
+    // Clear old appointments to ensure they are seeded with today's date
+    await prisma.appointment.deleteMany({});
+
+    console.log("Seeding appointments...");
+    const today = new Date().toISOString().split("T")[0];
+    const nextMonth = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
+    const lastWeek1 = new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0];
+    const lastWeek2 = new Date(Date.now() - 8 * 86400000).toISOString().split("T")[0];
+    await prisma.appointment.createMany({
+      data: [
           { patientName: "Nguyễn Minh Khoa", doctorName: "PGS.TS Nguyễn Hữu Tâm", doctorSpec: "Tim mạch", date: nextMonth, time: "08:00", clinic: "CN Q1", status: "Sắp tới", age: 35, symptoms: "Kiểm tra huyết áp", level: "Thấp" },
           { patientName: "Nguyễn Minh Khoa", doctorName: "BS. Trần Thị Bình", doctorSpec: "Da liễu", date: "2026-05-10", time: "10:00", clinic: "CN Q3", status: "Hoàn thành", age: 35, symptoms: "Mẩn ngứa ở lưng", level: "Trung bình" },
           { patientName: "Nguyễn Minh Khoa", doctorName: "BS.CKII Phạm Phương Thảo", doctorSpec: "Sản phụ khoa", date: "2026-04-20", time: "14:00", clinic: "CN Q1", status: "Hoàn thành", age: 35, symptoms: "Khám định kỳ", level: "Thấp" },
@@ -82,11 +83,9 @@ async function seedDatabase() {
           // Lịch hẹn cũ (đã hoàn thành)
           { patientName: "Nguyễn Minh Khoa", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: lastWeek1, time: "08:00", clinic: "CN Q1", status: "Hoàn thành", age: 35, symptoms: "Khám định kỳ tim mạch", level: "Thấp" },
           { patientName: "Trần Thu Hà", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: lastWeek2, time: "09:30", clinic: "CN Q1", status: "Hoàn thành", age: 52, symptoms: "Tái khám rối loạn nhịp tim", level: "Cao" },
-          // Lịch hẹn sắp tới
           { patientName: "Lê Văn Tú", doctorName: "BS. Nguyễn Văn An", doctorSpec: "Tim mạch", date: nextMonth, time: "08:00", clinic: "CN Q1", status: "Sắp tới", age: 41, symptoms: "Tái khám huyết áp tháng 6", level: "Trung bình" },
         ]
       });
-    }
 
     const threadCount = await prisma.thread.count();
     if (threadCount === 0) {
@@ -130,6 +129,39 @@ async function seedDatabase() {
         ]
       });
     }
+
+    // Clear old notifications to ensure fresh concise seeds
+    await prisma.notification.deleteMany({});
+
+    console.log("Seeding notifications...");
+    await prisma.notification.createMany({
+        data: [
+          {
+            target: "doctor",
+            title: "🚨 Ca hội chẩn khẩn cấp",
+            content: "BN Trần Văn Hậu nhập viện, đau ngực khó thở. Cần hỗ trợ ngay!",
+            time: "Vừa xong",
+            status: "sent",
+            isRead: false
+          },
+          {
+            target: "doctor",
+            title: "📅 Lịch đặt khám mới",
+            content: "BN Nguyễn Minh Khoa đặt khám chuyên khoa Tim mạch lúc 08:30 ngày mai.",
+            time: "10 phút trước",
+            status: "sent",
+            isRead: false
+          },
+          {
+            target: "doctor",
+            title: "💬 Câu hỏi tư vấn mới",
+            content: "BN Nguyễn Minh Khoa hỏi về chỉ số cholesterol trong kết quả xét nghiệm.",
+            time: "1 giờ trước",
+            status: "sent",
+            isRead: false
+          }
+        ]
+      });
   } catch (error) {
     console.error("Error seeding database:", error);
   }

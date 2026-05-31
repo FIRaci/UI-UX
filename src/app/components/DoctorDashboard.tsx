@@ -14,7 +14,7 @@ import {
   LayoutDashboard, CalendarDays, Users, FileText, MessagesSquare,
   CheckCircle2, Clock, Send, AlertTriangle, ArrowLeft, Video, MessageCircle,
   Mic, Save, Sparkles, Pill, History, Search, Filter, Phone, PhoneOff,
-  Stethoscope, ClipboardList, UserSearch
+  Stethoscope, ClipboardList, UserSearch, User
 } from "lucide-react";
 import { toast } from "sonner";
 import { useStore, store, formatRelative } from "../store";
@@ -96,6 +96,7 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
       const map: Record<string, string> = {
         search: "schedule", appointments: "schedule", overview: "overview",
         patients: "patients", records: "records", consult: "consult", schedule: "schedule",
+        profile: "profile",
       };
       if (map[view]) setActive(map[view]);
     };
@@ -242,6 +243,7 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
         { key: "patients", label: "Bệnh nhân", icon: Users },
         { key: "records", label: "Hồ sơ & đơn thuốc", icon: FileText },
         { key: "consult", label: "Tin nhắn tư vấn", icon: MessagesSquare },
+        { key: "profile", label: "Cá nhân", icon: User },
       ]}
     >
       {active === "overview" && (
@@ -383,24 +385,24 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
       )}
 
       {active === "schedule" && (
-        <Card className="p-5">
+        <Card className="p-5 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
           <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
             <div>
-              <h4 className="tracking-tight">Lịch khám hôm nay</h4>
-              <p className="text-xs text-muted-foreground mt-0.5">Ngày {TODAY} • Sắp xếp theo giờ khám</p>
+              <h4 className="font-bold text-slate-800 text-sm tracking-tight">Lịch khám hôm nay</h4>
+              <p className="text-xs text-slate-400 mt-0.5">Ngày {TODAY} • Sắp xếp theo giờ khám</p>
             </div>
             <div className="flex gap-2 items-center">
               <Select value={scheduleLevelFilter} onValueChange={setScheduleLevelFilter}>
-                <SelectTrigger className="w-44"><Filter className="w-3.5 h-3.5 mr-1" /><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả mức độ</SelectItem>
-                  <SelectItem value="Khẩn cấp">Khẩn cấp</SelectItem>
-                  <SelectItem value="Cao">Cao</SelectItem>
-                  <SelectItem value="Trung bình">Trung bình</SelectItem>
-                  <SelectItem value="Thấp">Thấp</SelectItem>
+                <SelectTrigger className="w-44 h-9 rounded-xl border-slate-200 bg-slate-50 text-slate-600 text-xs font-medium"><Filter className="w-3.5 h-3.5 mr-1 text-slate-400" /><SelectValue /></SelectTrigger>
+                <SelectContent className="rounded-xl border-slate-100 shadow-lg">
+                  <SelectItem value="all" className="text-xs">Tất cả mức độ</SelectItem>
+                  <SelectItem value="Khẩn cấp" className="text-xs text-rose-600 font-bold">Khẩn cấp</SelectItem>
+                  <SelectItem value="Cao" className="text-xs text-orange-600 font-bold">Cao</SelectItem>
+                  <SelectItem value="Trung bình" className="text-xs text-amber-600 font-medium">Trung bình</SelectItem>
+                  <SelectItem value="Thấp" className="text-xs text-emerald-600">Thấp</SelectItem>
                 </SelectContent>
               </Select>
-              <Badge variant="secondary">{filteredSchedule.length} ca</Badge>
+              <span className="px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-100 shrink-0">{filteredSchedule.length} ca</span>
             </div>
           </div>
 
@@ -411,9 +413,9 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
               { l: "Trung bình", v: todayAppts.filter(a => a.level === "Trung bình").length, c: "bg-amber-50 text-amber-700 border-amber-200" },
               { l: "Thấp", v: todayAppts.filter(a => a.level === "Thấp").length, c: "bg-emerald-50 text-emerald-700 border-emerald-200" },
             ].map((s, i) => (
-              <Card key={i} className={`p-3 border ${s.c}`}>
-                <div className="text-xs">{s.l}</div>
-                <div className="mt-1 text-xl tracking-tight">{s.v}</div>
+              <Card key={i} className={`p-4 bg-white border shadow-sm ${s.c}`} style={{ borderRadius: "16px" }}>
+                <div className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-semibold ${s.c}`}>{s.l}</div>
+                <div className="mt-3 text-3xl font-bold text-slate-800 tracking-tight">{s.v}</div>
               </Card>
             ))}
           </div>
@@ -501,8 +503,8 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
       )}
 
       {active === "patients" && (
-        <Card className="p-5">
-          <h4 className="tracking-tight mb-3">Bệnh nhân của tôi</h4>
+        <Card className="p-5 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
+          <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-3">Bệnh nhân của tôi</h4>
           <div className="grid md:grid-cols-2 gap-3">
             {Array.from(new Set(appointments.map(a => a.patientName))).map(name => {
               const last = appointments.find(a => a.patientName === name);
@@ -532,11 +534,11 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
       )}
 
       {active === "records" && (
-        <Card className="p-5">
+        <Card className="p-5 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h4 className="tracking-tight">Hồ sơ và đơn thuốc</h4>
-              <p className="text-xs text-muted-foreground mt-0.5">Quản lý đơn thuốc và hồ sơ khám bệnh</p>
+              <h4 className="font-bold text-slate-800 text-sm tracking-tight">Hồ sơ và đơn thuốc</h4>
+              <p className="text-xs text-slate-400 mt-0.5">Quản lý đơn thuốc và hồ sơ khám bệnh</p>
             </div>
             <Button onClick={() => setNewRecord(true)} className="bg-violet-600 hover:bg-violet-700">
               <FileText className="w-4 h-4 mr-1" /> Tạo mới
@@ -613,7 +615,7 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
       )}
 
       {active === "consult" && (
-        <Card className="p-0 overflow-hidden h-[calc(100vh-12rem)]">
+        <Card className="p-0 overflow-hidden h-[calc(100vh-12rem)] bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
           <div className="grid grid-cols-[300px_1fr] h-full">
             <div className="border-r overflow-auto">
               <div className="p-3 border-b">
@@ -682,6 +684,7 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
           </div>
         </Card>
       )}
+      {active === "profile" && <Profile />}
 
       <Dialog open={!!patientFile} onOpenChange={() => setPatientFile(null)}>
         <DialogContent className="max-w-xl">
@@ -862,10 +865,10 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
                   return;
                 }
 
-                const today = new Date().toISOString().split('T')[0];
+                const todayStr = new Date().toISOString().split('T')[0];
                 const newRec = {
                   p: newRecordPatient,
-                  d: "2026-05-13",
+                  d: todayStr,
                   t: newRecordType === "prescription" ? "Đơn thuốc mới" : "Hồ sơ khám mới",
                   m: newRecordContent,
                 };
@@ -903,6 +906,83 @@ export function DoctorDashboard({ onLogout }: { onLogout: () => void }) {
         </DialogContent>
       </Dialog>
     </AppShell>
+  );
+}
+
+function Profile() {
+  return (
+    <div className="grid md:grid-cols-2 gap-5 animate-fade-in">
+      <Card className="p-6 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
+        <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-5">Thông tin tài khoản</h4>
+        <div className="flex items-center gap-4 mb-5">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-md">VA</div>
+          <div>
+            <div className="font-bold text-slate-800 text-base">BS. Nguyễn Văn An</div>
+            <div className="text-xs text-slate-500 mt-0.5">Bác sĩ • Mã số: BS-2026-00088</div>
+            <span className="inline-flex mt-1.5 px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 text-[10px] font-bold border border-violet-200">Tài khoản hoạt động</span>
+          </div>
+        </div>
+        <div className="space-y-3">
+          {[
+            { label: "Chuyên khoa", value: "Tim mạch" },
+            { label: "Email", value: "an.nguyenvan@medicare.com" },
+            { label: "Số điện thoại", value: "0987 654 321" },
+            { label: "Nơi công tác", value: "CN Q1, TP.HCM" },
+            { label: "Kinh nghiệm", value: "15 năm" },
+            { label: "Học vị", value: "Thạc sĩ, Bác sĩ chuyên khoa I" },
+          ].map(item => (
+            <div key={item.label} className="flex justify-between items-center py-2.5 border-b border-slate-50 last:border-0">
+              <span className="text-xs text-slate-500 font-medium">{item.label}</span>
+              <span className="text-xs font-semibold text-slate-800">{item.value}</span>
+            </div>
+          ))}
+        </div>
+        <Button className="mt-5 w-full rounded-xl text-xs h-9 bg-slate-900 hover:bg-slate-800">Chỉnh sửa thông tin</Button>
+      </Card>
+      <div className="space-y-5">
+        <Card className="p-5 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
+          <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-4">Cài đặt thông báo</h4>
+          <div className="space-y-3">
+            {[
+              { label: "Thông báo ca khẩn cấp (Hệ thống)", on: true },
+              { label: "Nhắc lịch khám mới qua SMS", on: true },
+              { label: "Báo cáo tin nhắn chờ tư vấn", on: true },
+              { label: "Email bản tin y khoa hàng tuần", on: false },
+            ].map(item => (
+              <div key={item.label} className="flex justify-between items-center">
+                <span className="text-xs text-slate-700 font-medium">{item.label}</span>
+                <div className={`w-9 h-5 rounded-full flex items-center px-0.5 transition-colors ${item.on ? "bg-violet-500" : "bg-slate-200"}`}>
+                  <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${item.on ? "translate-x-4" : ""}`} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+        <Card className="p-5 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
+          <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-4">Nhận lương &amp; Thanh toán</h4>
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center text-white text-xs font-bold">MB</div>
+                <div>
+                  <div className="text-xs font-bold text-slate-800">MBBank • **** 8888</div>
+                  <div className="text-[10px] text-slate-400">Tài khoản nhận lương</div>
+                </div>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">Đã liên kết</span>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-5 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
+          <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-3">Bảo mật tài khoản</h4>
+          <div className="space-y-2">
+            <Button variant="outline" className="w-full rounded-xl text-xs h-9 justify-start border-slate-200 text-slate-700">Đổi mật khẩu</Button>
+            <Button variant="outline" className="w-full rounded-xl text-xs h-9 justify-start border-slate-200 text-slate-700">Xác thực 2 bước (2FA)</Button>
+            <Button variant="outline" className="w-full rounded-xl text-xs h-9 justify-start border-slate-200 text-slate-700">Đăng nhập sinh trắc học (Vân tay / Face ID)</Button>
+          </div>
+        </Card>
+      </div>
+    </div>
   );
 }
 

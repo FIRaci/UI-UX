@@ -1,20 +1,21 @@
-import { ReactNode, useState, useRef, useEffect, type ComponentType } from "react";
+import { ReactNode, useState, useRef, useEffect, useCallback, type ComponentType } from "react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
-import { LogOut, HeartPulse, Bell, CheckCheck, CalendarClock, MessageSquare, RefreshCw, Trash2, Search } from "lucide-react";
+import { LogOut, HeartPulse, Bell, CheckCheck, CalendarClock, MessageSquare, RefreshCw, Trash2, Search, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 
-type NotifKind = "appointment" | "message" | "reminder";
+type NotifKind = "appointment" | "message" | "reminder" | "emergency";
 type Notif = { id: number; kind: NotifKind; title: string; desc: string; body: string; time: string; read: boolean };
 
 const KIND_META: Record<NotifKind, { icon: ComponentType<{ className?: string }>; bg: string; fg: string; label: string }> = {
   appointment: { icon: CalendarClock, bg: "bg-sky-100", fg: "text-sky-600", label: "Lịch hẹn" },
   message: { icon: MessageSquare, bg: "bg-emerald-100", fg: "text-emerald-600", label: "Tin nhắn" },
   reminder: { icon: RefreshCw, bg: "bg-amber-100", fg: "text-amber-600", label: "Nhắc nhở" },
+  emergency: { icon: AlertTriangle, bg: "bg-rose-100", fg: "text-rose-600", label: "Nguy cấp" },
 };
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -55,6 +56,20 @@ export function AppShell({
   const [openNotif, setOpenNotif] = useState<Notif | null>(null);
   const [showMobile, setShowMobile] = useState(false);
   const notifiedSearch = useRef(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const lastDeletedNotifs = useRef<Notif[] | null>(null);
+
+  // Keyboard shortcut: Ctrl+K / ⌘K to focus search (Shneiderman #2)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const fetchNotifs = async () => {
@@ -66,15 +81,62 @@ export function AppShell({
         });
         if (!res.ok) { setNotifError(true); return; }
         const data: ApiNotif[] = await res.json();
-        setNotifs(data.map((n, i) => ({
-          id: i + 1,
-          kind: "message" as NotifKind,
-          title: n.title,
-          desc: n.content.length > 80 ? n.content.substring(0, 80) + "..." : n.content,
-          body: n.content,
-          time: n.time || new Date(n.createdAt).toLocaleDateString("vi-VN"),
-          read: false,
-        })));
+        setNotifs(data.map((n, i) => {
+          let kind: NotifKind = "message";
+          const titleLower = n.title.toLowerCase();
+          const contentLower = n.content.toLowerCase();
+
+          if (
+            titleLower.includes("nguy cấp") ||
+            contentLower.includes("nguy cấp") ||
+            titleLower.includes("khẩn cấp") ||
+            contentLower.includes("khẩn cấp") ||
+            titleLower.includes("cấp cứu") ||
+            contentLower.includes("cấp cứu") ||
+            titleLower.includes("nguy hiểm") ||
+            contentLower.includes("nguy hiểm") ||
+            titleLower.includes("emergency") ||
+            contentLower.includes("emergency")
+          ) {
+            kind = "emergency";
+          } else if (
+            titleLower.includes("lịch khám") ||
+            contentLower.includes("lịch khám") ||
+            titleLower.includes("lịch hẹn") ||
+            contentLower.includes("lịch hẹn") ||
+            titleLower.includes("đặt lịch") ||
+            contentLower.includes("đặt lịch") ||
+            titleLower.includes("khám bệnh") ||
+            contentLower.includes("khám bệnh") ||
+            titleLower.includes("appointment") ||
+            contentLower.includes("appointment") ||
+            titleLower.includes("booking") ||
+            contentLower.includes("booking")
+          ) {
+            kind = "appointment";
+          } else if (
+            titleLower.includes("nhắc nhở") ||
+            contentLower.includes("nhắc nhở") ||
+            titleLower.includes("uống thuốc") ||
+            contentLower.includes("uống thuốc") ||
+            titleLower.includes("tái khám") ||
+            contentLower.includes("tái khám") ||
+            titleLower.includes("reminder") ||
+            contentLower.includes("reminder")
+          ) {
+            kind = "reminder";
+          }
+
+          return {
+            id: i + 1,
+            kind,
+            title: n.title,
+            desc: n.content.length > 80 ? n.content.substring(0, 80) + "..." : n.content,
+            body: n.content,
+            time: n.time || new Date(n.createdAt).toLocaleDateString("vi-VN"),
+            read: false,
+          };
+        }));
       } catch {
         setNotifError(true);
       }
@@ -188,11 +250,12 @@ export function AppShell({
             </div>
           </div>
 
-          {/* Search bar */}
-          <div className="hidden md:flex flex-1 max-w-sm mx-6 relative items-center">
+          {/* Search bar — visible on all devices (UIUX11 Visibility) */}
+          <div className="flex flex-1 max-w-sm mx-4 md:mx-6 relative items-center">
             <Search className="absolute left-3 w-4 h-4 text-slate-400 pointer-events-none z-10" />
             <input
-              placeholder="Tìm bệnh nhân, phác đồ, chẩn đoán..."
+              ref={searchInputRef}
+              placeholder="Tìm bệnh nhân, phác đồ..."
               className={`w-full h-9 pl-9 pr-12 border rounded-xl text-xs bg-slate-50 text-slate-700 outline-none transition-all ${searchValue ? 'border-blue-400 ring-2 ring-blue-100 bg-white' : 'border-slate-200'}`}
               value={onSearchChange ? (searchValue ?? "") : undefined}
               onChange={onSearchChange ? (e) => onSearchChange(e.target.value) : undefined}
@@ -204,7 +267,7 @@ export function AppShell({
               }}
             />
             {(!searchValue) && (
-              <div className="absolute right-3 px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[10px] text-slate-400 font-medium select-none">
+              <div className="absolute right-3 px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[10px] text-slate-400 font-medium select-none hidden md:block">
                 ⌘K
               </div>
             )}
@@ -230,9 +293,7 @@ export function AppShell({
               <PopoverTrigger className="relative size-9 rounded-xl inline-flex items-center justify-center hover:bg-slate-100 transition-all outline-none border border-slate-200">
                 <Bell className="w-4.5 h-4.5 text-slate-600" />
                 {unread > 0 && (
-                  <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center" style={{
-                    boxShadow: "0 2px 4px rgba(239,68,68,0.4)"
-                  }}>
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-extrabold flex items-center justify-center border-2 border-white shadow-md">
                     {unread}
                   </span>
                 )}
@@ -287,7 +348,6 @@ export function AppShell({
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-medium text-slate-700 truncate">{n.title}</span>
-                              {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 animate-pulse" />}
                             </div>
                             <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.desc}</div>
                             <div className="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-1.5">
@@ -296,6 +356,11 @@ export function AppShell({
                               <span>{n.time}</span>
                             </div>
                           </div>
+                          {!n.read && (
+                            <div className="flex items-center justify-center shrink-0 self-center pr-1">
+                              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                            </div>
+                          )}
                         </button>
                       );
                     })
@@ -307,8 +372,20 @@ export function AppShell({
                     size="sm"
                     className="w-full text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100"
                     onClick={() => {
+                      lastDeletedNotifs.current = [...notifs];
                       setNotifs([]);
-                      toast.success("Đã xóa toàn bộ thông báo");
+                      toast.success("Đã xóa toàn bộ thông báo", {
+                        action: {
+                          label: "Hoàn tác",
+                          onClick: () => {
+                            if (lastDeletedNotifs.current) {
+                              setNotifs(lastDeletedNotifs.current);
+                              lastDeletedNotifs.current = null;
+                              toast.success("Đã khôi phục thông báo");
+                            }
+                          },
+                        },
+                      });
                     }}
                   >
                     <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Xóa tất cả
@@ -361,9 +438,20 @@ export function AppShell({
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setNotifs(prev => prev.filter(x => x.id !== openNotif.id));
+                      const deletedNotif = openNotif;
+                      setNotifs(prev => prev.filter(x => x.id !== openNotif!.id));
                       setOpenNotif(null);
-                      toast.success("Đã xóa thông báo");
+                      toast.success("Đã xóa thông báo", {
+                        action: {
+                          label: "Hoàn tác",
+                          onClick: () => {
+                            if (deletedNotif) {
+                              setNotifs(prev => [...prev, deletedNotif].sort((a, b) => a.id - b.id));
+                              toast.success("Đã khôi phục thông báo");
+                            }
+                          },
+                        },
+                      });
                     }}
                   >
                     Xóa
