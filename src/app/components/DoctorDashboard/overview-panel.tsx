@@ -60,39 +60,51 @@ export function OverviewPanel({
           </div>
         </Card>
 
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        {/* Super Lazy / Dumb UI: Massive "Call Next Patient" Button */}
+        {filteredQueue.length > 0 && (
+          <Card className="p-8 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white shadow-xl rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 mb-8 transform transition-all hover:scale-[1.01]">
+            <div>
+              <div className="text-emerald-600 font-black tracking-widest text-sm mb-2 uppercase flex items-center gap-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                BỆNH NHÂN TIẾP THEO MỚI NHẤT
+              </div>
+              <h2 className="text-4xl font-black text-slate-900 mb-2">{filteredQueue[0].patient}</h2>
+              <div className="flex items-center gap-3 text-sm font-semibold text-slate-600">
+                <LevelBadge level={filteredQueue[0].level} />
+                <span>• {filteredQueue[0].age} tuổi</span>
+                <span>• Chờ {filteredQueue[0].waited}</span>
+              </div>
+              <p className="text-slate-500 mt-3 max-w-md">{filteredQueue[0].symptoms}</p>
+            </div>
+            <Button 
+              className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/30 rounded-2xl px-12 h-20 text-xl font-black shrink-0 w-full md:w-auto transition-transform active:scale-95"
+              onClick={() => openConsult(filteredQueue[0])}
+            >
+              GỌI VÀO KHÁM NGAY
+            </Button>
+          </Card>
+        )}
+
+        <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
           <div>
-            <h4 className="text-xl font-extrabold text-slate-800 tracking-tight">Bệnh nhân đang chờ ({filteredQueue.length})</h4>
-            <p className="text-sm text-slate-500 mt-0.5">Sắp xếp theo mức độ ưu tiên (Triage) bằng AI</p>
-          </div>
-          <div className="flex gap-2 items-center">
-            <Select value={levelFilter} onValueChange={setLevelFilter}>
-              <SelectTrigger className="w-48 h-10 rounded-xl border-slate-200 bg-white shadow-sm text-slate-700 text-sm font-semibold focus:ring-blue-500/20">
-                <Filter className="w-4 h-4 mr-2 text-slate-400" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl border-slate-100 shadow-xl">
-                <SelectItem value="all" className="font-medium">Tất cả mức độ</SelectItem>
-                <SelectItem value="Khẩn cấp" className="text-rose-600 font-bold">Khẩn cấp</SelectItem>
-                <SelectItem value="Cao" className="text-orange-600 font-bold">Cao</SelectItem>
-                <SelectItem value="Trung bình" className="text-amber-600 font-bold">Trung bình</SelectItem>
-                <SelectItem value="Thấp" className="text-emerald-600 font-bold">Thấp</SelectItem>
-              </SelectContent>
-            </Select>
+            <h4 className="text-xl font-extrabold text-slate-800 tracking-tight">Danh sách chờ còn lại ({filteredQueue.length > 0 ? filteredQueue.length - 1 : 0})</h4>
           </div>
         </div>
 
         {filteredQueue.length === 0 ? (
           <div className="py-16 text-center bg-white/50 border border-slate-200/50 rounded-3xl border-dashed">
              <HeartPulse className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-             <div className="text-slate-500 font-medium">Không có ca nào trong danh sách chờ.</div>
+             <div className="text-slate-500 font-medium">Bạn đã khám xong tất cả bệnh nhân. Giỏi quá!</div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredQueue.map((t, index) => (
+            {filteredQueue.slice(1).map((t, index) => (
               <Card 
                 key={t.id} 
-                className="p-5 bg-white/70 backdrop-blur-md border border-slate-200/60 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all rounded-[1.5rem] animate-in fade-in slide-in-from-bottom-4 group cursor-pointer"
+                className="p-5 bg-white/70 backdrop-blur-md border border-slate-200/60 shadow-sm hover:shadow-md transition-all rounded-[1.5rem] group cursor-pointer"
                 style={{ animationDelay: `${index * 50}ms` }}
                 onClick={() => openConsult(t)}
               >

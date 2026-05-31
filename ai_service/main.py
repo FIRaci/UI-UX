@@ -8,6 +8,7 @@ Endpoints:
 import os
 import json
 import re
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -104,21 +105,35 @@ async def chat_endpoint(request: ChatRequest):
         )
 
         raw_text = response.text.strip()
+        
+        # Xóa markdown nếu có
+        if raw_text.startswith("```"):
+            lines = raw_text.split("\n")
+            if lines[0].startswith("```"): lines = lines[1:]
+            if lines and lines[-1].startswith("```"): lines = lines[:-1]
+            raw_text = "\n".join(lines).strip()
 
-        # Trích xuất JSON object từ response
-        json_match = re.search(r'(\{.*\})', raw_text, re.DOTALL)
-        if json_match:
-            raw_text = json_match.group(1)
-        else:
-            if raw_text.startswith("```"):
-                lines = raw_text.split("\n")
-                if lines[0].startswith("```"):
-                    lines = lines[1:]
-                if lines[-1].startswith("```"):
-                    lines = lines[:-1]
-                raw_text = "\n".join(lines).strip()
+        data = None
+        try:
+            data = json.loads(raw_text)
+        except json.JSONDecodeError:
+            # Fallback: dùng raw_decode để bỏ qua phần Extra data ở cuối string
+            try:
+                decoder = json.JSONDecoder()
+                data, _ = decoder.raw_decode(raw_text.lstrip())
+            except json.JSONDecodeError as e:
+                # Nếu vẫn không được, tìm khối {} lớn nhất
+                start = raw_text.find('{')
+                end = raw_text.rfind('}')
+                if start != -1 and end != -1:
+                    try:
+                        data = json.loads(raw_text[start:end+1])
+                    except:
+                        pass
+                        
+        if not data:
+            data = {"text": "Lỗi phân tích JSON từ AI. Vui lòng thử lại.", "actions": [], "suggestedActions": []}
 
-        data = json.loads(raw_text)
         return ChatResponse(
             text=data.get("text", ""),
             actions=data.get("actions", []),

@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { toast } from "sonner";
 import { useStore, store } from "../../store";
 import { ChatView } from "../ChatView";
@@ -24,14 +25,17 @@ export function DoctorDashboard({ onLogout, role }: { onLogout: () => void; role
   const [levelFilter, setLevelFilter] = useState<string>("all");
   const [scheduleLevelFilter, setScheduleLevelFilter] = useState<string>("all");
   const [consultPatient, setConsultPatient] = useState<Triage | null>(null);
+  const [globalSearch, setGlobalSearch] = useState("");
 
   const appointments = useStore(s => s.appointments.filter(a => a.doctorName === ME_NAME));
   const TODAY = new Date().toISOString().split("T")[0];
   const todayAppts = appointments.filter(a => a.date === TODAY);
   const todayUpcoming = todayAppts.filter(a => a.status === "Sắp tới");
-  const filteredSchedule = todayAppts.filter(a => scheduleLevelFilter === "all" || a.level === scheduleLevelFilter);
+  const filteredSchedule = todayAppts
+    .filter(a => scheduleLevelFilter === "all" || a.level === scheduleLevelFilter)
+    .filter(a => globalSearch === "" || a.patientName.toLowerCase().includes(globalSearch.toLowerCase()));
   const threads = useStore(s =>
-    s.threads.filter(t => t.staffId === 2).sort((a, b) => b.updatedAt - a.updatedAt)
+    s.threads.filter(t => t.staffName === ME_NAME).sort((a, b) => b.updatedAt - a.updatedAt)
   );
 
   const [activeThreadId, setActiveThreadId] = useState<number | null>(null);
@@ -96,8 +100,11 @@ export function DoctorDashboard({ onLogout, role }: { onLogout: () => void; role
     setReply("");
   };
 
-  const filteredQueue = queue.filter(q => levelFilter === "all" || q.level === levelFilter);
-
+  const levelPriority: Record<string, number> = { "Khẩn cấp": 1, "Cao": 2, "Trung bình": 3, "Thấp": 4 };
+  const filteredQueue = queue
+    .filter(q => levelFilter === "all" || q.level === levelFilter)
+    .filter(q => globalSearch === "" || q.patient.toLowerCase().includes(globalSearch.toLowerCase()) || (q.symptoms || "").toLowerCase().includes(globalSearch.toLowerCase()))
+    .sort((a, b) => (levelPriority[a.level] || 5) - (levelPriority[b.level] || 5));
   const openConsult = (t: Triage) => {
     setConsultPatient(t);
     toast.info(`Mở bệnh án: ${t.patient}`);
@@ -148,7 +155,7 @@ export function DoctorDashboard({ onLogout, role }: { onLogout: () => void; role
           setLevelFilter={setLevelFilter}
           filteredQueue={filteredQueue}
           openConsult={openConsult}
-          todayUpcoming={todayUpcoming}
+          todayUpcoming={todayUpcoming.filter(a => globalSearch === "" || a.patientName.toLowerCase().includes(globalSearch.toLowerCase()))}
           setApptDetail={setApptDetail}
         />
       )}
@@ -227,78 +234,122 @@ export function DoctorDashboard({ onLogout, role }: { onLogout: () => void; role
 }
 
 function Profile() {
+  const [isEditing, setIsEditing] = useState(false);
+  const [profileData, setProfileData] = useState({
+    clinic: "Chi nhánh Quận 1, TP.HCM",
+    degree: "Thạc sĩ, Bác sĩ chuyên khoa I",
+    exp: "15 năm thực hành lâm sàng",
+    email: "an.nguyenvan@medicare.com"
+  });
+  const [notifs, setNotifs] = useState({
+    urgent: true,
+    sms: true,
+    email: false
+  });
+
+  const toggleNotif = (key: keyof typeof notifs) => {
+    setNotifs(p => ({ ...p, [key]: !p[key] }));
+    toast.success("Đã cập nhật tùy chọn thông báo");
+  };
+
+  const saveProfile = () => {
+    setIsEditing(false);
+    toast.success("Thông tin cá nhân đã được lưu!");
+  };
+
   return (
-    <div className="grid md:grid-cols-2 gap-5 animate-fade-in">
-      <Card className="p-6 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
-        <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-5">Thông tin tài khoản</h4>
-        <div className="flex items-center gap-4 mb-5">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-md">VA</div>
-          <div>
-            <div className="font-bold text-slate-800 text-base">BS. Nguyễn Văn An</div>
-            <div className="text-xs text-slate-500 mt-0.5">Bác sĩ • Mã số: BS-2026-00088</div>
-            <span className="inline-flex mt-1.5 px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 text-[10px] font-bold border border-violet-200">Tài khoản hoạt động</span>
+    <div className="max-w-2xl mx-auto animate-fade-in pb-10">
+      <Card className="overflow-hidden bg-white border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[24px]">
+        {/* Header Cover */}
+        <div className="h-32 bg-gradient-to-r from-violet-500 to-indigo-500 relative">
+          <div className="absolute inset-0 bg-white/20 mix-blend-overlay"></div>
+        </div>
+        
+        {/* Profile Info */}
+        <div className="px-8 pb-8 relative">
+          <div className="flex justify-between items-end mb-6">
+            <div className="w-24 h-24 rounded-3xl bg-white p-1.5 shadow-xl -mt-12 relative z-10">
+              <div className="w-full h-full bg-gradient-to-br from-violet-600 to-indigo-700 rounded-[18px] text-white flex items-center justify-center text-3xl font-black">
+                VA
+              </div>
+            </div>
+            {isEditing ? (
+              <Button 
+                className="rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white h-10 px-6 shadow-md"
+                onClick={saveProfile}
+              >
+                Lưu thông tin
+              </Button>
+            ) : (
+              <Button 
+                className="rounded-xl text-sm font-bold bg-slate-900 hover:bg-slate-800 h-10 px-6 shadow-md"
+                onClick={() => setIsEditing(true)}
+              >
+                Chỉnh sửa
+              </Button>
+            )}
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">BS. Nguyễn Văn An</h2>
+            <div className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">
+              Tim mạch • BS-2026-00088
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span className="text-emerald-600 font-bold">Đang hoạt động</span>
+            </div>
+          </div>
+
+          {/* Details & Settings */}
+          <div className="space-y-8">
+            <div>
+              <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Thông tin công tác</h4>
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-4">
+                {[
+                  { key: "clinic", label: "Nơi công tác", value: profileData.clinic },
+                  { key: "degree", label: "Học vị", value: profileData.degree },
+                  { key: "exp", label: "Kinh nghiệm", value: profileData.exp },
+                  { key: "email", label: "Email liên hệ", value: profileData.email },
+                ].map(item => (
+                  <div key={item.key} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                    <span className="text-sm text-slate-500 font-medium shrink-0">{item.label}</span>
+                    {isEditing ? (
+                      <Input 
+                        value={item.value}
+                        onChange={(e) => setProfileData(p => ({ ...p, [item.key]: e.target.value }))}
+                        className="h-9 text-sm font-bold text-slate-800 bg-white border-slate-200 focus:ring-violet-500 sm:w-2/3"
+                      />
+                    ) : (
+                      <span className="text-sm font-bold text-slate-800 text-right">{item.value}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Tùy chọn thông báo</h4>
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-4">
+                {[
+                  { key: "urgent", label: "Nhận thông báo ca khẩn cấp (Triage Đỏ)", on: notifs.urgent },
+                  { key: "sms", label: "Nhắc lịch khám mới qua SMS", on: notifs.sms },
+                  { key: "email", label: "Email báo cáo cuối tuần", on: notifs.email },
+                ].map(item => (
+                  <div 
+                    key={item.key} 
+                    className="flex justify-between items-center cursor-pointer group"
+                    onClick={() => toggleNotif(item.key as keyof typeof notifs)}
+                  >
+                    <span className="text-sm text-slate-700 font-medium group-hover:text-slate-900 transition-colors">{item.label}</span>
+                    <div className={`w-11 h-6 rounded-full flex items-center px-1 transition-colors ${item.on ? "bg-violet-500" : "bg-slate-200"}`}>
+                      <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${item.on ? "translate-x-5" : ""}`} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-        <div className="space-y-3">
-          {[
-            { label: "Chuyên khoa", value: "Tim mạch" },
-            { label: "Email", value: "an.nguyenvan@medicare.com" },
-            { label: "Số điện thoại", value: "0987 654 321" },
-            { label: "Nơi công tác", value: "CN Q1, TP.HCM" },
-            { label: "Kinh nghiệm", value: "15 năm" },
-            { label: "Học vị", value: "Thạc sĩ, Bác sĩ chuyên khoa I" },
-          ].map(item => (
-            <div key={item.label} className="flex justify-between items-center py-2.5 border-b border-slate-50 last:border-0">
-              <span className="text-xs text-slate-500 font-medium">{item.label}</span>
-              <span className="text-xs font-semibold text-slate-800">{item.value}</span>
-            </div>
-          ))}
-        </div>
-        <Button className="mt-5 w-full rounded-xl text-xs h-9 bg-slate-900 hover:bg-slate-800">Chỉnh sửa thông tin</Button>
       </Card>
-      <div className="space-y-5">
-        <Card className="p-5 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
-          <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-4">Cài đặt thông báo</h4>
-          <div className="space-y-3">
-            {[
-              { label: "Thông báo ca khẩn cấp (Hệ thống)", on: true },
-              { label: "Nhắc lịch khám mới qua SMS", on: true },
-              { label: "Báo cáo tin nhắn chờ tư vấn", on: true },
-              { label: "Email bản tin y khoa hàng tuần", on: false },
-            ].map(item => (
-              <div key={item.label} className="flex justify-between items-center">
-                <span className="text-xs text-slate-700 font-medium">{item.label}</span>
-                <div className={`w-9 h-5 rounded-full flex items-center px-0.5 transition-colors ${item.on ? "bg-violet-500" : "bg-slate-200"}`}>
-                  <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${item.on ? "translate-x-4" : ""}`} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-        <Card className="p-5 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
-          <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-4">Nhận lương &amp; Thanh toán</h4>
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center text-white text-xs font-bold">MB</div>
-                <div>
-                  <div className="text-xs font-bold text-slate-800">MBBank • **** 8888</div>
-                  <div className="text-[10px] text-slate-400">Tài khoản nhận lương</div>
-                </div>
-              </div>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">Đã liên kết</span>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-5 bg-white border border-slate-100 shadow-sm" style={{ borderRadius: "20px" }}>
-          <h4 className="font-bold text-slate-800 text-sm tracking-tight mb-3">Bảo mật tài khoản</h4>
-          <div className="space-y-2">
-            <Button variant="outline" className="w-full rounded-xl text-xs h-9 justify-start border-slate-200 text-slate-700">Đổi mật khẩu</Button>
-            <Button variant="outline" className="w-full rounded-xl text-xs h-9 justify-start border-slate-200 text-slate-700">Xác thực 2 bước (2FA)</Button>
-            <Button variant="outline" className="w-full rounded-xl text-xs h-9 justify-start border-slate-200 text-slate-700">Đăng nhập sinh trắc học (Vân tay / Face ID)</Button>
-          </div>
-        </Card>
-      </div>
     </div>
   );
 }

@@ -126,7 +126,7 @@ export function ChatView({ role }: { role: string }) {
   };
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-5 h-[calc(100vh-12rem)]">
+    <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-5 h-[calc(100vh-7.5rem)] min-h-[500px]">
       <div className="flex flex-col min-h-0">
         <Card className="p-3 mb-3 bg-amber-50 border-amber-200 flex items-start gap-2" style={{ borderRadius: "12px" }}>
           <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />

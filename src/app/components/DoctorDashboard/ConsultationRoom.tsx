@@ -143,20 +143,39 @@ Trả về JSON: {"text": "tóm tắt bằng tiếng Việt CÓ DẤU gồm 4-5 
           const lines = data.text.split("|").map((s: string) => s.trim()).filter(Boolean);
           setAiSummary(lines.length > 0 ? lines : [data.text]);
           const diagMatch = data.text.match(/chẩn đoán[^:]*:(.*?)(?:\.|$)/i);
+          let parsedDiags = ["Cần thêm xét nghiệm", "Theo dõi sinh hiệu", "Tham khảo chuyên khoa"];
           if (diagMatch) {
-            setAiDiagnoses(diagMatch[1].split(",").map((s: string) => s.trim()).filter(Boolean));
-          } else {
-            setAiDiagnoses(["Cần thêm xét nghiệm", "Theo dõi sinh hiệu", "Tham khảo chuyên khoa"]);
+            parsedDiags = diagMatch[1].split(",").map((s: string) => s.trim()).filter(Boolean);
           }
+          setAiDiagnoses(parsedDiags);
+          
+          setNote(
+            "==== AI ĐIỀN TỰ ĐỘNG ====\n\n" +
+            "• BỆNH SỬ & KHÁM LÂM SÀNG:\n" +
+            lines.map((l: string) => "- " + l).join("\n") + "\n\n" +
+            "• CHẨN ĐOÁN:\n" +
+            parsedDiags.join(", ") + "\n\n" +
+            "• ĐỀ XUẤT: Theo dõi thêm."
+          );
         }
       } catch {
-        setAiSummary([
+        const defaultLines = [
           `Bệnh nhân ${patient.patient}, ${patient.age} tuổi, vào viện vì: ${patient.symptoms.toLowerCase()}.`,
           `Sinh hiệu lúc tiếp nhận: HA ${patient.vitals.bp}, mạch ${patient.vitals.hr}, nhiệt độ ${patient.vitals.temp}, SpO2 ${patient.vitals.spo2}.`,
           `Tiền sử: tăng huyết áp 5 năm, đang dùng Amlodipine 5mg/ngày.`,
           `Khuyến nghị: ưu tiên đo ECG, xét nghiệm Troponin nếu nghi ngờ tim mạch.`,
-        ]);
-        setAiDiagnoses(["Cơn tăng huyết áp", "Đau đầu căng thẳng", "Rối loạn tiền đình"]);
+        ];
+        const defaultDiag = ["Cơn tăng huyết áp", "Đau đầu căng thẳng", "Rối loạn tiền đình"];
+        setAiSummary(defaultLines);
+        setAiDiagnoses(defaultDiag);
+        setNote(
+          "==== AI ĐIỀN TỰ ĐỘNG ====\n\n" +
+          "• BỆNH SỬ & KHÁM LÂM SÀNG:\n" +
+          defaultLines.map(l => "- " + l).join("\n") + "\n\n" +
+          "• CHẨN ĐOÁN:\n" +
+          defaultDiag.join(", ") + "\n\n" +
+          "• ĐỀ XUẤT: Tư vấn bệnh nhân nghỉ ngơi, uống nhiều nước."
+        );
       }
       setAiLoading(false);
     };

@@ -87,10 +87,11 @@ async function seedDatabase() {
         ]
       });
 
-    const threadCount = await prisma.thread.count();
-    if (threadCount === 0) {
-      console.log("Seeding threads...");
-      const thread1 = await prisma.thread.create({
+    await prisma.message.deleteMany({});
+    await prisma.thread.deleteMany({});
+    
+    console.log("Seeding threads...");
+    const thread1 = await prisma.thread.create({
         data: {
           staffId: 1, staffName: "BS. Nguyễn Văn An", staffSpec: "Tim mạch",
           userRole: "benhnhan", userName: "Nguyễn Minh Khoa", topic: "Tư vấn kết quả xét nghiệm",
@@ -104,7 +105,7 @@ async function seedDatabase() {
           { threadId: thread1.id, from: "user", txt: "Bác sĩ ơi, chỉ số cholesterol của tôi có cao quá không?", timeStr: "vừa xong" }
         ]
       });
-    }
+
 
     const articleCount = await prisma.article.count();
     if (articleCount === 0) {

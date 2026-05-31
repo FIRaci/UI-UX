@@ -9,7 +9,6 @@ import { type Triage } from "./constants";
 import type { Appointment } from "../../store";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-import type { Appointment } from "../../store";
 
 type RecordItem = { p: string; d: string; t: string; m: string };
 type Props = {
