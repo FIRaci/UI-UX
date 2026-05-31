@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -28,6 +29,12 @@ interface ChatAreaProps {
 }
 
 export function ChatArea({ messages, input, isTyping, insight, onSend, onInputChange, onViewDoctors }: ChatAreaProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-5 xl:h-[calc(100vh-12rem)]">
       <div className="flex flex-col min-h-0 order-2 xl:order-1">
@@ -38,8 +45,8 @@ export function ChatArea({ messages, input, isTyping, insight, onSend, onInputCh
           </p>
         </Card>
 
-        <Card className="flex-1 min-h-[60vh] xl:min-h-0 overflow-hidden flex flex-col p-0 border border-slate-100 shadow-sm" style={{ borderRadius: "16px" }}>
-          <ScrollArea className="flex-1 p-4">
+        <Card className="h-[65vh] xl:flex-1 xl:h-auto xl:min-h-0 overflow-hidden flex flex-col p-0 border border-slate-100 shadow-sm" style={{ borderRadius: "16px" }}>
+          <ScrollArea className="flex-1 min-h-0 p-4">
             <div className="space-y-4 max-w-3xl mx-auto">
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -86,6 +93,7 @@ export function ChatArea({ messages, input, isTyping, insight, onSend, onInputCh
                   </div>
                 </div>
               )}
+              <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
 

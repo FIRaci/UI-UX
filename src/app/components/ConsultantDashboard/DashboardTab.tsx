@@ -25,14 +25,30 @@ export function DashboardTab({ appointments, onNavigate, onViewHistory, onCancel
   return (
     <div className="space-y-5">
       <Card className="p-6 bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-0" style={{ borderRadius: "16px" }}>
-        <div className="flex items-center gap-2 opacity-90">
-          <Bot className="w-5 h-5" /> <span>Trợ lý sức khỏe AI</span>
+        <div className="grid grid-cols-[2fr_1fr] gap-6 items-center">
+          <div>
+            <div className="flex items-center gap-2 opacity-90 mb-2">
+              <Bot className="w-4 h-4" />
+              <span className="text-sm font-medium">Trợ lý sức khỏe AI</span>
+            </div>
+            <h2 className="tracking-tight text-3xl font-bold leading-snug">Cảm thấy không khỏe?</h2>
+            <p className="opacity-90 mt-2 text-base leading-relaxed">AI sẽ phân tích triệu chứng và gợi ý bác sĩ phù hợp nhất với bạn</p>
+            <Button size="lg" className="mt-5 w-full bg-white text-emerald-600 hover:bg-white/90" onClick={() => onNavigate("ai")}>
+              <Sparkles className="w-4 h-4 mr-2" /> Bắt đầu tư vấn AI
+            </Button>
+          </div>
+          <div className="hidden sm:flex flex-col gap-2 items-center justify-center h-full">
+            {[
+              "Phân tích triệu chứng",
+              "Gợi ý bác sĩ phù hợp",
+              "Đặt lịch nhanh chóng",
+            ].map((text, i) => (
+              <div key={i} className="bg-white/15 rounded-xl px-4 py-2.5 text-base font-medium backdrop-blur-sm w-fit">
+                {text}
+              </div>
+            ))}
+          </div>
         </div>
-        <h2 className="mt-2 tracking-tight">Cảm thấy không khỏe?</h2>
-        <p className="opacity-90 mt-1">AI sẽ phân tích triệu chứng và gợi ý bác sĩ phù hợp nhất với bạn</p>
-        <Button size="lg" className="mt-4 bg-white text-emerald-600 hover:bg-white/90" onClick={() => onNavigate("ai")}>
-          <Sparkles className="w-4 h-4 mr-2" /> Bắt đầu tư vấn AI
-        </Button>
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
