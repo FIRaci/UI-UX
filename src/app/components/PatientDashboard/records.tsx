@@ -1,11 +1,8 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { useEffect, useState, useCallback } from "react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "../ui/dialog";
-import { ScrollArea } from "../ui/scroll-area";
 import { ME } from "./constants";
 import { toast } from "sonner";
 import { FileText, Download, Activity, Heart, Thermometer, User, Hash, Stethoscope, Droplet, HeartPulse, Pill, RefreshCw } from "lucide-react";
@@ -17,10 +14,8 @@ export function Records() {
   const [tab, setTab] = useState("benhan");
   const [openItem, setOpenItem] = useState<any | null>(null);
   const [records, setRecords] = useState<any[]>([]);
-  const [isDownloading, setIsDownloading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const pdfRef = useRef<HTMLDivElement>(null);
 
   const loadRecords = useCallback(async () => {
     setLoading(true);
@@ -135,13 +130,13 @@ export function Records() {
       </Tabs>
       
       {/* Medical Report Dialog */}
-      <Dialog open={!!openItem} onOpenChange={() => { if (!isDownloading) setOpenItem(null); }}>
-        <DialogContent className="sm:max-w-[600px] rounded-3xl animate-scale-in p-0 bg-slate-50 border-none shadow-2xl" onPointerDownOutside={(e) => { if (isDownloading) e.preventDefault(); }}>
+      <Dialog open={!!openItem} onOpenChange={() => setOpenItem(null)}>
+        <DialogContent className="sm:max-w-[600px] rounded-3xl animate-scale-in p-0 bg-slate-50 border-none shadow-2xl">
           {openItem && (
               <div className="flex flex-col max-h-[85vh] overflow-hidden">
                 <DialogTitle className="sr-only">Phiếu khám bệnh - {openItem.title}</DialogTitle>
                 <DialogDescription className="sr-only">Chi tiết phiếu khám bệnh của {ME}</DialogDescription>
-                <div ref={pdfRef} className="flex flex-col flex-1 min-h-0">
+                <div className="flex flex-col flex-1 min-h-0">
                 {/* Hospital Header */}
                 <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-white text-center relative overflow-hidden shrink-0">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent"></div>
@@ -277,74 +272,10 @@ export function Records() {
               
               {/* Footer Actions */}
               <div className="p-4 bg-white border-t border-slate-100 flex items-center justify-between shrink-0">
-                <Button variant="ghost" className="text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl px-6" onClick={() => { if (!isDownloading) setOpenItem(null); }}>Đóng</Button>
-                <Button disabled={isDownloading} className="rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20 px-6 h-10 disabled:opacity-60" onClick={async () => {
-                  if (!pdfRef.current) return;
-                  setIsDownloading(true);
-                  try {
-                    const scrollEl = pdfRef.current.querySelector('.overflow-y-auto') as HTMLElement | null;
-                    const parentEl = pdfRef.current.parentElement as HTMLElement | null;
-                    if (scrollEl) {
-                      scrollEl.style.overflow = 'visible';
-                      scrollEl.style.maxHeight = 'none';
-                      scrollEl.style.flex = 'none';
-                    }
-                    if (parentEl) {
-                      parentEl.style.maxHeight = 'none';
-                      parentEl.style.overflow = 'visible';
-                    }
-                    await new Promise(r => setTimeout(r, 150));
-                    const canvas = await html2canvas(pdfRef.current, {
-                      scale: 2,
-                      useCORS: true,
-                      allowTaint: false,
-                      logging: false,
-                      backgroundColor: '#ffffff',
-                    });
-                    if (scrollEl) {
-                      scrollEl.style.overflow = '';
-                      scrollEl.style.maxHeight = '';
-                      scrollEl.style.flex = '';
-                    }
-                    if (parentEl) {
-                      parentEl.style.maxHeight = '';
-                      parentEl.style.overflow = '';
-                    }
-                    const imgData = canvas.toDataURL("image/png");
-                    const pdf = new jsPDF("p", "mm", "a4");
-                    const pdfWidth = 190;
-                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                    const pageHeight = 297;
-                    const margin = 10;
-                    let position = margin;
-                    let remaining = pdfHeight;
-                    let page = 1;
-
-                    while (remaining > 0) {
-                      if (page > 1) pdf.addPage();
-                      const usable = pageHeight - margin * 2;
-                      pdf.addImage(imgData, "PNG", margin, position, pdfWidth, pdfHeight);
-                      position -= usable;
-                      remaining -= usable;
-                      page++;
-                    }
-
-                    const filename = `Phieu_Kham_${openItem.title.replace(/[/\\?%*:|"<>]/g, "_")}.pdf`;
-                    pdf.save(filename);
-                    toast.success("Tải PDF thành công");
-                  } catch (e) {
-                    console.error("PDF error:", e);
-                    toast.error("Lỗi tạo PDF, vui lòng thử lại");
-                  } finally {
-                    setIsDownloading(false);
-                  }
-                }}>
-                  {isDownloading ? (
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <Download className="w-4 h-4" />
-                  )}
-                  {isDownloading ? "Đang tạo PDF..." : "Tải Phiếu Khám (PDF)"}
+                <Button variant="ghost" className="text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl px-6" onClick={() => setOpenItem(null)}>Đóng</Button>
+                <Button className="rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20 px-6 h-10" onClick={() => toast.info("Tính năng tải PDF đang phát triển")}>
+                  <Download className="w-4 h-4" />
+                  Tải Phiếu Khám (PDF)
                 </Button>
               </div>
             </div>
