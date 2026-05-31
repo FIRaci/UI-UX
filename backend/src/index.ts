@@ -205,10 +205,10 @@ const app = new Elysia()
           return { error: "Tên đăng nhập đã tồn tại" };
         }
 
-        // Verify staffCode if trying to register as a staff member
-        if (body.role !== "benhnhan" && body.staffCode !== "MEDICARE_STAFF_2026") {
+        // Only allow public registration for benhnhan and tuvan
+        if (body.role !== "benhnhan" && body.role !== "tuvan") {
           set.status = 403;
-          return { error: "Mã xác thực nhân viên không chính xác" };
+          return { error: "Vai trò không hợp lệ" };
         }
         
         // Securely hash password using Bun's built-in hasher

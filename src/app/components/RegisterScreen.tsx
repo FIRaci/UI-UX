@@ -15,16 +15,10 @@ export function RegisterScreen({ onNavigateLogin }: { onNavigateLogin: () => voi
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [role, setRole] = useState<"benhnhan" | "tuvan">("benhnhan");
-  const [staffCode, setStaffCode] = useState("");
 
   const handleRegister = async () => {
     if (!username.trim() || !password.trim() || !name.trim()) {
       toast.error("Vui lòng nhập đầy đủ thông tin");
-      return;
-    }
-
-    if (role === "tuvan" && !staffCode.trim()) {
-      toast.error("Vui lòng nhập mã xác thực nhân viên");
       return;
     }
 
@@ -36,8 +30,7 @@ export function RegisterScreen({ onNavigateLogin }: { onNavigateLogin: () => voi
           username, 
           password, 
           name, 
-          role,
-          ...(role === "tuvan" ? { staffCode } : {})
+          role
         })
       });
       const data = await res.json();
@@ -92,7 +85,7 @@ export function RegisterScreen({ onNavigateLogin }: { onNavigateLogin: () => voi
                 }`}
               >
                 <MessagesSquare className="w-6 h-6" />
-                <span className="text-sm font-bold">Tư vấn viên</span>
+                <span className="text-sm font-bold">Người cần tư vấn</span>
               </button>
             </div>
           </div>
@@ -130,19 +123,6 @@ export function RegisterScreen({ onNavigateLogin }: { onNavigateLogin: () => voi
               />
             </div>
             
-            {role === "tuvan" && (
-              <div className="space-y-2 animate-in fade-in zoom-in duration-300">
-                <Label htmlFor="staffcode" className="text-xs font-bold text-emerald-700">Mã xác thực nhân viên</Label>
-                <Input 
-                  id="staffcode" 
-                  placeholder="Nhập mã bí mật..." 
-                  value={staffCode} 
-                  onChange={e => setStaffCode(e.target.value)} 
-                  className="h-12 rounded-xl text-sm border-emerald-200 focus-visible:ring-emerald-600 bg-emerald-50/50" 
-                />
-              </div>
-            )}
-
             <Button 
               className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-sm mt-4" 
               onClick={handleRegister}

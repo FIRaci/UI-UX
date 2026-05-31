@@ -60,7 +60,6 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
         <Card className="p-8 shadow-2xl bg-white border border-slate-200 rounded-3xl animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="space-y-2 mb-8 text-center">
             <h3 className="text-2xl font-bold tracking-tight text-slate-900">Đăng nhập</h3>
-            <p className="text-sm text-slate-500">Truy cập bằng tài khoản của bạn</p>
           </div>
 
           <div className="space-y-5">
