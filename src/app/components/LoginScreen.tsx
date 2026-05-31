@@ -83,13 +83,15 @@ export function LoginScreen({ onLogin }: { onLogin: (role: Role) => void }) {
       <div className="w-full max-w-[1000px] grid lg:grid-cols-2 gap-10 xl:gap-16 items-center">
         
         {/* Left Side: Branding */}
-        <div className="flex flex-col justify-center space-y-6 animate-in fade-in slide-in-from-left-8 duration-700">
-          <div className="w-28 h-28 rounded-3xl bg-blue-600 flex items-center justify-center text-white shadow-xl">
-            <HeartPulse className="w-14 h-14" />
-          </div>
-          <div>
-            <h1 className="text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 mb-4">MediCare AI</h1>
-            <p className="text-xl text-slate-500 font-medium tracking-wide">Hệ thống Y tế thông minh</p>
+        <div className="flex flex-col justify-center animate-in fade-in slide-in-from-left-8 duration-700">
+          <div className="inline-flex flex-col max-w-fit">
+            <div className="flex items-center gap-5 mb-4">
+              <div className="w-24 h-24 rounded-3xl bg-blue-600 flex items-center justify-center text-white shadow-xl shrink-0">
+                <HeartPulse className="w-12 h-12" />
+              </div>
+              <h1 className="text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900">MediCare AI</h1>
+            </div>
+            <p className="text-lg text-slate-500 font-bold tracking-[0.2em] uppercase text-center w-full">Hệ thống Y tế thông minh</p>
           </div>
         </div>
         {/* Right Side: Login Box */}
