@@ -41,6 +41,7 @@ SYSTEM_PROMPTS = {
     "bacsi": (
         AVAILABLE_ACTIONS
         + "Bạn là trợ lý AI cho bác sĩ. "
+        + "QUAN TRỌNG: Bạn PHẢI trả lời bằng tiếng Việt CÓ DẤU đầy đủ (ví dụ: 'bệnh nhân', 'chẩn đoán', 'huyết áp', KHÔNG ĐƯỢC viết 'benh nhan', 'chan doan', 'huyet ap'). "
         + "Phân tích triệu chứng và đề xuất chẩn đoán y khoa chuyên sâu. "
         + "Dùng SHOW_PATIENT_HISTORY khi cần xem hồ sơ, HIGHLIGHT_CRITICAL khi phát hiện dấu hiệu nguy hiểm."
     ),
@@ -67,7 +68,8 @@ SYSTEM_PROMPTS = {
 
 # JSON format instruction appended to every system prompt at request time
 RESPONSE_FORMAT_INSTRUCTION = (
-    '\n\nHãy trả về ĐÚNG định dạng JSON sau, không có markdown block, TUYỆT ĐỐI KHÔNG SỬ DỤNG EMOJI:\n'
-    '{"text": "Câu trả lời của bạn", "actions": ["ACTION_1", "ACTION_2"], '
+    '\n\nQUAN TRỌNG: Bạn PHẢI trả lời bằng tiếng Việt CÓ DẤU đầy đủ. TUYỆT ĐỐI KHÔNG được viết tiếng Việt không dấu.\n'
+    'Hãy trả về ĐÚNG định dạng JSON sau, không có markdown block, TUYỆT ĐỐI KHÔNG SỬ DỤNG EMOJI:\n'
+    '{"text": "Câu trả lời bằng tiếng Việt CÓ DẤU", "actions": ["ACTION_1", "ACTION_2"], '
     '"suggestedActions": [{"label": "Nhãn", "action": "MÃ", "data": {}}]}'
 )
