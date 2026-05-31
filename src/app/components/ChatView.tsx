@@ -214,18 +214,7 @@ export function ChatView({ role }: { role: string }) {
 
           {((role === "benhnhan" && activePrompts.length > 0) || (role !== "benhnhan" && messages.length === 1)) && (
             <div className="px-4 py-3 border-t border-slate-100 bg-slate-50">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-xs text-muted-foreground">Gợi ý nhanh:</div>
-                {role === "benhnhan" && (
-                  <button 
-                    onClick={() => setActivePrompts(BENHNHAN_PROMPT_TREE.default)}
-                    className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1 font-medium transition"
-                  >
-                    <RefreshCw className="w-3 h-3" />
-                    Làm mới
-                  </button>
-                )}
-              </div>
+              <div className="text-xs text-muted-foreground mb-2">Gợi ý nhanh:</div>
               <div className="flex flex-wrap gap-2">
                 {activePrompts.map((p, i) => (
                   <button
@@ -241,6 +230,17 @@ export function ChatView({ role }: { role: string }) {
           )}
 
           <div className="p-4 border-t border-slate-100 bg-white">
+            {role === "benhnhan" && (
+              <div className="max-w-3xl mx-auto flex justify-end mb-2">
+                <button 
+                  onClick={() => setActivePrompts(BENHNHAN_PROMPT_TREE.default)}
+                  className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1 font-medium transition bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  Làm mới gợi ý
+                </button>
+              </div>
+            )}
             <div className="flex gap-2 items-end max-w-3xl mx-auto">
               <Textarea
                 value={input}

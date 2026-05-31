@@ -97,25 +97,7 @@ export function LoginScreen({ onLogin }: { onLogin: (role: Role) => void }) {
             Chăm sóc sức khỏe <br />
             <span className="text-blue-600">thông minh hơn</span>
           </h1>
-          <p className="text-slate-600 max-w-md text-base leading-relaxed">
-            Hệ sinh thái y tế số tích hợp AI hỗ trợ đặt lịch khám, tư vấn từ xa, và quản lý hồ sơ chuyên nghiệp. Đảm bảo an toàn, bảo mật và thân thiện.
-          </p>
-          <div className="grid grid-cols-3 gap-4 max-w-md pt-4">
-            <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
-              <div className="text-2xl font-bold text-slate-900 mb-1">+200</div>
-              <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Bác sĩ chuyên khoa</div>
-            </div>
-            <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
-              <div className="text-2xl font-bold text-slate-900 mb-1">+50K</div>
-              <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Lượt khám mỗi năm</div>
-            </div>
-            <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
-              <div className="text-2xl font-bold text-slate-900 mb-1">4.9/5</div>
-              <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Mức độ hài lòng</div>
-            </div>
-          </div>
         </div>
-
         {/* Right Side: Login Box */}
         <Card className="p-8 sm:p-10 shadow-xl bg-white border border-slate-200 rounded-3xl animate-in fade-in slide-in-from-right-8 duration-700">
           <div className="space-y-2 mb-8">

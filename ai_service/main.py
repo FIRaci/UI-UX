@@ -125,7 +125,11 @@ async def chat_endpoint(request: ChatRequest):
             suggestedActions=data.get("suggestedActions", []),
         )
     except Exception as e:
-        return ChatResponse(text=f"Lỗi khi gọi AI: {str(e)}", actions=[])
+        error_msg = str(e)
+        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg or "quota" in error_msg.lower():
+            friendly_text = "Hệ thống AI đang quá tải do vượt quá giới hạn API miễn phí (Quota Exceeded). Vui lòng đợi khoảng 1 phút rồi thử lại nhé."
+            return ChatResponse(text=friendly_text, actions=[])
+        return ChatResponse(text=f"Lỗi khi gọi AI: {error_msg}", actions=[])
 
 
 # --------------- /api/suggestions ---------------
