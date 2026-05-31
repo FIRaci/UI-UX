@@ -1,37 +1,120 @@
-# Hướng dẫn Deploy Backend cho Hệ thống MediCare AI
+# Hướng dẫn Deploy MediCare AI lên Render
 
-Vì Frontend đang được host trên Netlify (một dịch vụ public internet), nên Frontend **không thể** gửi request HTTP tới `localhost` (backend chạy trên máy tính của bạn). Để hệ thống hoạt động hoàn chỉnh, bạn cần đưa Backend (FastAPI / Node) lên một máy chủ có IP public.
+## Overview
 
-Dưới đây là một số nền tảng phổ biến, miễn phí để host Backend.
+Frontend đã có trên Netlify. Backend, AI Service và Database sẽ deploy lên Render.
 
-## 1. Sử dụng Render.com (Khuyên dùng cho Backend)
+| Service | Technology | Port |
+|---------|-----------|------|
+| Frontend | React + Vite | - |
+| Backend | Elysia (Bun) + Prisma | 3000 |
+| AI Service | FastAPI (Python) + Gemini | 8000 |
+| Database | PostgreSQL | 5432 |
 
-Render cung cấp Web Services miễn phí (sẽ tự động sleep sau 15 phút không dùng) và dễ dàng kết nối với Github.
+## Prerequisites
 
-- **Bước 1**: Đẩy code (bao gồm thư mục backend) lên Github.
-- **Bước 2**: Đăng nhập [Render.com](https://render.com).
-- **Bước 3**: Chọn **New +** -> **Web Service**.
-- **Bước 4**: Chọn Repository Github của bạn.
-- **Bước 5**: Cấu hình (ví dụ với Python FastAPI):
-  - **Build Command**: `pip install -r requirements.txt` (Hoặc lệnh tương ứng cài đặt thư viện)
-  - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-- **Bước 6**: Nhấn "Create Web Service". Sau khi deploy thành công, bạn sẽ nhận được một URL public (ví dụ: `https://medicare-backend.onrender.com`).
+1. Tài khoản Render (https://dashboard.render.com)
+2. Kết nối GitHub repo với Render
 
-## 2. Sử dụng Railway.app
+## Bước 1: Deploy PostgreSQL Database
 
-Railway.app cung cấp $5 tín dụng miễn phí mỗi tháng, đủ để chạy một Backend liên tục.
+1. Đăng nhập Render Dashboard
+2. Click **New +** → **PostgreSQL**
+3. Cấu hình:
+   - **Name**: `medicare-db`
+   - **Database**: `medicare`
+   - **Plan**: Free
+4. Click **Create Database**
+5. **Lưu lại Internal Database URL** (dùng cho Backend)
 
-- **Bước 1**: Đăng nhập [Railway.app](https://railway.app).
-- **Bước 2**: Nhấn **New Project** -> **Deploy from GitHub repo**.
-- **Bước 3**: Railway sẽ tự động nhận diện ngôn ngữ (Node.js hoặc Python) và tự động build.
-- **Bước 4**: Vào mục Settings của service, chọn **Generate Domain** để lấy URL public.
+## Bước 2: Deploy Backend (Elysia + Bun)
 
----
+1. Click **New +** → **Web Service**
+2. Chọn GitHub repo
+3. Cấu hình:
+   - **Name**: `medicare-backend`
+   - **Runtime**: `Bun`
+   - **Plan**: Free
+   - **Build Command**:
+     ```
+     cd backend && bun install && bunx prisma generate
+     ```
+   - **Start Command**:
+     ```
+     cd backend && bun run src/index.ts
+     ```
+4. Thêm Environment Variables:
+   - `NODE_ENV` = `production`
+   - `DATABASE_URL` = `<Internal Database URL từ Bước 1>`
+   - `JWT_SECRET` = `<tự tạo secret key>`
+   - `CORS_ORIGIN` = `https://medicare-ui-ux.netlify.app`
+5. Click **Create Web Service**
+6. **Lưu lại URL** (ví dụ: `https://medicare-backend.onrender.com`)
 
-### Lưu ý trên Netlify (Frontend)
-Sau khi có URL của Backend, bạn cần quay lại Netlify:
-1. Vào **Site configuration** -> **Environment variables**.
-2. Thêm một biến:
-   - Key: `VITE_AI_SERVICE_URL`
-   - Value: `https://<url-backend-cua-ban>`
-3. Trigger một bản **Deploy mới** trên Netlify để hệ thống nhận diện biến môi trường.
+## Bước 3: Deploy AI Service (FastAPI + Python)
+
+1. Click **New +** → **Web Service**
+2. Chọn GitHub repo
+3. Cấu hình:
+   - **Name**: `medicare-ai-service`
+   - **Runtime**: `Python 3`
+   - **Plan**: Free
+   - **Build Command**:
+     ```
+     cd ai_service && pip install -r requirements.txt
+     ```
+   - **Start Command**:
+     ```
+     cd ai_service && uvicorn main:app --host 0.0.0.0 --port $PORT
+     ```
+4. Thêm Environment Variables:
+   - `PYTHON_VERSION` = `3.11.0`
+   - `GEMINI_API_KEY` = `<API key từ Google AI Studio>`
+5. Click **Create Web Service**
+6. **Lưu lại URL** (ví dụ: `https://medicare-ai-service.onrender.com`)
+
+## Bước 4: Update Frontend trên Netlify
+
+1. Đăng nhập Netlify Dashboard
+2. Chọn site MediCare
+3. Vào **Site configuration** → **Environment variables**
+4. Thêm/sửa các biến:
+   - `VITE_API_URL` = `https://medicare-backend.onrender.com`
+   - `VITE_AI_SERVICE_URL` = `https://medicare-ai-service.onrender.com`
+5. Trigger **Deploy mới** trên Netlify
+
+## Bước 5: Verify
+
+1. Mở frontend trên Netlify
+2. Login với tài khoản: `benhnhan` / `123456`
+3. Kiểm tra:
+   - Chat AI hoạt động
+   - Danh sách bác sĩ hiển thị
+   - Đặt lịch hẹn thành công
+   - Hội thoại messenger hoạt động
+
+## Lưu ý quan trọng
+
+### Cold Start
+Render free tier sẽ sleep service sau 15 phút không sử dụng. Khi có request mới, service sẽ mất ~30s để khởi động lại.
+
+### Database
+- PostgreSQL miễn phí trong 90 ngày đầu
+- Sau 90 ngày, cần upgrade hoặc migrate data
+
+### Environment Variables
+- **Không commit** secrets (GEMINI_API_KEY, JWT_SECRET) lên git
+- Luôn set trong Render Dashboard
+
+### CORS
+- `CORS_ORIGIN` phải đúng với URL frontend trên Netlify
+- Nếu sai sẽ bị lỗi CORS khi gọi API
+
+## Troubleshooting
+
+| Lỗi | Nguyên nhân | Giải pháp |
+|------|-------------|-----------|
+| CORS error | Sai CORS_ORIGIN | Kiểm tra lại URL frontend |
+| Database connection failed | Sai DATABASE_URL | Copy đúng Internal URL từ Render |
+| AI service timeout | Gemini API key sai | Kiểm tra GEMINI_API_KEY |
+| Service sleep | Free tier cold start | Đợi 30s hoặc upgrade plan |

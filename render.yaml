@@ -1,0 +1,40 @@
+services:
+  # Backend API - Elysia (Bun)
+  - type: web
+    name: medicare-backend
+    runtime: bun
+    plan: free
+    buildCommand: cd backend && bun install && bunx prisma generate
+    startCommand: cd backend && bun run src/index.ts
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: medicare-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: https://medicare-ui-ux.netlify.app
+
+  # AI Service - FastAPI (Python)
+  - type: web
+    name: medicare-ai-service
+    runtime: python
+    plan: free
+    buildCommand: cd ai_service && pip install -r requirements.txt
+    startCommand: cd ai_service && uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: GEMINI_API_KEY
+        sync: false  # User needs to set this in Render dashboard
+
+  # PostgreSQL Database
+  - type: pgsql
+    name: medicare-db
+    plan: free
+    databaseName: medicare
+    ipAllowList: []  # Only allow internal connections
+

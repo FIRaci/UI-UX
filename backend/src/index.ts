@@ -699,8 +699,10 @@ const app = new Elysia()
   )
   .get("/", () => "MediCare AI Backend is running!");
 
+const PORT = parseInt(process.env.PORT || "3000", 10);
+
 seedDatabase().then(() => {
-  app.listen(3000);
+  app.listen(PORT);
   console.log(
     `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
   );

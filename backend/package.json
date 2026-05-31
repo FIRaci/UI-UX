@@ -4,8 +4,11 @@
   "type": "module",
   "scripts": {
     "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
     "db:push": "prisma db push",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "bun run src/seed.ts"
   },
   "dependencies": {
     "elysia": "latest",
