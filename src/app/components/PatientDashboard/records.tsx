@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
@@ -6,7 +8,8 @@ import { Dialog, DialogContent } from "../ui/dialog";
 import { ScrollArea } from "../ui/scroll-area";
 import { ME } from "./constants";
 import { toast } from "sonner";
-import { FileText, Download, Activity, Heart, Thermometer, User, Hash, Stethoscope, Droplet, HeartPulse, Pill } from "lucide-react";
+import { FileText, Download, Activity, Heart, Thermometer, User, Hash, Stethoscope, Droplet, HeartPulse, Pill, RefreshCw } from "lucide-react";
+import { Skeleton } from "../ui/skeleton";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -15,44 +18,51 @@ export function Records() {
   const [openItem, setOpenItem] = useState<any | null>(null);
   const [records, setRecords] = useState<any[]>([]);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
+
+  const loadRecords = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem("token");
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const res = await fetch(`${API_URL}/api/records`, { headers });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        window.dispatchEvent(new CustomEvent("app:unauthorized"));
+        return;
+      }
+      if (res.ok) {
+        const data = await res.json();
+        let filtered = data.filter((r: any) => r.patientName === ME);
+        if (!filtered.some((r: any) => r.type === "donthuoc")) {
+          filtered.push({
+            id: "mock_donthuoc_1",
+            patientName: ME,
+            title: "Đơn thuốc Điều trị Cảm cúm",
+            date: "2026-05-29",
+            doctor: "BS. Nguyễn Văn An",
+            note: "Nhiễm siêu vi nhẹ. Uống thuốc theo toa và tái khám nếu sốt cao.",
+            type: "donthuoc"
+          });
+        }
+        filtered.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setRecords(filtered);
+      }
+    } catch (e) {
+      console.error("Error loading records:", e);
+      setError("Không thể tải dữ liệu hồ sơ");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const loadRecords = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const headers: Record<string, string> = {};
-        if (token) headers["Authorization"] = `Bearer ${token}`;
-        const res = await fetch(`${API_URL}/api/records`, { headers });
-        if (res.status === 401) {
-          localStorage.removeItem("token");
-          window.dispatchEvent(new CustomEvent("app:unauthorized"));
-          return;
-        }
-        if (res.ok) {
-          const data = await res.json();
-          let filtered = data.filter((r: any) => r.patientName === ME);
-          // Auto-inject a mock 'donthuoc' if none exists for better demo
-          if (!filtered.some((r: any) => r.type === "donthuoc")) {
-            filtered.push({
-              id: "mock_donthuoc_1",
-              patientName: ME,
-              title: "Đơn thuốc Điều trị Cảm cúm",
-              date: "2026-05-29",
-              doctor: "BS. Nguyễn Văn An",
-              note: "Nhiễm siêu vi nhẹ. Uống thuốc theo toa và tái khám nếu sốt cao.",
-              type: "donthuoc"
-            });
-          }
-          // Sort by date descending
-          filtered.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-          setRecords(filtered);
-        }
-      } catch (e) {
-        console.error("Error loading records:", e);
-      }
-    };
     loadRecords();
-  }, []);
+  }, [loadRecords]);
 
   const items: any = {
     benhan: records.filter(r => r.type === "benhan"),
@@ -72,22 +82,47 @@ export function Records() {
         </div>
         {(["benhan", "ketqua", "donthuoc"] as const).map(k => (
           <TabsContent key={k} value={k} className="p-5 space-y-3.5 m-0 bg-transparent backdrop-blur-xl">
-            {items[k].map((it: any) => (
-              <div key={it.id} className="p-4.5 border border-slate-100 rounded-xl flex justify-between items-start hover:shadow-md transition-all bg-white/40 hover:bg-white/80 cursor-pointer group" style={{ borderRadius: "16px" }} onClick={() => setOpenItem(it)}>
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 shadow-sm border border-emerald-100 group-hover:scale-105 transition-transform">
-                    <FileText className="w-6 h-6" />
+            {loading ? (
+              <>
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="p-4 border border-slate-100 rounded-xl flex items-start gap-4" style={{ borderRadius: "16px" }}>
+                    <Skeleton className="w-12 h-12 rounded-2xl shrink-0" />
+                    <div className="flex-1 space-y-3">
+                      <Skeleton className="h-4 w-3/5" />
+                      <Skeleton className="h-3 w-2/5" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-bold text-slate-800 text-sm group-hover:text-emerald-700 transition-colors">{it.title}</div>
-                    <div className="text-xs text-slate-400 mt-1 font-semibold">{it.date} • {it.doctor}</div>
-                    <div className="text-xs text-slate-600 mt-2 leading-relaxed bg-slate-50/80 px-3 py-2 rounded-lg font-medium border border-slate-100/50">{it.note}</div>
-                  </div>
+                ))}
+              </>
+            ) : error ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-red-50 text-red-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Activity className="w-8 h-8" />
                 </div>
-                <Button size="sm" variant="outline" className="h-8 rounded-xl text-xs px-3 border-slate-200 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 shrink-0 ml-3 active:scale-95 transition-all">Chi tiết</Button>
+                <div className="text-slate-500 text-sm font-medium mb-4">{error}</div>
+                <Button size="sm" className="rounded-xl" onClick={loadRecords}>
+                  <RefreshCw className="w-4 h-4 mr-1.5" /> Thử lại
+                </Button>
               </div>
-            ))}
-            {items[k].length === 0 && (
+            ) : (
+              items[k].map((it: any) => (
+                <div key={it.id} className="p-4.5 border border-slate-100 rounded-xl flex justify-between items-start hover:shadow-md transition-all bg-white/40 hover:bg-white/80 cursor-pointer group" style={{ borderRadius: "16px" }} onClick={() => setOpenItem(it)}>
+                  <div className="flex gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 shadow-sm border border-emerald-100 group-hover:scale-105 transition-transform">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-800 text-sm group-hover:text-emerald-700 transition-colors">{it.title}</div>
+                      <div className="text-xs text-slate-400 mt-1 font-semibold">{it.date} • {it.doctor}</div>
+                      <div className="text-xs text-slate-600 mt-2 leading-relaxed bg-slate-50/80 px-3 py-2 rounded-lg font-medium border border-slate-100/50">{it.note}</div>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" className="h-8 rounded-xl text-xs px-3 border-slate-200 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 shrink-0 ml-3 active:scale-95 transition-all">Chi tiết</Button>
+                </div>
+              ))
+            )}
+            {!loading && !error && items[k].length === 0 && (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-slate-100 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FileText className="w-8 h-8" />
@@ -100,12 +135,13 @@ export function Records() {
       </Tabs>
       
       {/* Medical Report Dialog */}
-      <Dialog open={!!openItem} onOpenChange={() => setOpenItem(null)}>
+      <Dialog open={!!openItem} onOpenChange={() => { if (!isDownloading) setOpenItem(null); }}>
         <DialogContent className="sm:max-w-[600px] rounded-3xl animate-scale-in p-0 overflow-hidden bg-slate-50 border-none shadow-2xl">
           {openItem && (
-            <div className="flex flex-col max-h-[85vh]">
-              {/* Hospital Header */}
-              <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-white text-center relative overflow-hidden shrink-0">
+              <div className="flex flex-col max-h-[85vh]">
+                <div ref={pdfRef}>
+                {/* Hospital Header */}
+                <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-white text-center relative overflow-hidden shrink-0">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent"></div>
                 <HeartPulse className="w-24 h-24 text-white/10 absolute -right-4 -bottom-4 transform rotate-12" />
                 <h3 className="font-black text-xl tracking-tight uppercase relative z-10 drop-shadow-md">Phòng khám Đa khoa MediCare</h3>
@@ -235,15 +271,54 @@ export function Records() {
                   </div>
                 </div>
               </div>
+              </div>
               
               {/* Footer Actions */}
               <div className="p-4 bg-white border-t border-slate-100 flex items-center justify-between shrink-0">
-                <Button variant="ghost" className="text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl px-6" onClick={() => setOpenItem(null)}>Đóng</Button>
-                <Button className="rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20 px-6 h-10" onClick={() => {
+                <Button variant="ghost" className="text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl px-6" onClick={() => { if (!isDownloading) setOpenItem(null); }}>Đóng</Button>
+                <Button disabled={isDownloading} className="rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20 px-6 h-10 disabled:opacity-60" onClick={async () => {
+                  if (!pdfRef.current) return;
                   setIsDownloading(true);
-                  setTimeout(() => { setIsDownloading(false); toast.success("Đã tải xuống Phiếu Khám Bệnh (PDF)"); }, 1500);
-                }} disabled={isDownloading}>
-                  {isDownloading ? <span className="w-4 h-4 border-2 border-white/50 border-t-transparent rounded-full animate-spin"></span> : <Download className="w-4 h-4" />}
+                  try {
+                    const canvas = await html2canvas(pdfRef.current, {
+                      scale: 2,
+                      useCORS: true,
+                      allowTaint: false,
+                      logging: false,
+                    });
+                    const imgData = canvas.toDataURL("image/png");
+                    const pdf = new jsPDF("p", "mm", "a4");
+                    const pdfWidth = 190;
+                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                    const pageHeight = 297;
+                    const margin = 10;
+                    let position = margin;
+                    let remaining = pdfHeight;
+                    let page = 1;
+
+                    while (remaining > 0) {
+                      if (page > 1) pdf.addPage();
+                      const usable = pageHeight - margin * 2;
+                      pdf.addImage(imgData, "PNG", margin, position, pdfWidth, pdfHeight);
+                      position -= usable;
+                      remaining -= usable;
+                      page++;
+                    }
+
+                    const filename = `Phieu_Kham_${openItem.title.replace(/[/\\?%*:|"<>]/g, "_")}.pdf`;
+                    pdf.save(filename);
+                    toast.success("Tải PDF thành công");
+                  } catch {
+                    toast.error("Lỗi tạo PDF, vui lòng thử lại");
+                  } finally {
+                    setIsDownloading(false);
+                  }
+                }}>
+                  {isDownloading ? (
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
                   {isDownloading ? "Đang tạo PDF..." : "Tải Phiếu Khám (PDF)"}
                 </Button>
               </div>

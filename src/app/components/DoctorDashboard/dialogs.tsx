@@ -8,6 +8,9 @@ import { toast } from "sonner";
 import { type Triage } from "./constants";
 import type { Appointment } from "../../store";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+import type { Appointment } from "../../store";
+
 type RecordItem = { p: string; d: string; t: string; m: string };
 type Props = {
   patientFile: string | null;
@@ -194,7 +197,7 @@ export function Dialogs({
               const token = localStorage.getItem("token");
               const headers: Record<string, string> = { "Content-Type": "application/json" };
               if (token) headers["Authorization"] = `Bearer ${token}`;
-              const savePromise = fetch("http://localhost:3000/api/records", {
+              const savePromise = fetch(`${API_URL}/api/records`, {
                 method: "POST", headers,
                 body: JSON.stringify({ patientName: newRecordPatient, title, date: today, doctor: ME_NAME, note: newRecordContent, type: newRecordType === "prescription" ? "donthuoc" : "benhan" })
               }).then(async (res) => {
