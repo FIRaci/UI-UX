@@ -11,7 +11,7 @@ import { Records } from "./records";
 import { Profile } from "./profile";
 import { Tracking } from "./tracking";
 import { MessagesTab } from "./messages-tab";
-import { DoctorDetailDialog, BookingDialog, EditAppointmentDialog, NewMessageDialog, AppointmentDetailDialog } from "./dialogs";
+import { DoctorDetailDialog, BookingDialog, EditAppointmentDialog, NewMessageDialog, AppointmentDetailDialog, AppointmentSuccessDialog, CancelConfirmDialog } from "./dialogs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
@@ -88,6 +88,13 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
   const [reply, setReply] = useState("");
   const [newMsgDoctor, setNewMsgDoctor] = useState<Doctor | null>(null);
   const [newMsgContent, setNewMsgContent] = useState("");
+  const [showBookingSuccess, setShowBookingSuccess] = useState(false);
+  const [bookedDoctor, setBookedDoctor] = useState<Doctor | null>(null);
+  const [bookedDate, setBookedDate] = useState("");
+  const [bookedTime, setBookedTime] = useState("");
+  const [bookedClinic, setBookedClinic] = useState("");
+  const [cancelAppointment, setCancelAppointment] = useState<Appointment | null>(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   // Chat State
   const [messages, setMessages] = useState<ChatMsg[]>(() => {
@@ -354,7 +361,14 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
     if (slot.getHours() < 7 || slot.getHours() >= 20) { toast.error("Phòng khám chỉ nhận lịch từ 07:00 đến 20:00"); return; }
     if (appointments.some(a => a.date === bookDate && a.time === bookTime && a.status === "Sắp tới")) { toast.error("Bạn đã có lịch trùng giờ."); return; }
     store.addAppointment({ patientName: ME, doctorName: bookingDoctor.name, doctorSpec: bookingDoctor.spec, date: bookDate, time: bookTime, clinic: bookingDoctor.clinic, status: "Sắp tới" });
-    toast.success("Đặt lịch thành công!");
+    
+    // Show success dialog
+    setBookedDoctor(bookingDoctor);
+    setBookedDate(bookDate);
+    setBookedTime(bookTime);
+    setBookedClinic(bookingDoctor.clinic);
+    setShowBookingSuccess(true);
+    
     setBookingDoctor(null); setBookTime("");
   };
 
@@ -362,7 +376,16 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
     const a = appointments.find(x => x.id === id);
     if (!a) return;
     if (a.status !== "Sắp tới") { toast.error("Chỉ có thể hủy lịch còn hiệu lực"); return; }
-    toast("Xác nhận hủy lịch?", { action: { label: "Hủy lịch", onClick: () => { store.updateAppointment(id, { status: "Đã hủy" }); toast.success("Đã hủy lịch hẹn"); } }, cancel: { label: "Đóng", onClick: () => {} } });
+    setCancelAppointment(a);
+    setShowCancelConfirm(true);
+  };
+
+  const confirmCancelAppt = () => {
+    if (!cancelAppointment) return;
+    store.updateAppointment(cancelAppointment.id, { status: "Đã hủy" });
+    toast.success("Đã hủy lịch hẹn thành công");
+    setShowCancelConfirm(false);
+    setCancelAppointment(null);
   };
 
   const updateAppt = () => {
@@ -826,6 +849,22 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
       <AppointmentDetailDialog
         appt={viewingAppt}
         onClose={() => setViewingAppt(null)}
+      />
+
+      <AppointmentSuccessDialog
+        doctor={bookedDoctor}
+        date={bookedDate}
+        time={bookedTime}
+        clinic={bookedClinic}
+        onClose={() => { setShowBookingSuccess(false); setBookedDoctor(null); }}
+        onViewAppointments={() => { setShowBookingSuccess(false); setBookedDoctor(null); navigate("/patient/appointments"); }}
+      />
+
+      <CancelConfirmDialog
+        appointment={cancelAppointment}
+        isOpen={showCancelConfirm}
+        onClose={() => { setShowCancelConfirm(false); setCancelAppointment(null); }}
+        onConfirm={confirmCancelAppt}
       />
 
       {/* Chat History Dialog */}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "motion/react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -8,7 +9,7 @@ import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "../ui/dialog";
-import { Star, MapPin } from "lucide-react";
+import { Star, MapPin, CheckCircle, Calendar, Clock, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { type Doctor } from "./constants";
 import type { Appointment } from "../../store";
@@ -274,6 +275,161 @@ export function AppointmentDetailDialog({ appt, onClose }: {
             </div>
             <DialogFooter>
               <Button onClick={onClose} className="w-full">Đóng</Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function AppointmentSuccessDialog({ doctor, date, time, clinic, onClose, onViewAppointments }: {
+  doctor: Doctor | null;
+  date: string;
+  time: string;
+  clinic: string;
+  onClose: () => void;
+  onViewAppointments: () => void;
+}) {
+  return (
+    <Dialog open={!!doctor} onOpenChange={onClose}>
+      <DialogContent className="animate-scale-in max-w-md">
+        {doctor && (
+          <>
+            <div className="flex flex-col items-center text-center py-4">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mb-4"
+              >
+                <CheckCircle className="w-10 h-10 text-emerald-600" />
+              </motion.div>
+              <DialogTitle className="text-xl font-bold text-slate-800 mb-2">Đặt lịch thành công!</DialogTitle>
+              <DialogDescription className="text-slate-500">
+                Lịch hẹn của bạn đã được xác nhận
+              </DialogDescription>
+            </div>
+            
+            <Card className="p-4 bg-emerald-50 border-emerald-200 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-white text-sky-700 flex items-center justify-center border border-sky-100 shrink-0">
+                  <Stethoscope className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-800">{doctor.name}</div>
+                  <div className="text-sm text-slate-600">{doctor.spec}</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center gap-2 text-slate-700">
+                  <Calendar className="w-4 h-4 text-emerald-600" />
+                  <span className="font-semibold">{date}</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-700">
+                  <Clock className="w-4 h-4 text-emerald-600" />
+                  <span className="font-semibold">{time}</span>
+                </div>
+              </div>
+              <div className="text-xs text-emerald-700 bg-white p-2 rounded-lg border border-emerald-100">
+                <p className="font-semibold mb-1">📍 Địa chỉ: {clinic}</p>
+                <p className="text-emerald-600">Hãy đến trước 15 phút để làm thủ tục</p>
+              </div>
+            </Card>
+
+            <DialogFooter className="flex flex-col gap-2 sm:flex-row">
+              <Button variant="outline" className="flex-1 active:scale-95 transition-all" onClick={onClose}>
+                Đóng
+              </Button>
+              <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all" onClick={onViewAppointments}>
+                Xem lịch hẹn
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function CancelConfirmDialog({ appointment, isOpen, onClose, onConfirm }: {
+  appointment: Appointment | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleConfirm = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      onConfirm();
+      setIsProcessing(false);
+    }, 800);
+  };
+
+  return (
+    <Dialog open={isOpen && !!appointment} onOpenChange={onClose}>
+      <DialogContent className="animate-scale-in max-w-md">
+        {appointment && (
+          <>
+            <div className="flex flex-col items-center text-center py-4">
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mb-4"
+              >
+                <AlertTriangle className="w-10 h-10 text-red-600" />
+              </motion.div>
+              <DialogTitle className="text-xl font-bold text-slate-800 mb-2">Xác nhận hủy lịch</DialogTitle>
+              <DialogDescription className="text-slate-500">
+                Bạn có chắc chắn muốn hủy lịch hẹn này không?
+              </DialogDescription>
+            </div>
+            
+            <Card className="p-4 bg-red-50 border-red-200 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-white text-sky-700 flex items-center justify-center border border-sky-100 shrink-0">
+                  <Stethoscope className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-800">{appointment.doctorName}</div>
+                  <div className="text-sm text-slate-600">{appointment.doctorSpec}</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center gap-2 text-slate-700">
+                  <Calendar className="w-4 h-4 text-red-600" />
+                  <span className="font-semibold">{appointment.date}</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-700">
+                  <Clock className="w-4 h-4 text-red-600" />
+                  <span className="font-semibold">{appointment.time}</span>
+                </div>
+              </div>
+              <div className="text-xs text-red-700 bg-white p-2 rounded-lg border border-red-100">
+                <p className="font-semibold">⚠️ Lưu ý:</p>
+                <p className="text-red-600">Sau khi hủy, bạn sẽ cần đặt lại lịch nếu muốn khám với bác sĩ này.</p>
+              </div>
+            </Card>
+
+            <DialogFooter className="flex flex-col gap-2 sm:flex-row">
+              <Button variant="outline" className="flex-1 active:scale-95 transition-all" onClick={onClose} disabled={isProcessing}>
+                Giữ lịch hẹn
+              </Button>
+              <Button 
+                variant="destructive" 
+                className="flex-1 active:scale-95 transition-all" 
+                onClick={handleConfirm}
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <span className="w-5 h-5 border-2 border-white/50 border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  "Xác nhận hủy"
+                )}
+              </Button>
             </DialogFooter>
           </>
         )}
