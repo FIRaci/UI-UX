@@ -83,20 +83,14 @@ export function LoginScreen({ onLogin }: { onLogin: (role: Role) => void }) {
       <div className="w-full max-w-[1000px] grid lg:grid-cols-2 gap-10 xl:gap-16 items-center">
         
         {/* Left Side: Branding */}
-        <div className="space-y-6 animate-in fade-in slide-in-from-left-8 duration-700">
-          <div className="flex items-center gap-5">
-            <div className="w-20 h-20 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg">
-              <HeartPulse className="w-10 h-10" />
-            </div>
-            <div>
-              <div className="text-4xl font-extrabold tracking-tight text-slate-900">MediCare AI</div>
-              <div className="text-sm text-slate-500 font-bold tracking-wider uppercase mt-1">Hệ thống Y tế thông minh</div>
-            </div>
+        <div className="flex flex-col justify-center space-y-6 animate-in fade-in slide-in-from-left-8 duration-700">
+          <div className="w-28 h-28 rounded-3xl bg-blue-600 flex items-center justify-center text-white shadow-xl">
+            <HeartPulse className="w-14 h-14" />
           </div>
-          <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-slate-900">
-            Chăm sóc sức khỏe <br />
-            <span className="text-blue-600">thông minh hơn</span>
-          </h1>
+          <div>
+            <h1 className="text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 mb-4">MediCare AI</h1>
+            <p className="text-xl text-slate-500 font-medium tracking-wide">Hệ thống Y tế thông minh</p>
+          </div>
         </div>
         {/* Right Side: Login Box */}
         <Card className="p-8 sm:p-10 shadow-xl bg-white border border-slate-200 rounded-3xl animate-in fade-in slide-in-from-right-8 duration-700">
