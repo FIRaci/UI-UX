@@ -4,7 +4,7 @@ import html2canvas from "html2canvas";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
-import { Dialog, DialogContent } from "../ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "../ui/dialog";
 import { ScrollArea } from "../ui/scroll-area";
 import { ME } from "./constants";
 import { toast } from "sonner";
@@ -136,9 +136,11 @@ export function Records() {
       
       {/* Medical Report Dialog */}
       <Dialog open={!!openItem} onOpenChange={() => { if (!isDownloading) setOpenItem(null); }}>
-        <DialogContent className="sm:max-w-[600px] rounded-3xl animate-scale-in p-0 overflow-hidden bg-slate-50 border-none shadow-2xl">
+        <DialogContent className="sm:max-w-[600px] rounded-3xl animate-scale-in p-0 bg-slate-50 border-none shadow-2xl" onPointerDownOutside={() => { if (isDownloading) return; }}>
           {openItem && (
               <div className="flex flex-col max-h-[85vh]">
+                <DialogTitle className="sr-only">Phiếu khám bệnh - {openItem.title}</DialogTitle>
+                <DialogDescription className="sr-only">Chi tiết phiếu khám bệnh của {ME}</DialogDescription>
                 <div ref={pdfRef}>
                 {/* Hospital Header */}
                 <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-white text-center relative overflow-hidden shrink-0">
