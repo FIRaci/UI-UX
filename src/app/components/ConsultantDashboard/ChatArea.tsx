@@ -31,8 +31,8 @@ export function ChatArea({ messages, input, isTyping, insight, onSend, onInputCh
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-5 xl:h-[calc(100vh-12rem)]">
       <div className="flex flex-col min-h-0 order-2 xl:order-1">
-        <Card className="p-3 mb-3 bg-amber-50 border-amber-200 flex items-start gap-2" style={{ borderRadius: "12px" }}>
-          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+        <Card className="p-3 mb-3 bg-amber-50 border-amber-200 flex flex-row items-center gap-2" style={{ borderRadius: "12px" }}>
+          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
           <p className="text-xs text-amber-800">
             <b>Lưu ý:</b> Kết quả AI chỉ mang tính hỗ trợ tham khảo và không thay thế chẩn đoán y khoa chuyên nghiệp.
           </p>
@@ -115,7 +115,7 @@ export function ChatArea({ messages, input, isTyping, insight, onSend, onInputCh
                   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(input); }
                 }}
                 placeholder="Mô tả triệu chứng của bạn..."
-                className="resize-none min-h-[48px] max-h-32 rounded-xl border-slate-200"
+                className="resize-none min-h-[48px] max-h-32 rounded-xl border-slate-200 py-[13px] leading-[22px]"
                 rows={1}
               />
               <Button

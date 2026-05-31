@@ -36,24 +36,32 @@ export function DashboardTab({ appointments, onNavigate, onViewHistory, onCancel
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4 border border-slate-100 hover:shadow-sm transition-all" style={{ borderRadius: "16px" }}>
-          <div className="inline-flex px-2 py-0.5 rounded-md text-xs bg-emerald-50 text-emerald-700">Hoàn thành</div>
-          <div className="mt-2 text-2xl tracking-tight font-bold">{HISTORY.length}</div>
-          <div className="text-sm text-muted-foreground mt-0.5">Lượt tư vấn AI</div>
+        <Card className="p-4 border border-slate-100 hover:shadow-sm transition-all flex flex-row items-center gap-4" style={{ borderRadius: "16px" }}>
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0">
+            <span className="text-2xl font-bold text-emerald-600">{HISTORY.length}</span>
+          </div>
+          <div>
+            <div className="font-semibold text-slate-800 text-base">Lượt tư vấn AI</div>
+            <div className="text-xs text-emerald-600 font-medium mt-0.5">Hoàn thành</div>
+          </div>
         </Card>
-        <Card className="p-4 border border-slate-100 hover:shadow-sm transition-all" style={{ borderRadius: "16px" }}>
-          <div className="inline-flex px-2 py-0.5 rounded-md text-xs bg-teal-50 text-teal-700">Sẵn sàng</div>
-          <div className="mt-2 text-2xl tracking-tight font-bold">{DOCTORS.length}</div>
-          <div className="text-sm text-muted-foreground mt-0.5">Bác sĩ được gợi ý</div>
+        <Card className="p-4 border border-slate-100 hover:shadow-sm transition-all flex flex-row items-center gap-4" style={{ borderRadius: "16px" }}>
+          <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center shrink-0">
+            <span className="text-2xl font-bold text-teal-600">{DOCTORS.length}</span>
+          </div>
+          <div>
+            <div className="font-semibold text-slate-800 text-base">Bác sĩ được gợi ý</div>
+            <div className="text-xs text-teal-600 font-medium mt-0.5">Sẵn sàng</div>
+          </div>
         </Card>
-        <Card
-          className="p-4 border border-slate-100 hover:shadow-sm transition-all cursor-pointer"
-          style={{ borderRadius: "16px" }}
-          onClick={() => onNavigate("appointments")}
-        >
-          <div className="inline-flex px-2 py-0.5 rounded-md text-xs bg-violet-50 text-violet-700">Sắp tới</div>
-          <div className="mt-2 text-2xl tracking-tight font-bold">{appointments.length}</div>
-          <div className="text-sm text-muted-foreground mt-0.5">Lịch hẹn đã đặt</div>
+        <Card className="p-4 border border-slate-100 hover:shadow-sm transition-all flex flex-row items-center gap-4" style={{ borderRadius: "16px" }}>
+          <div className="w-12 h-12 rounded-2xl bg-violet-50 flex items-center justify-center shrink-0">
+            <span className="text-2xl font-bold text-violet-600">{appointments.length}</span>
+          </div>
+          <div>
+            <div className="font-semibold text-slate-800 text-base">Lịch hẹn đã đặt</div>
+            <div className="text-xs text-violet-600 font-medium mt-0.5">Sắp tới</div>
+          </div>
         </Card>
       </div>
 
@@ -64,17 +72,22 @@ export function DashboardTab({ appointments, onNavigate, onViewHistory, onCancel
           </h4>
           <div className="space-y-2">
             {appointments.map(a => (
-              <div key={a.id} className="p-3 border border-emerald-100 bg-emerald-50/50 rounded-xl flex items-start justify-between gap-3">
-                <div>
-                  <div className="font-medium text-slate-800">{a.doctorName}</div>
-                  <div className="text-sm text-muted-foreground">{a.specialty} • {a.time}</div>
+              <div key={a.id} className="p-4 border border-emerald-100 bg-emerald-50/40 rounded-xl flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                    <CalendarClock className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-slate-800 truncate text-base">{a.doctorName}</div>
+                    <div className="text-sm text-muted-foreground mt-0.5">{a.specialty} · {a.time}</div>
+                  </div>
                 </div>
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Đã xác nhận</Badge>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 text-sm px-3 py-1">Đã xác nhận</Badge>
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg"
+                    className="h-8 px-3 text-sm text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
                     onClick={() => onCancelAppt(a)}
                   >
                     Hủy lịch
@@ -112,9 +125,9 @@ export function DashboardTab({ appointments, onNavigate, onViewHistory, onCancel
         ))}
       </Card>
 
-      <Card className="p-3 bg-slate-50 border-slate-200 flex items-start gap-2" style={{ borderRadius: "12px" }}>
-        <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" aria-hidden />
-        <p className="text-xs text-slate-600">
+      <Card className="p-3 bg-amber-50 border-amber-200 flex flex-row items-center gap-2" style={{ borderRadius: "12px" }}>
+        <Info className="w-4 h-4 text-amber-600 shrink-0" aria-hidden />
+        <p className="text-xs text-amber-800">
           Thông tin và phân tích AI trong ứng dụng chỉ mang tính hỗ trợ tham khảo, không thay thế chẩn đoán y khoa chuyên nghiệp. Trường hợp khẩn cấp, hãy gọi 115.
         </p>
       </Card>

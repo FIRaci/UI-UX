@@ -20,7 +20,7 @@ const ROLES: {
   colorClass: string;
 }[] = [
   { key: "benhnhan", label: "Bệnh nhân", desc: "Xem hồ sơ & Đặt lịch khám", icon: UserRound, colorClass: "text-blue-600 bg-blue-50 border-blue-200" },
-  { key: "tuvan", label: "Tư vấn viên", desc: "Trả lời tin nhắn & Hỗ trợ", icon: MessagesSquare, colorClass: "text-emerald-600 bg-emerald-50 border-emerald-200" },
+  { key: "tuvan", label: "Người cần tư vấn", desc: "Trả lời tin nhắn & Hỗ trợ", icon: MessagesSquare, colorClass: "text-emerald-600 bg-emerald-50 border-emerald-200" },
   { key: "bacsi", label: "Bác sĩ", desc: "Khám bệnh & Kê toa", icon: Stethoscope, colorClass: "text-indigo-600 bg-indigo-50 border-indigo-200" },
   { key: "quanly", label: "Quản lý", desc: "Vận hành hệ thống", icon: ShieldCheck, colorClass: "text-rose-600 bg-rose-50 border-rose-200" },
 ];
