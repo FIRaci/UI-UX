@@ -36,6 +36,7 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
   const [managerUser, setManagerUser] = useState("");
   const [managerPass, setManagerPass] = useState("");
   const [managerLoading, setManagerLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleQuickLogin = async (role: Role) => {
     try {
@@ -63,6 +64,7 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
       return;
     }
 
+    setIsLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
@@ -82,6 +84,8 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
       }
     } catch (e) {
       toast.error("Lỗi kết nối đến máy chủ");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -224,10 +228,11 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
                   />
                 </div>
                 <Button 
-                  className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-sm" 
+                  className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-sm disabled:opacity-70 disabled:cursor-not-allowed" 
                   onClick={handleFormLogin}
+                  disabled={isLoading}
                 >
-                  Đăng nhập
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Đăng nhập"}
                 </Button>
                 
                 <Button 
