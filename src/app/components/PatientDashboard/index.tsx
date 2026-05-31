@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Search, CalendarDays, FileHeart, Bot, Send, HeartPulse, LogOut, Activity, MessagesSquare, ArrowLeft, Sparkles, Bell, ChevronRight, Star, Clock, Stethoscope, X, Mic, Plus, History, RefreshCw } from "lucide-react";
+import { Search, CalendarDays, FileHeart, Bot, Send, HeartPulse, LogOut, Activity, MessagesSquare, ArrowLeft, Sparkles, Bell, ChevronRight, Star, Clock, Stethoscope, X, Mic, Plus, History, RefreshCw, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -930,18 +930,41 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
               <div className="text-center py-8 text-slate-400 text-sm">Chưa có lịch sử trò chuyện.</div>
             ) : (
               [...chatSessions].reverse().map(session => (
-                <div key={session.id} className={`p-4 border rounded-2xl shadow-sm hover:border-emerald-200 hover:shadow-emerald-500/10 transition-all cursor-pointer ${session.id === currentSessionId ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-100"}`} onClick={() => {
-                  setMessages(session.msgs);
-                  setCurrentSessionId(session.id);
-                  setShowChatHistory(false);
-                  toast.success("Đã tải lại lịch sử chat");
-                }}>
-                  <div className="text-xs text-slate-400 mb-2">{new Date(session.date).toLocaleString('vi-VN')}</div>
-                  <div className="text-sm text-slate-700 font-medium line-clamp-2">
-                    {session.msgs.find((m: any) => m.role === "me")?.text || "Cuộc trò chuyện mới"}
-                  </div>
-                  <div className="mt-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded inline-block">
-                    {session.msgs.length} tin nhắn
+                <div key={session.id} className={`p-4 border rounded-2xl shadow-sm hover:border-emerald-200 hover:shadow-emerald-500/10 transition-all ${session.id === currentSessionId ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-100"}`}>
+                  <div className="flex items-start justify-between cursor-pointer" onClick={() => {
+                    setMessages(session.msgs);
+                    setCurrentSessionId(session.id);
+                    setShowChatHistory(false);
+                    toast.success("Đã tải lại lịch sử chat");
+                  }}>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-slate-400 mb-2">{new Date(session.date).toLocaleString('vi-VN')}</div>
+                      <div className="text-sm text-slate-700 font-medium line-clamp-2">
+                        {session.msgs.find((m: any) => m.role === "me")?.text || "Cuộc trò chuyện mới"}
+                      </div>
+                      <div className="mt-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded inline-block">
+                        {session.msgs.length} tin nhắn
+                      </div>
+                    </div>
+                    <button
+                      className="ml-2 p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (window.confirm("Xóa lịch sử chat này?")) {
+                          const updated = chatSessions.filter(s => s.id !== session.id);
+                          setChatSessions(updated);
+                          localStorage.setItem("ai_chat_sessions", JSON.stringify(updated));
+                          if (session.id === currentSessionId) {
+                            setMessages([]);
+                            setCurrentSessionId(Date.now().toString());
+                          }
+                          toast.success("Đã xóa lịch sử chat");
+                        }
+                      }}
+                      title="Xóa lịch sử"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))

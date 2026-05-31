@@ -701,6 +701,26 @@ const app = new Elysia()
           status: t.String()
         })
       })
+      .delete("/threads/:id", async ({ params, user, set }) => {
+        if (!user) {
+          set.status = 401;
+          return { error: "Quyền truy cập bị từ chối" };
+        }
+        try {
+          // Delete all messages first
+          await prisma.message.deleteMany({
+            where: { threadId: parseInt(params.id) }
+          });
+          // Then delete the thread
+          await prisma.thread.delete({
+            where: { id: parseInt(params.id) }
+          });
+          return { success: true };
+        } catch (error) {
+          set.status = 500;
+          return { error: "Lỗi cơ sở dữ liệu khi xóa hội thoại" };
+        }
+      })
   )
   .get("/", () => "MediCare AI Backend is running!");
 

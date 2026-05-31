@@ -144,6 +144,20 @@ export const store = {
       if (res.ok) fetchThreads();
     }).catch(console.error);
   },
+  deleteThread: (threadId: number) => {
+    setState(s => ({ ...s, threads: s.threads.filter(t => t.id !== threadId) }));
+
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    fetch(`${API_URL}/api/threads/${threadId}`, {
+      method: "DELETE",
+      headers
+    }).then(res => {
+      if (res.ok) fetchThreads();
+    }).catch(console.error);
+  },
 
   // Appointments
   addAppointment: (a: Omit<Appointment, "id">) => {

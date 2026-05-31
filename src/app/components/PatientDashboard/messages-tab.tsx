@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { ScrollArea } from "../ui/scroll-area";
-import { Plus, Send, Video, Phone, PhoneOff, Mic, MessageCircle } from "lucide-react";
+import { Plus, Send, Video, Phone, PhoneOff, Mic, MessageCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { store, formatRelative } from "../../store";
 
@@ -78,24 +78,44 @@ export function MessagesTab({
             <Button size="sm" variant="outline" className="active:scale-95 transition-all text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-100" onClick={onNewThread}><Plus className="w-3.5 h-3.5 mr-1" />Mới</Button>
           </div>
           {threads.map(t => (
-            <button
+            <div
               key={t.id}
-              onClick={() => { setActiveThreadId(t.id); setChatMode("chat"); }}
-              className={`w-full p-4 flex items-start gap-3 border-b transition-all active:scale-[0.98] text-left hover:bg-slate-50 ${activeThreadId === t.id ? "bg-sky-50 border-sky-100" : ""}`}
+              className={`w-full p-4 flex items-start gap-3 border-b transition-all hover:bg-slate-50 ${activeThreadId === t.id ? "bg-sky-50 border-sky-100" : ""}`}
             >
-              <div className="relative">
-                <Avatar><AvatarFallback className="bg-sky-100 text-sky-700">{t.staffName.split(" ").pop()?.[0]}</AvatarFallback></Avatar>
-                {t.status === "Chờ phản hồi" && <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center gap-2">
-                  <span className={`truncate text-sm ${t.status === "Chờ phản hồi" ? "font-bold text-slate-900" : "font-medium text-slate-700"}`}>{t.staffName}</span>
-                  <span className={`text-[10px] shrink-0 ${t.status === "Chờ phản hồi" ? "font-bold text-sky-600" : "text-slate-400"}`}>{formatRelative(t.updatedAt)}</span>
+              <button
+                onClick={() => { setActiveThreadId(t.id); setChatMode("chat"); }}
+                className="flex-1 flex items-start gap-3 text-left active:scale-[0.98]"
+              >
+                <div className="relative">
+                  <Avatar><AvatarFallback className="bg-sky-100 text-sky-700">{t.staffName.split(" ").pop()?.[0]}</AvatarFallback></Avatar>
+                  {t.status === "Chờ phản hồi" && <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>}
                 </div>
-                <div className="text-xs font-medium text-slate-500 mt-0.5">{t.topic}</div>
-                <div className={`text-xs truncate mt-1 ${t.status === "Chờ phản hồi" ? "font-bold text-slate-800" : "text-slate-500"}`}>{t.last}</div>
-              </div>
-            </button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-center gap-2">
+                    <span className={`truncate text-sm ${t.status === "Chờ phản hồi" ? "font-bold text-slate-900" : "font-medium text-slate-700"}`}>{t.staffName}</span>
+                    <span className={`text-[10px] shrink-0 ${t.status === "Chờ phản hồi" ? "font-bold text-sky-600" : "text-slate-400"}`}>{formatRelative(t.updatedAt)}</span>
+                  </div>
+                  <div className="text-xs font-medium text-slate-500 mt-0.5">{t.topic}</div>
+                  <div className={`text-xs truncate mt-1 ${t.status === "Chờ phản hồi" ? "font-bold text-slate-800" : "text-slate-500"}`}>{t.last}</div>
+                </div>
+              </button>
+              <button
+                className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 mt-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (window.confirm("Xóa hội thoại này?")) {
+                    store.deleteThread(t.id);
+                    if (activeThreadId === t.id) {
+                      setActiveThreadId(threads.find(x => x.id !== t.id)?.id || 0);
+                    }
+                    toast.success("Đã xóa hội thoại");
+                  }
+                }}
+                title="Xóa hội thoại"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           ))}
           {threads.length === 0 && <div className="p-6 text-center text-muted-foreground text-sm">Chưa có hội thoại</div>}
         </div>
