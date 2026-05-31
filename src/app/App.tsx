@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 import { LoginScreen, type Role } from "./components/LoginScreen";
+import { RegisterScreen } from "./components/RegisterScreen";
 import { SEO } from "./components/SEO";
 
 const PatientDashboard = lazy(() => import("./components/PatientDashboard").then(m => ({ default: m.PatientDashboard })));
@@ -77,7 +78,8 @@ export default function App() {
         <Routes>
           {!role ? (
             <>
-              <Route path="/login" element={<LoginScreen onLogin={handleLogin} />} />
+              <Route path="/login" element={<LoginScreen onLogin={handleLogin} onNavigateRegister={() => navigate("/register")} />} />
+              <Route path="/register" element={<RegisterScreen onNavigateLogin={() => navigate("/login")} />} />
               <Route path="*" element={<Navigate to="/login" replace />} />
             </>
           ) : (

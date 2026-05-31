@@ -721,6 +721,72 @@ const app = new Elysia()
           return { error: "Lỗi cơ sở dữ liệu khi xóa hội thoại" };
         }
       })
+      .get("/users", async ({ user, set }) => {
+        if (user?.role !== "quanly") {
+          set.status = 403;
+          return { error: "Quyền truy cập bị từ chối" };
+        }
+        try {
+          return await prisma.user.findMany({
+            select: { id: true, username: true, role: true, name: true, createdAt: true },
+            orderBy: { createdAt: "desc" }
+          });
+        } catch (error) {
+          set.status = 500;
+          return { error: "Lỗi cơ sở dữ liệu" };
+        }
+      })
+      .post("/users", async ({ user, body, set }) => {
+        if (user?.role !== "quanly") {
+          set.status = 403;
+          return { error: "Quyền truy cập bị từ chối" };
+        }
+        try {
+          const existing = await prisma.user.findUnique({
+            where: { username: body.username }
+          });
+          if (existing) {
+            set.status = 400;
+            return { error: "Tên đăng nhập đã tồn tại" };
+          }
+          const hashedPassword = await Bun.password.hash(body.password, { algorithm: "bcrypt", cost: 4 });
+          const newUser = await prisma.user.create({
+            data: {
+              username: body.username,
+              password: hashedPassword,
+              role: body.role,
+              name: body.name
+            },
+            select: { id: true, username: true, role: true, name: true, createdAt: true }
+          });
+          return newUser;
+        } catch (error) {
+          set.status = 500;
+          return { error: "Lỗi cơ sở dữ liệu khi tạo tài khoản" };
+        }
+      }, {
+        body: t.Object({
+          username: t.String(),
+          password: t.String(),
+          role: t.String(),
+          name: t.Optional(t.String())
+        })
+      })
+      .delete("/users/:id", async ({ params, user, set }) => {
+        if (user?.role !== "quanly") {
+          set.status = 403;
+          return { error: "Quyền truy cập bị từ chối" };
+        }
+        try {
+          await prisma.user.delete({
+            where: { id: params.id }
+          });
+          return { success: true };
+        } catch (error) {
+          set.status = 500;
+          return { error: "Lỗi cơ sở dữ liệu khi xóa tài khoản" };
+        }
+      })
   )
   .get("/", () => "MediCare AI Backend is running!");
 
