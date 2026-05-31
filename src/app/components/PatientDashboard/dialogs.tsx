@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "../ui/dialog";
-import { Star, MapPin, CheckCircle, Calendar, Clock, AlertTriangle } from "lucide-react";
+import { Star, MapPin, CheckCircle, Calendar, Clock, AlertTriangle, Stethoscope } from "lucide-react";
 import { toast } from "sonner";
 import { type Doctor } from "./constants";
 import type { Appointment } from "../../store";
