@@ -26,6 +26,7 @@ export function AdminDashboard({ onLogout, role }: { onLogout: () => void; role:
       roleLabel="Quản lý"
       roleColor="bg-blue-100 text-blue-700 border border-blue-200"
       initials="QT"
+      profile={{ name: "Trần Văn An", email: "quanly@medicare.ai", phone: "0123 456 789", position: "Quản lý phòng khám" }}
       active={active}
       onNav={setActive}
       onLogout={onLogout}

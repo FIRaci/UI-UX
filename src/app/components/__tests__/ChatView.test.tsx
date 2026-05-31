@@ -33,7 +33,7 @@ describe('ChatView', () => {
 
   it('shows send hint', () => {
     render(<ChatView role="benhnhan" />);
-    expect(screen.getByText(/Nhấn Enter để gửi/)).toBeInTheDocument();
+    expect(screen.getByText(/Kết quả AI chỉ mang tính hỗ trợ/)).toBeInTheDocument();
   });
 
   it('different roles show different welcome text', () => {

@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
-import { LogOut, HeartPulse, Bell, CheckCheck, CalendarClock, MessageSquare, RefreshCw, Trash2, Search, AlertTriangle } from "lucide-react";
+import { LogOut, HeartPulse, Bell, CheckCheck, CalendarClock, MessageSquare, RefreshCw, Trash2, Search, AlertTriangle, Mail, Phone, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 
@@ -28,6 +28,7 @@ export function AppShell({
   roleLabel,
   roleColor,
   initials,
+  profile,
   nav,
   active,
   onNav,
@@ -42,6 +43,7 @@ export function AppShell({
   roleLabel: string;
   roleColor: string;
   initials: string;
+  profile?: { name: string; email: string; phone: string; position: string };
   nav: { key: string; label: string; icon: ComponentType<{ className?: string }> }[];
   active: string;
   onNav: (key: string) => void;
@@ -147,14 +149,14 @@ export function AppShell({
   const unread = notifs.filter(n => !n.read).length;
 
   return (
-    <div className="min-h-screen flex" style={{ fontFamily: "'Inter', -apple-system, sans-serif" }}>
+    <div className="h-screen overflow-hidden flex" style={{ fontFamily: "'Inter', -apple-system, sans-serif" }}>
       {/* Mobile overlay */}
       {showMobile && (
         <div className="fixed inset-0 bg-black/40 z-20 lg:hidden" onClick={() => setShowMobile(false)} />
       )}
 
       {/* Sidebar */}
-      <aside className={`${showMobile ? "fixed inset-y-0 left-0 z-30" : "hidden lg:flex lg:sticky lg:top-0 lg:h-screen"} w-64 shrink-0 flex-col transition-all duration-300`} style={{
+      <aside className={`${showMobile ? "fixed inset-y-0 left-0 z-30" : "hidden lg:flex"} w-64 shrink-0 flex-col h-screen transition-all duration-300`} style={{
         background: "linear-gradient(180deg, #090E17 0%, #111827 100%)",
         color: "#fff",
         boxShadow: "4px 0 24px rgba(0, 0, 0, 0.1)",
@@ -404,10 +406,42 @@ export function AppShell({
               {roleLabel}
             </span>
 
-            {/* Premium Avatar block */}
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 text-white flex items-center justify-center font-bold text-xs tracking-wide shadow-sm border border-slate-200">
-              {initials}
-            </div>
+            {/* Premium Avatar block with profile popover */}
+            {profile ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 text-white flex items-center justify-center font-bold text-xs tracking-wide shadow-sm border border-slate-200 cursor-pointer hover:from-slate-600 hover:to-slate-700 transition-all">
+                    {initials}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 p-0 overflow-hidden" align="end" style={{ borderRadius: "16px" }}>
+                  <div className="p-5" style={{ background: "linear-gradient(135deg, #1E293B, #0F172A)" }}>
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-rose-400 to-rose-600 text-white flex items-center justify-center font-bold text-lg tracking-wide shadow-lg mx-auto mb-3">
+                      {initials}
+                    </div>
+                    <h4 className="text-white font-semibold text-center text-base">{profile.name}</h4>
+                    <div className="flex items-center justify-center gap-1.5 mt-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-rose-400" />
+                      <span className="text-xs text-slate-300">{profile.position}</span>
+                    </div>
+                  </div>
+                  <div className="p-4 space-y-3 bg-white">
+                    <div className="flex items-center gap-3 text-sm text-slate-600">
+                      <Mail className="w-4 h-4 text-slate-400" />
+                      <span>{profile.email}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-slate-600">
+                      <Phone className="w-4 h-4 text-slate-400" />
+                      <span>{profile.phone}</span>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 text-white flex items-center justify-center font-bold text-xs tracking-wide shadow-sm border border-slate-200">
+                {initials}
+              </div>
+            )}
           </div>
         </header>
 

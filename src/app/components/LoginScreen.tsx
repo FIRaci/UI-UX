@@ -3,8 +3,9 @@ import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 import { toast } from "sonner";
-import { Stethoscope, UserRound, ShieldCheck, MessagesSquare, HeartPulse } from "lucide-react";
+import { Stethoscope, UserRound, ShieldCheck, MessagesSquare, HeartPulse, Lock, Loader2 } from "lucide-react";
 import { fetchAllData } from "../store";
 
 export type Role = "benhnhan" | "tuvan" | "bacsi" | "quanly";
@@ -21,14 +22,20 @@ const ROLES: {
   { key: "benhnhan", label: "Bệnh nhân", desc: "Xem hồ sơ & Đặt lịch khám", icon: UserRound, colorClass: "text-blue-600 bg-blue-50 border-blue-200" },
   { key: "tuvan", label: "Tư vấn viên", desc: "Trả lời tin nhắn & Hỗ trợ", icon: MessagesSquare, colorClass: "text-emerald-600 bg-emerald-50 border-emerald-200" },
   { key: "bacsi", label: "Bác sĩ", desc: "Khám bệnh & Kê toa", icon: Stethoscope, colorClass: "text-indigo-600 bg-indigo-50 border-indigo-200" },
-  { key: "quanly", label: "Quản lý", desc: "Vận hành hệ thống", icon: ShieldCheck, colorClass: "text-slate-600 bg-slate-50 border-slate-200" },
+  { key: "quanly", label: "Quản lý", desc: "Vận hành hệ thống", icon: ShieldCheck, colorClass: "text-rose-600 bg-rose-50 border-rose-200" },
 ];
+
+const MANAGER_ACCOUNT = { username: "quanli", password: "test123@" };
 
 export function LoginScreen({ onLogin }: { onLogin: (role: Role) => void }) {
   const [selected, setSelected] = useState<Role | null>(null);
   const [isManualLogin, setIsManualLogin] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showManagerLogin, setShowManagerLogin] = useState(false);
+  const [managerUser, setManagerUser] = useState("");
+  const [managerPass, setManagerPass] = useState("");
+  const [managerLoading, setManagerLoading] = useState(false);
 
   const handleQuickLogin = async (role: Role) => {
     try {
@@ -151,7 +158,14 @@ export function LoginScreen({ onLogin }: { onLogin: (role: Role) => void }) {
                     return (
                       <button
                         key={r.key}
-                        onClick={() => { setSelected(r.key); handleQuickLogin(r.key); }}
+                        onClick={() => {
+                          setSelected(r.key);
+                          if (r.key === "quanly") {
+                            setShowManagerLogin(true);
+                          } else {
+                            handleQuickLogin(r.key);
+                          }
+                        }}
                         className={`group flex flex-col items-center gap-2 p-3 rounded-xl border transition-colors ${r.colorClass} hover:opacity-80`}
                       >
                         <Icon className="w-5 h-5 mb-1" />
@@ -215,13 +229,91 @@ export function LoginScreen({ onLogin }: { onLogin: (role: Role) => void }) {
             </>
           )}
           
-          <div className="mt-8 text-center p-3 rounded-lg bg-amber-50 border border-amber-100">
-            <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
-              Tài khoản mẫu: benhnhan / tuvan / bacsi / quanly
-              <br/>Mật khẩu: 123456
-            </p>
-          </div>
+
         </Card>
+
+        {/* Manager Login Dialog */}
+        <Dialog open={showManagerLogin} onOpenChange={() => { setShowManagerLogin(false); setManagerUser(""); setManagerPass(""); }}>
+          <DialogContent className="sm:max-w-[400px]">
+            <DialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-xl bg-rose-600 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <DialogTitle className="text-lg">Đăng nhập Quản lý</DialogTitle>
+                  <DialogDescription>Phòng khám MediCare</DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-700">Tên đăng nhập</Label>
+                <Input
+                  placeholder="Nhập tài khoản quản lý..."
+                  value={managerUser}
+                  onChange={e => setManagerUser(e.target.value)}
+                  className="h-11 rounded-xl border-slate-200 focus-visible:ring-rose-600"
+                  onKeyDown={e => e.key === "Enter" && document.getElementById("manager-pass")?.focus()}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-700">Mật khẩu</Label>
+                <Input
+                  id="manager-pass"
+                  type="password"
+                  placeholder="••••••"
+                  value={managerPass}
+                  onChange={e => setManagerPass(e.target.value)}
+                  className="h-11 rounded-xl border-slate-200 focus-visible:ring-rose-600"
+                  onKeyDown={e => { if (e.key === "Enter") { (e.target as HTMLElement).blur(); document.getElementById("manager-login-btn")?.click(); } }}
+                />
+              </div>
+              <Button
+                id="manager-login-btn"
+                className="w-full h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-sm"
+                disabled={managerLoading}
+                onClick={async () => {
+                  if (!managerUser.trim() || !managerPass.trim()) {
+                    toast.error("Vui lòng nhập đầy đủ thông tin");
+                    return;
+                  }
+                  setManagerLoading(true);
+                  // Try backend first, fallback to local auth
+                  try {
+                    const res = await fetch(`${API_URL}/api/auth/login`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ username: managerUser, password: managerPass })
+                    });
+                    const data = await res.json();
+                    if (data.success && data.token) {
+                      localStorage.setItem("token", data.token);
+                      fetchAllData();
+                    }
+                  } catch {
+                    // Backend offline
+                  }
+                  await new Promise(r => setTimeout(r, 400));
+                  setManagerLoading(false);
+
+                  if (managerUser === MANAGER_ACCOUNT.username && managerPass === MANAGER_ACCOUNT.password) {
+                    toast.success("Chào mừng Quản lý phòng khám!");
+                    setShowManagerLogin(false);
+                    setManagerUser("");
+                    setManagerPass("");
+                    onLogin("quanly");
+                  } else {
+                    toast.error("Sai tài khoản hoặc mật khẩu quản lý");
+                  }
+                }}
+              >
+                {managerLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lock className="w-4 h-4 mr-2" />}
+                {managerLoading ? "Đang kiểm tra..." : "Đăng nhập"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
