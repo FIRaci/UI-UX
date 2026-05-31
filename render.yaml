@@ -1,11 +1,10 @@
 services:
-  # Backend API - Elysia (Bun)
+  # Backend API - Elysia (Bun via Docker)
   - type: web
     name: medicare-backend
-    runtime: bun
+    runtime: docker
     plan: free
-    buildCommand: cd backend && bun install && bunx prisma generate
-    startCommand: cd backend && bun run src/index.ts
+    dockerfilePath: ./backend/Dockerfile
     envVars:
       - key: NODE_ENV
         value: production

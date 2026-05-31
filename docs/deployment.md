@@ -4,12 +4,12 @@
 
 Frontend đã có trên Netlify. Backend, AI Service và Database sẽ deploy lên Render.
 
-| Service | Technology | Port |
-|---------|-----------|------|
-| Frontend | React + Vite | - |
-| Backend | Elysia (Bun) + Prisma | 3000 |
-| AI Service | FastAPI (Python) + Gemini | 8000 |
-| Database | PostgreSQL | 5432 |
+| Service | Technology | Port | Runtime |
+|---------|-----------|------|---------|
+| Frontend | React + Vite | - | Netlify |
+| Backend | Elysia (Bun) + Prisma | 3000 | Docker |
+| AI Service | FastAPI (Python) + Gemini | 8000 | Python 3 |
+| Database | PostgreSQL | 5432 | - |
 
 ## Prerequisites
 
@@ -27,22 +27,15 @@ Frontend đã có trên Netlify. Backend, AI Service và Database sẽ deploy l�
 4. Click **Create Database**
 5. **Lưu lại Internal Database URL** (dùng cho Backend)
 
-## Bước 2: Deploy Backend (Elysia + Bun)
+## Bước 2: Deploy Backend (Elysia + Bun via Docker)
 
 1. Click **New +** → **Web Service**
 2. Chọn GitHub repo
 3. Cấu hình:
    - **Name**: `medicare-backend`
-   - **Runtime**: `Bun`
+   - **Runtime**: `Docker`
    - **Plan**: Free
-   - **Build Command**:
-     ```
-     cd backend && bun install && bunx prisma generate
-     ```
-   - **Start Command**:
-     ```
-     cd backend && bun run src/index.ts
-     ```
+   - **DockerfilePath**: `./backend/Dockerfile`
 4. Thêm Environment Variables:
    - `NODE_ENV` = `production`
    - `DATABASE_URL` = `<Internal Database URL từ Bước 1>`
@@ -118,3 +111,4 @@ Render free tier sẽ sleep service sau 15 phút không sử dụng. Khi có req
 | Database connection failed | Sai DATABASE_URL | Copy đúng Internal URL từ Render |
 | AI service timeout | Gemini API key sai | Kiểm tra GEMINI_API_KEY |
 | Service sleep | Free tier cold start | Đợi 30s hoặc upgrade plan |
+| Docker build failed | Sai DockerfilePath | Kiểm tra lại đường dẫn Dockerfile |
