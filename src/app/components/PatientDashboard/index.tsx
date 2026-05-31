@@ -32,13 +32,13 @@ const ActionItem = ({ icon: Icon, label, onClick, className, bg, text, hover, ba
       whileHover={{ scale: 1.1, y: 0, boxShadow: "0px 16px 40px rgba(16,185,129,0.3)", transition: { duration: 0.2 } }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-1.5 sm:gap-2 w-[84px] h-[84px] sm:w-[104px] sm:h-[104px] rounded-[24px] bg-white/70 backdrop-blur-2xl border border-white/60 ${hover} transition-colors`}
+      className={`flex flex-col items-center justify-center gap-2 sm:gap-3 w-[100px] h-[100px] sm:w-[130px] sm:h-[130px] rounded-[28px] bg-white/70 backdrop-blur-2xl border border-white/60 ${hover} transition-colors shadow-lg`}
     >
-      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-[16px] ${bg} flex items-center justify-center ${text} relative shadow-inner`}>
-        <Icon className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-sm" />
-        {badge > 0 && <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md border-[1.5px] border-white">{badge}</span>}
+      <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-[18px] ${bg} flex items-center justify-center ${text} relative shadow-inner`}>
+        <Icon className="w-6 h-6 sm:w-7 sm:h-7 drop-shadow-sm" />
+        {badge > 0 && <span className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-md border-2 border-white">{badge}</span>}
       </div>
-      <span className="text-[10px] sm:text-xs font-bold text-slate-700 leading-tight whitespace-nowrap drop-shadow-sm">{label}</span>
+      <span className="text-xs sm:text-sm font-bold text-slate-700 leading-tight whitespace-nowrap drop-shadow-sm">{label}</span>
     </motion.button>
   </div>
 );
@@ -514,7 +514,7 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
           </div>
 
           {/* ===== THE CENTER ORBITAL HUB ===== */}
-          <div className="relative w-[320px] h-[320px] sm:w-[460px] sm:h-[460px] flex items-center justify-center mt-4 sm:mt-12">
+          <div className="relative w-[380px] h-[380px] sm:w-[520px] sm:h-[520px] flex items-center justify-center mt-4 sm:mt-12">
             
             {/* Concentric rings decoration behind the buttons */}
             <div className="absolute inset-0 border-[1.5px] border-teal-500/10 rounded-full scale-[0.65]" />

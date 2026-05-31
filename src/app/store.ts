@@ -147,8 +147,8 @@ export const store = {
 
   // Appointments
   addAppointment: (a: Omit<Appointment, "id">) => {
-    const id = String(Date.now());
-    setState(s => ({ ...s, appointments: [{ ...a, id }, ...s.appointments] }));
+    const tempId = "temp_" + Date.now();
+    setState(s => ({ ...s, appointments: [{ ...a, id: tempId }, ...s.appointments] }));
 
     const token = localStorage.getItem("token");
     const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -175,17 +175,19 @@ export const store = {
       })
     }).then(res => {
       if (handleUnauthorizedResponse(res)) {
-        setState(s => ({ ...s, appointments: s.appointments.filter(x => x.id !== id) }));
+        setState(s => ({ ...s, appointments: s.appointments.filter(x => x.id !== tempId) }));
         return;
       }
       if (res.ok) {
+        // Remove temp appointment, then fetch real data from server
+        setState(s => ({ ...s, appointments: s.appointments.filter(x => x.id !== tempId) }));
         fetchAppointments();
       }
     }).catch(err => {
       console.error("Error adding appointment:", err);
-      setState(s => ({ ...s, appointments: s.appointments.filter(x => x.id !== id) }));
+      setState(s => ({ ...s, appointments: s.appointments.filter(x => x.id !== tempId) }));
     });
-    return id;
+    return tempId;
   },
   updateAppointment: (id: number | string, patch: Partial<Appointment>) => {
     const prev = state.appointments.find(a => String(a.id) === String(id));
