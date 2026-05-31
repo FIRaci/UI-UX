@@ -2,18 +2,18 @@ FROM oven/bun:1
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json bun.lock* ./
+# Copy package files first for better caching
+COPY backend/package.json ./
 
 # Install dependencies
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # Copy prisma schema and generate client
-COPY prisma ./prisma
+COPY backend/prisma ./prisma
 RUN bunx prisma generate
 
 # Copy source code
-COPY src ./src
+COPY backend/src ./src
 
 EXPOSE 3000
 
