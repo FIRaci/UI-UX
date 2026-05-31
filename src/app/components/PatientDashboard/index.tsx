@@ -610,7 +610,7 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
 
           {/* Smart Suggestion Chips (bottom center) - Multiple chips */}
           {suggestions.length > 0 && !dismissedSuggestion && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="absolute bottom-8 sm:bottom-12 z-40 w-full flex justify-center px-4">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="absolute bottom-4 sm:bottom-6 z-40 w-full flex justify-center px-4">
               <div className="flex flex-col items-center gap-3 max-w-lg w-full">
                 {/* Main suggestion chip - bigger and easier to click */}
                 <motion.div 
