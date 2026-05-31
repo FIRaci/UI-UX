@@ -9,12 +9,13 @@ import { PatientSection } from "./patient-section";
 import { ScheduleSection } from "./schedule-section";
 import { NotificationsPanel } from "./notifications";
 import { DoctorShifts } from "./doctor-shifts";
+import { AccountsManager } from "./accounts";
 
 export function AdminDashboard({ onLogout, role }: { onLogout: () => void; role: string }) {
   const [active, setActive] = useState("overview");
 
   useAppNavigate(
-    ["overview", "patients", "reports", "schedule", "chat", "notify", "doctors"],
+    ["overview", "patients", "reports", "schedule", "chat", "notify", "doctors", "accounts"],
     setActive,
     { search: "patients", appointments: "schedule" }
   );
@@ -36,6 +37,7 @@ export function AdminDashboard({ onLogout, role }: { onLogout: () => void; role:
         { key: "reports", label: "Báo cáo", icon: BarChart3 },
         { key: "schedule", label: "Lịch khám", icon: Calendar },
         { key: "doctors", label: "Lịch làm việc", icon: Briefcase },
+        { key: "accounts", label: "Tài khoản", icon: Users },
         { key: "notify", label: "Thông báo", icon: Bell },
         { key: "chat", label: "Chat AI", icon: Bot },
       ]}
@@ -46,6 +48,7 @@ export function AdminDashboard({ onLogout, role }: { onLogout: () => void; role:
       {active === "schedule" && <ScheduleSection />}
       {active === "doctors" && <DoctorShifts />}
       {active === "notify" && <NotificationsPanel />}
+      {active === "accounts" && <AccountsManager />}
       {active === "chat" && <ChatView role={role} />}
     </AppShell>
   );

@@ -5,7 +5,7 @@ import { Badge } from "./ui/badge";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Textarea } from "./ui/textarea";
 import { ScrollArea } from "./ui/scroll-area";
-import { Bot, Send, Sparkles, AlertCircle, Users } from "lucide-react";
+import { Bot, Send, Sparkles, AlertCircle, Users, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 const AI_SERVICE_URL = import.meta.env.VITE_AI_SERVICE_URL || "http://localhost:8000";
@@ -46,6 +46,16 @@ const ROLE_RESPONSES: Record<string, (msg: string) => string> = {
   quanly: (msg: string) => "Cảm ơn quản lý! Tôi đang tổng hợp dữ liệu vận hành. Bạn muốn xem báo cáo nào trước?",
 };
 
+const BENHNHAN_PROMPT_TREE: Record<string, string[]> = {
+  default: ["Tôi bị đau đầu", "Tôi bị sốt", "Tôi bị đau bụng", "Tôi mệt mỏi", "Tư vấn dinh dưỡng", "Triệu chứng khác"],
+  "Tôi bị đau đầu": ["Đau nửa đầu", "Đau đỉnh đầu", "Đau nhức thái dương", "Đau âm ỉ kéo dài"],
+  "Tôi bị sốt": ["Sốt cao trên 39 độ", "Sốt kèm ho rát họng", "Sốt ớn lạnh run người", "Sốt về chiều"],
+  "Tôi bị đau bụng": ["Đau quặn từng cơn", "Đau vùng thượng vị", "Đau vùng bụng dưới", "Buồn nôn và tiêu chảy"],
+  "Tôi mệt mỏi": ["Mất ngủ kéo dài", "Chán ăn, sụt cân", "Hoa mắt, chóng mặt", "Suy nhược cơ thể"],
+  "Tư vấn dinh dưỡng": ["Thực đơn giảm cân", "Chế độ ăn tiểu đường", "Dinh dưỡng sau ốm", "Thực phẩm tốt cho tim mạch"],
+  "Triệu chứng khác": ["Đau nhức xương khớp", "Vấn đề ngoài da", "Khó thở, tức ngực", "Dị ứng"]
+};
+
 export function ChatView({ role }: { role: string }) {
   const config = ROLE_CONFIG[role] ?? ROLE_CONFIG.benhnhan;
   const [messages, setMessages] = useState<Message[]>([
@@ -53,7 +63,12 @@ export function ChatView({ role }: { role: string }) {
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [activePrompts, setActivePrompts] = useState<string[]>(config.prompts);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setActivePrompts(role === "benhnhan" ? BENHNHAN_PROMPT_TREE.default : config.prompts);
+  }, [role, config.prompts]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "smooth" });
@@ -62,6 +77,15 @@ export function ChatView({ role }: { role: string }) {
   const send = async (text?: string) => {
     const t = (text ?? input).trim();
     if (!t) return;
+    
+    if (role === "benhnhan") {
+      if (BENHNHAN_PROMPT_TREE[t]) {
+        setActivePrompts(BENHNHAN_PROMPT_TREE[t]);
+      } else {
+        setActivePrompts([]);
+      }
+    }
+    
     setMessages(m => [...m, { id: Date.now().toString(), role: "me", text: t, time: new Date() }]);
     setInput("");
     setIsTyping(true);
@@ -188,11 +212,11 @@ export function ChatView({ role }: { role: string }) {
             </div>
           </ScrollArea>
 
-          {messages.length === 1 && (
+          {((role === "benhnhan" && activePrompts.length > 0) || (role !== "benhnhan" && messages.length === 1)) && (
             <div className="px-4 py-3 border-t border-slate-100 bg-slate-50">
               <div className="text-xs text-muted-foreground mb-2">Gợi ý nhanh:</div>
               <div className="flex flex-wrap gap-2">
-                {config.prompts.map((p, i) => (
+                {activePrompts.map((p, i) => (
                   <button
                     key={i}
                     onClick={() => send(p)}
@@ -206,6 +230,17 @@ export function ChatView({ role }: { role: string }) {
           )}
 
           <div className="p-4 border-t border-slate-100 bg-white">
+            {role === "benhnhan" && (
+              <div className="max-w-3xl mx-auto flex justify-end mb-2">
+                <button 
+                  onClick={() => setActivePrompts(BENHNHAN_PROMPT_TREE.default)}
+                  className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1 font-medium transition bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  Làm mới gợi ý
+                </button>
+              </div>
+            )}
             <div className="flex gap-2 items-end max-w-3xl mx-auto">
               <Textarea
                 value={input}

@@ -27,7 +27,7 @@ const ROLES: {
 
 const MANAGER_ACCOUNT = { username: "quanli", password: "test123@" };
 
-export function LoginScreen({ onLogin }: { onLogin: (role: Role) => void }) {
+export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: Role) => void, onNavigateRegister?: () => void }) {
   const [selected, setSelected] = useState<Role | null>(null);
   const [isManualLogin, setIsManualLogin] = useState(false);
   const [username, setUsername] = useState("");
@@ -146,6 +146,18 @@ export function LoginScreen({ onLogin }: { onLogin: (role: Role) => void }) {
                     <p className="text-xs text-blue-700/80 mt-0.5">Vào khám, xem hồ sơ, chat với bác sĩ AI</p>
                   </div>
                 </button>
+                
+                {onNavigateRegister && (
+                  <div className="text-center text-sm">
+                    <span className="text-slate-500">Chưa có tài khoản? </span>
+                    <button 
+                      onClick={onNavigateRegister}
+                      className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition-all"
+                    >
+                      Đăng ký ngay
+                    </button>
+                  </div>
+                )}
 
                 <div className="relative py-3">
                   <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200"></div></div>
