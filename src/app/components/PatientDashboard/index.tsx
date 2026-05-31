@@ -335,14 +335,44 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
   };
 
   const handleDashboardSuggestion = (s: Suggestion) => {
+    if (!s || !s.action) {
+      navigate("/patient/chat");
+      return;
+    }
     switch (s.action) {
       case "VIEW_APPOINTMENT":
-      case "VIEW_APPOINTMENTS": navigate("/patient/appointments"); break;
-      case "BOOK_APPOINTMENT": navigate("/patient/search"); break;
-      case "VIEW_ARTICLE": toast.info("Đang mở bài viết..."); break;
-      case "SHOW_PACKAGES": navigate("/patient/search"); toast.info("Hãy chọn bác sĩ Khám tổng quát"); break;
-      case "VIEW_MEDICATION": navigate("/patient/records"); break;
-      default: navigate("/patient/chat"); break;
+      case "VIEW_APPOINTMENTS":
+        navigate("/patient/appointments");
+        break;
+      case "BOOK_APPOINTMENT":
+        navigate("/patient/search");
+        break;
+      case "VIEW_ARTICLE":
+        navigate("/patient/chat");
+        toast.info("Đang mở bài viết...");
+        break;
+      case "SHOW_PACKAGES":
+        navigate("/patient/search");
+        toast.info("Hãy chọn bác sĩ Khám tổng quát");
+        break;
+      case "VIEW_MEDICATION":
+        navigate("/patient/records");
+        break;
+      case "VIEW_RECORDS":
+        navigate("/patient/records");
+        break;
+      case "FOLLOW_UP":
+      case "BOOK_FOLLOW_UP":
+        navigate("/patient/search");
+        toast.info("Đặt lịch tái khám");
+        break;
+      case "HEALTH_CHECKUP":
+        navigate("/patient/search");
+        toast.info("Đặt lịch khám tổng quát");
+        break;
+      default:
+        navigate("/patient/chat");
+        break;
     }
   };
 
@@ -578,31 +608,42 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
             </motion.button>
           </div>
 
-          {/* Smart Suggestion Chip (bottom center) */}
+          {/* Smart Suggestion Chips (bottom center) - Multiple chips */}
           {suggestions.length > 0 && !dismissedSuggestion && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="absolute bottom-8 sm:bottom-12 z-40 w-full flex justify-center px-4 pointer-events-none">
-              <div 
-                className="pointer-events-auto flex items-center gap-3 bg-slate-900/80 backdrop-blur-xl pl-5 pr-2 py-2 rounded-full text-white shadow-2xl hover:scale-105 transition-all border border-slate-700 max-w-full"
-              >
-                <div className="flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform" onClick={() => { handleDashboardSuggestion(suggestions[suggestionIndex % suggestions.length]); setDismissedSuggestion(true); }}>
-                  <Sparkles className="w-5 h-5 text-yellow-400 shrink-0" />
-                  <span className="text-sm font-semibold truncate py-1.5">{suggestions[suggestionIndex % suggestions.length].title}: {suggestions[suggestionIndex % suggestions.length].actionLabel}</span>
-                  <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 mr-1" />
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="absolute bottom-8 sm:bottom-12 z-40 w-full flex justify-center px-4">
+              <div className="flex flex-col items-center gap-3 max-w-lg w-full">
+                {/* Main suggestion chip - bigger and easier to click */}
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full flex items-center gap-4 bg-gradient-to-r from-emerald-600 to-teal-600 backdrop-blur-xl pl-5 pr-3 py-4 rounded-2xl text-white shadow-2xl border border-emerald-500/30 cursor-pointer"
+                  onClick={() => { handleDashboardSuggestion(suggestions[suggestionIndex % suggestions.length]); setDismissedSuggestion(true); }}
+                >
+                  <Sparkles className="w-6 h-6 text-yellow-300 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold">{suggestions[suggestionIndex % suggestions.length].title}</div>
+                    <div className="text-xs text-emerald-100 mt-0.5 truncate">{suggestions[suggestionIndex % suggestions.length].actionLabel}</div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-emerald-200 shrink-0" />
+                </motion.div>
+                
+                {/* Control buttons */}
+                <div className="flex items-center gap-2">
+                  <button 
+                    className="h-10 px-4 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 transition-colors cursor-pointer text-white text-xs font-semibold"
+                    onClick={(e) => { e.stopPropagation(); setSuggestionIndex(i => i + 1); }}
+                  >
+                    <RefreshCw className="w-4 h-4 mr-1.5" />
+                    Gợi ý khác
+                  </button>
+                  <button 
+                    className="h-10 px-4 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors cursor-pointer text-white text-xs font-semibold"
+                    onClick={(e) => { e.stopPropagation(); setDismissedSuggestion(true); }}
+                  >
+                    <X className="w-4 h-4 mr-1.5" />
+                    Đóng
+                  </button>
                 </div>
-                <div className="w-px h-6 bg-slate-700 mx-1"></div>
-                <button 
-                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
-                  onClick={(e) => { e.stopPropagation(); setSuggestionIndex(i => i + 1); }}
-                  title="Gợi ý khác"
-                >
-                  <RefreshCw className="w-4 h-4 text-slate-400" />
-                </button>
-                <button 
-                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
-                  onClick={(e) => { e.stopPropagation(); setDismissedSuggestion(true); }}
-                >
-                  <X className="w-4 h-4 text-slate-400" />
-                </button>
               </div>
             </motion.div>
           )}
