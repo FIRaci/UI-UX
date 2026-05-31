@@ -4,9 +4,18 @@ import { Badge } from "../ui/badge";
 import { Textarea } from "../ui/textarea";
 import { ScrollArea } from "../ui/scroll-area";
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import { AlertCircle, Bot, Sparkles, Send, Users } from "lucide-react";
-import type { ChatMessage, AIInsight } from "./constants";
-import { QUICK_PROMPTS } from "./constants";
+import { AlertCircle, Bot, Sparkles, Send, Users, ShieldAlert, Phone } from "lucide-react";
+import { SEVERITY, QUICK_PROMPTS, type ChatMessage, type AIInsight, type Severity } from "./constants";
+
+function SeverityBadge({ severity }: { severity: Severity }) {
+  const s = SEVERITY[severity];
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs font-medium ${s.className}`}>
+      <s.Icon className="w-3.5 h-3.5" aria-hidden />
+      {s.label}
+    </span>
+  );
+}
 
 interface ChatAreaProps {
   messages: ChatMessage[];
@@ -20,8 +29,8 @@ interface ChatAreaProps {
 
 export function ChatArea({ messages, input, isTyping, insight, onSend, onInputChange, onViewDoctors }: ChatAreaProps) {
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-5 h-[calc(100vh-12rem)]">
-      <div className="flex flex-col min-h-0">
+    <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-5 xl:h-[calc(100vh-12rem)]">
+      <div className="flex flex-col min-h-0 order-2 xl:order-1">
         <Card className="p-3 mb-3 bg-amber-50 border-amber-200 flex items-start gap-2" style={{ borderRadius: "12px" }}>
           <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <p className="text-xs text-amber-800">
@@ -29,7 +38,7 @@ export function ChatArea({ messages, input, isTyping, insight, onSend, onInputCh
           </p>
         </Card>
 
-        <Card className="flex-1 overflow-hidden flex flex-col p-0 border border-slate-100 shadow-sm animate-fade-in" style={{ borderRadius: "16px" }}>
+        <Card className="flex-1 min-h-[60vh] xl:min-h-0 overflow-hidden flex flex-col p-0 border border-slate-100 shadow-sm" style={{ borderRadius: "16px" }}>
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4 max-w-3xl mx-auto">
               {messages.map((msg) => (
@@ -53,7 +62,7 @@ export function ChatArea({ messages, input, isTyping, insight, onSend, onInputCh
                       }`}>
                         <p className="text-[15px] leading-relaxed whitespace-pre-line">{msg.content}</p>
                       </div>
-                      <div className={`text-[11px] text-muted-foreground mt-1 px-1 ${msg.role === "user" ? "text-right" : ""}`}>
+                      <div className={`text-xs text-muted-foreground mt-1 px-1 ${msg.role === "user" ? "text-right" : ""}`}>
                         {msg.timestamp.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
                       </div>
                     </div>
@@ -118,12 +127,32 @@ export function ChatArea({ messages, input, isTyping, insight, onSend, onInputCh
                 <Send className="w-4 h-4" />
               </Button>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-2 text-center">Nhấn Enter để gửi, Shift+Enter để xuống dòng</p>
+            <p className="text-xs text-muted-foreground mt-2 text-center">Nhấn Enter để gửi, Shift+Enter để xuống dòng</p>
           </div>
         </Card>
       </div>
 
-      <div className="space-y-3 hidden xl:block">
+      <div className="space-y-3 order-1 xl:order-2">
+        {insight.severity === "Khẩn cấp" && (
+          <Card className="p-3 bg-red-50 border-red-300" style={{ borderRadius: "12px" }} role="alert">
+            <div className="flex items-start gap-2">
+              <ShieldAlert className="w-5 h-5 text-red-600 shrink-0" aria-hidden />
+              <div>
+                <div className="text-sm font-bold text-red-700">Cảnh báo khẩn cấp</div>
+                <p className="text-xs text-red-700 mt-0.5">
+                  Triệu chứng có dấu hiệu nguy hiểm. Nếu nặng, hãy gọi cấp cứu ngay thay vì chờ đặt lịch.
+                </p>
+                <a
+                  href="tel:115"
+                  className="mt-2 inline-flex items-center justify-center rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5"
+                >
+                  <Phone className="w-4 h-4 mr-1.5" /> Gọi 115
+                </a>
+              </div>
+            </div>
+          </Card>
+        )}
+
         <Card className="p-4 border border-slate-100 shadow-sm" style={{ borderRadius: "16px" }}>
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="w-4 h-4 text-emerald-600" />
@@ -149,12 +178,7 @@ export function ChatArea({ messages, input, isTyping, insight, onSend, onInputCh
                 {insight.severity && (
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">Mức độ</div>
-                    <Badge
-                      variant={insight.severity === "Khẩn cấp" ? "destructive" : "secondary"}
-                      className={insight.severity === "Cao" ? "bg-orange-100 text-orange-700 border-orange-200" : ""}
-                    >
-                      {insight.severity}
-                    </Badge>
+                    <SeverityBadge severity={insight.severity} />
                   </div>
                 )}
                 {insight.confidence !== null && (
@@ -181,13 +205,14 @@ export function ChatArea({ messages, input, isTyping, insight, onSend, onInputCh
                 )}
               </>
             ) : (
-              <div className="text-center py-4 text-slate-400">
+              <div className="text-center py-4 text-slate-500">
                 <Bot className="w-8 h-8 mx-auto mb-2 text-slate-300" />
                 <p className="text-xs">Hãy mô tả triệu chứng để AI phân tích</p>
               </div>
             )}
           </div>
         </Card>
+
         {insight.specialty && (
           <Button
             className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-sm"

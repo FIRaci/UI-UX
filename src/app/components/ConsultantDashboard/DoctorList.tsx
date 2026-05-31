@@ -3,8 +3,7 @@ import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Sparkles, Star, Clock } from "lucide-react";
-import type { DoctorRec } from "./constants";
-import { useStore } from "../../store";
+import { DOCTORS, type DoctorRec } from "./constants";
 
 interface DoctorListProps {
   onViewDoctor: (d: DoctorRec) => void;
@@ -12,21 +11,9 @@ interface DoctorListProps {
 }
 
 export function DoctorList({ onViewDoctor, onBookDoctor }: DoctorListProps) {
-  const doctors = useStore(s => s.doctors);
-  const mappedDoctors: DoctorRec[] = doctors.slice(0, 4).map(d => ({
-    id: d.id,
-    name: d.name,
-    specialty: d.spec,
-    matchReason: `Chuyên gia về ${d.spec.toLowerCase()}`,
-    rating: d.rating,
-    availability: "Còn lịch trống",
-    tags: [d.spec],
-    nextSlot: "Sắp tới"
-  }));
-
   return (
     <div className="space-y-4">
-      <Card className="p-4 bg-gradient-to-r from-violet-50 to-teal-50 border-violet-200" style={{ borderRadius: "14px" }}>
+      <Card className="p-4 bg-gradient-to-r from-violet-50 to-teal-50 border-violet-200" style={{ borderRadius: "16px" }}>
         <div className="flex items-center gap-2 text-violet-700">
           <Sparkles className="w-4 h-4" /> <span className="text-sm font-medium">Ghép đôi bởi AI</span>
         </div>
@@ -34,8 +21,8 @@ export function DoctorList({ onViewDoctor, onBookDoctor }: DoctorListProps) {
       </Card>
 
       <div className="grid md:grid-cols-2 gap-4">
-        {mappedDoctors.map(doc => (
-          <Card key={doc.id} className="p-5 hover:shadow-md hover:border-emerald-100 transition-all duration-300 border border-slate-100 card-hover" style={{ borderRadius: "16px" }}>
+        {DOCTORS.map(doc => (
+          <Card key={doc.id} className="p-5 hover:shadow-md hover:border-emerald-100 transition-all duration-300 border border-slate-100" style={{ borderRadius: "16px" }}>
             <div className="flex items-start gap-3">
               <Avatar className="w-14 h-14 border border-slate-100 shadow-sm">
                 <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold text-lg">
@@ -56,7 +43,7 @@ export function DoctorList({ onViewDoctor, onBookDoctor }: DoctorListProps) {
               </div>
             </div>
 
-            <Card className="p-3 bg-emerald-50 border-emerald-200 mt-3" style={{ borderRadius: "10px" }}>
+            <Card className="p-3 bg-emerald-50 border-emerald-200 mt-3" style={{ borderRadius: "12px" }}>
               <div className="text-xs font-semibold text-emerald-700 mb-1">Lý do phù hợp</div>
               <p className="text-sm text-slate-700">{doc.matchReason}</p>
             </Card>

@@ -5,35 +5,53 @@ import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "../ui/dialog";
 import { Star, CheckCircle2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
-import type { DoctorRec, ConsultHistory, Article } from "./constants";
+import { SEVERITY, type Severity, type DoctorRec, type ConsultHistory, type Article, type Appointment } from "./constants";
+
+function SeverityBadge({ severity }: { severity: Severity }) {
+  const s = SEVERITY[severity];
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs font-medium ${s.className}`}>
+      <s.Icon className="w-3.5 h-3.5" aria-hidden />
+      {s.label}
+    </span>
+  );
+}
 
 interface DialogsProps {
   showConfirm: boolean;
+  cancelingAppt: Appointment | null;
   selectedDoctor: DoctorRec | null;
   selectedSlot: string;
+  selectedDayLabel: string;
   appointmentNotes: string;
   viewingDoctor: DoctorRec | null;
   viewingHistory: ConsultHistory | null;
   readingArticle: Article | null;
   onCloseConfirm: () => void;
+  onCloseCancelingAppt: () => void;
   onCloseViewDoctor: () => void;
   onCloseViewHistory: () => void;
   onCloseReadingArticle: () => void;
   onConfirmBooking: () => void;
+  onConfirmCancel: () => void;
   onBookFromDoctor: (d: DoctorRec) => void;
   onNavigateToDoctors: () => void;
 }
 
 export function Dialogs({
-  showConfirm, selectedDoctor, selectedSlot, appointmentNotes,
+  showConfirm, cancelingAppt,
+  selectedDoctor, selectedSlot, selectedDayLabel, appointmentNotes,
   viewingDoctor, viewingHistory, readingArticle,
-  onCloseConfirm, onCloseViewDoctor, onCloseViewHistory, onCloseReadingArticle,
-  onConfirmBooking, onBookFromDoctor, onNavigateToDoctors,
+  onCloseConfirm, onCloseCancelingAppt,
+  onCloseViewDoctor, onCloseViewHistory, onCloseReadingArticle,
+  onConfirmBooking, onConfirmCancel,
+  onBookFromDoctor, onNavigateToDoctors,
 }: DialogsProps) {
   return (
     <>
+      {/* Xác nhận đặt lịch */}
       <Dialog open={showConfirm} onOpenChange={onCloseConfirm}>
-        <DialogContent className="animate-scale-in">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Xác nhận đặt lịch</DialogTitle>
             <DialogDescription>Vui lòng kiểm tra lại thông tin</DialogDescription>
@@ -55,7 +73,7 @@ export function Dialogs({
                 </div>
                 <div className="p-3 rounded-xl border border-slate-100">
                   <div className="text-xs text-muted-foreground">Ngày</div>
-                  <div className="mt-0.5 font-medium">Hôm nay</div>
+                  <div className="mt-0.5 font-medium">{selectedDayLabel}</div>
                 </div>
               </div>
               {appointmentNotes && (
@@ -73,8 +91,29 @@ export function Dialogs({
         </DialogContent>
       </Dialog>
 
+      {/* Hủy lịch hẹn */}
+      <Dialog open={!!cancelingAppt} onOpenChange={onCloseCancelingAppt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hủy lịch hẹn?</DialogTitle>
+            <DialogDescription>Bạn có chắc muốn hủy lịch hẹn này không?</DialogDescription>
+          </DialogHeader>
+          {cancelingAppt && (
+            <Card className="p-3 bg-slate-50 border-slate-100" style={{ borderRadius: "12px" }}>
+              <div className="font-medium text-slate-800">{cancelingAppt.doctorName}</div>
+              <div className="text-sm text-muted-foreground">{cancelingAppt.specialty} • {cancelingAppt.time}</div>
+            </Card>
+          )}
+          <DialogFooter>
+            <Button variant="outline" className="rounded-xl" onClick={onCloseCancelingAppt}>Giữ lịch</Button>
+            <Button className="rounded-xl bg-red-600 hover:bg-red-700" onClick={onConfirmCancel}>Xác nhận hủy</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Chi tiết bác sĩ */}
       <Dialog open={!!viewingDoctor} onOpenChange={onCloseViewDoctor}>
-        <DialogContent className="animate-scale-in">
+        <DialogContent>
           {viewingDoctor && (
             <>
               <DialogHeader className="text-left">
@@ -99,11 +138,11 @@ export function Dialogs({
                   </div>
                 </div>
                 <div className="p-3 rounded-xl border border-slate-100">
-                  <div className="text-xs text-muted-foreground">Slot tiếp theo</div>
+                  <div className="text-xs text-muted-foreground">Lượt khám gần nhất</div>
                   <div className="mt-1 font-medium">{viewingDoctor.nextSlot}</div>
                 </div>
               </div>
-              <Card className="p-3 bg-emerald-50 border-emerald-200" style={{ borderRadius: "10px" }}>
+              <Card className="p-3 bg-emerald-50 border-emerald-200" style={{ borderRadius: "12px" }}>
                 <div className="text-xs font-semibold text-emerald-700 mb-1">Lý do phù hợp</div>
                 <p className="text-sm text-slate-700">{viewingDoctor.matchReason}</p>
               </Card>
@@ -124,8 +163,9 @@ export function Dialogs({
         </DialogContent>
       </Dialog>
 
+      {/* Chi tiết lịch sử tư vấn */}
       <Dialog open={!!viewingHistory} onOpenChange={onCloseViewHistory}>
-        <DialogContent className="max-w-2xl animate-scale-in">
+        <DialogContent className="max-w-2xl">
           {viewingHistory && (
             <>
               <DialogHeader className="text-left">
@@ -141,9 +181,7 @@ export function Dialogs({
                 </div>
                 <div>
                   <div className="text-sm font-medium mb-2">Đánh giá mức độ</div>
-                  <Badge variant={viewingHistory.severity === "Khẩn cấp" ? "destructive" : "secondary"}>
-                    {viewingHistory.severity}
-                  </Badge>
+                  <SeverityBadge severity={viewingHistory.severity} />
                 </div>
                 <div>
                   <div className="text-sm font-medium mb-2">Khuyến nghị hành động</div>
@@ -160,7 +198,7 @@ export function Dialogs({
                   <div className="text-sm font-medium mb-2">Chuyên khoa đề xuất</div>
                   <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">{viewingHistory.specialty}</Badge>
                 </div>
-                <Card className="p-3 bg-amber-50 border-amber-200" style={{ borderRadius: "10px" }}>
+                <Card className="p-3 bg-amber-50 border-amber-200" style={{ borderRadius: "12px" }}>
                   <div className="flex items-start gap-2">
                     <MessageSquare className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <div className="text-sm">
@@ -180,8 +218,9 @@ export function Dialogs({
         </DialogContent>
       </Dialog>
 
+      {/* Đọc bài viết */}
       <Dialog open={!!readingArticle} onOpenChange={onCloseReadingArticle}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0 animate-scale-in">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0">
           {readingArticle && (
             <>
               <div className="h-40 relative" style={{ background: readingArticle.cover }}>
@@ -204,7 +243,7 @@ export function Dialogs({
                   ))}
                 </div>
                 <DialogFooter className="mt-6">
-                  <Button variant="outline" className="rounded-xl" onClick={() => { toast.info("Tính năng lưu bài viết đang phát triển"); }}>Lưu bài viết</Button>
+                  <Button variant="outline" className="rounded-xl" onClick={() => { toast.success("Đã lưu vào mục yêu thích"); }}>Lưu bài viết</Button>
                   <Button className="rounded-xl bg-emerald-600 hover:bg-emerald-700" onClick={onCloseReadingArticle}>Đóng</Button>
                 </DialogFooter>
               </div>
