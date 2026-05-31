@@ -138,10 +138,10 @@ export function Records() {
       <Dialog open={!!openItem} onOpenChange={() => { if (!isDownloading) setOpenItem(null); }}>
         <DialogContent className="sm:max-w-[600px] rounded-3xl animate-scale-in p-0 bg-slate-50 border-none shadow-2xl" onPointerDownOutside={(e) => { if (isDownloading) e.preventDefault(); }}>
           {openItem && (
-              <div className="flex flex-col max-h-[85vh]">
+              <div className="flex flex-col max-h-[85vh] overflow-hidden">
                 <DialogTitle className="sr-only">Phiếu khám bệnh - {openItem.title}</DialogTitle>
                 <DialogDescription className="sr-only">Chi tiết phiếu khám bệnh của {ME}</DialogDescription>
-                <div ref={pdfRef}>
+                <div ref={pdfRef} className="flex flex-col flex-1 min-h-0">
                 {/* Hospital Header */}
                 <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-white text-center relative overflow-hidden shrink-0">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent"></div>
@@ -150,7 +150,7 @@ export function Records() {
                 <p className="text-[11px] font-medium text-emerald-100 mt-1.5 relative z-10 tracking-wide">123 Đường Y Tế, Quận 1, TP.HCM • Hotline: 1900 1234</p>
               </div>
 
-              <div className="flex-1 p-6 overflow-y-auto">
+              <div className="flex-1 p-6 overflow-y-auto min-h-0">
                 {/* Patient Info */}
                 <div className="flex items-start justify-between mb-6 pb-5 border-b border-slate-200 border-dashed">
                   <div>
