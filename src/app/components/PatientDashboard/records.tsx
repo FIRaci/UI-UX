@@ -8,6 +8,8 @@ import { ME } from "./constants";
 import { toast } from "sonner";
 import { FileText, Download, Activity, Heart, Thermometer, User, Hash, Stethoscope, Droplet, HeartPulse, Pill } from "lucide-react";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 export function Records() {
   const [tab, setTab] = useState("benhan");
   const [openItem, setOpenItem] = useState<any | null>(null);
@@ -20,7 +22,7 @@ export function Records() {
         const token = localStorage.getItem("token");
         const headers: Record<string, string> = {};
         if (token) headers["Authorization"] = `Bearer ${token}`;
-        const res = await fetch("http://localhost:3000/api/records", { headers });
+        const res = await fetch(`${API_URL}/api/records`, { headers });
         if (res.status === 401) {
           localStorage.removeItem("token");
           window.dispatchEvent(new CustomEvent("app:unauthorized"));
