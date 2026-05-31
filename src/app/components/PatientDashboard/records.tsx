@@ -136,7 +136,7 @@ export function Records() {
       
       {/* Medical Report Dialog */}
       <Dialog open={!!openItem} onOpenChange={() => { if (!isDownloading) setOpenItem(null); }}>
-        <DialogContent className="sm:max-w-[600px] rounded-3xl animate-scale-in p-0 bg-slate-50 border-none shadow-2xl" onPointerDownOutside={() => { if (isDownloading) return; }}>
+        <DialogContent className="sm:max-w-[600px] rounded-3xl animate-scale-in p-0 bg-slate-50 border-none shadow-2xl" onPointerDownOutside={(e) => { if (isDownloading) e.preventDefault(); }}>
           {openItem && (
               <div className="flex flex-col max-h-[85vh]">
                 <DialogTitle className="sr-only">Phiếu khám bệnh - {openItem.title}</DialogTitle>
