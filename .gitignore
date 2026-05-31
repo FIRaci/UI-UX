@@ -19,4 +19,3 @@ test-results/
 *.log
 __pycache__/
 scratch/
-.ngrok_token

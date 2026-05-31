@@ -27,21 +27,12 @@ call ai_service\venv\Scripts\python -m pip install -r ai_service\requirements.tx
 echo [3/4] Installing frontend dependencies...
 call npm install --silent
 
-echo [4/4] Starting AI Service, Backend, Frontend, and Ngrok...
+echo [4/4] Starting AI Service, Backend, Frontend...
 echo ===================================================
 echo - Frontend (Vite): http://localhost:5173
 echo - Backend (Bun): http://localhost:3000
 echo - AI Service (Python): http://localhost:8000
-echo - Ngrok (Backend Proxy): Exposing port 3000
 echo Nhan Ctrl+C de thoat tat ca dich vu.
 echo ===================================================
 
-set "NGROK_CMD=echo Ngrok skipped (missing .ngrok_token)."
-if exist ".ngrok_token" (
-    for /f "usebackq tokens=*" %%a in (".ngrok_token") do (
-        call npx --yes ngrok config add-authtoken %%a
-        set "NGROK_CMD=npx --yes ngrok http 3000"
-    )
-)
-
-node node_modules\concurrently\dist\bin\concurrently.js --kill-others-on-fail --names "AI,BACKEND,FRONTEND,NGROK" --prefix-colors "yellow,blue,green,magenta" "cd ai_service && venv\Scripts\python -m uvicorn main:app --reload --port 8000" "cd backend && bun install --silent && bun run dev" "node node_modules/vite/bin/vite.js" "%NGROK_CMD%"
+node node_modules\concurrently\dist\bin\concurrently.js --kill-others-on-fail --names "AI,BACKEND,FRONTEND" --prefix-colors "yellow,blue,green" "cd ai_service && venv\Scripts\python -m uvicorn main:app --reload --port 8000" "cd backend && bun install --silent && bun run dev" "node node_modules/vite/bin/vite.js"

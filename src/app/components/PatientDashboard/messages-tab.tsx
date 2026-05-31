@@ -126,11 +126,13 @@ export function MessagesTab({
                           <Video className="w-3.5 h-3.5 mr-1" />Video
                         </Button>
                       </div>
-                      <Button size="sm" variant="outline" className="active:scale-95 transition-all h-8" onClick={() => {
-                        if (callOn) stopCamera();
-                        store.setThreadStatus(activeThread.id, "Đã kết thúc");
-                        toast.success("Đã kết thúc cuộc tư vấn");
-                      }}>Kết thúc</Button>
+                      <Button size="sm" variant="destructive" className="active:scale-95 transition-all h-8 opacity-70 hover:opacity-100" onClick={() => {
+                        if (window.confirm("Bạn có chắc muốn kết thúc hội thoại này?")) {
+                          store.setThreadStatus(activeThread.id, "Đã kết thúc");
+                          if (callOn) stopCamera();
+                          toast.success("Đã kết thúc hội thoại");
+                        }
+                      }}>Kết thúc hội thoại</Button>
                     </>
                   )}
                 </div>

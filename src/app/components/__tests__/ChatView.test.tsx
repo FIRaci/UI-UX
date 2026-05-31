@@ -26,14 +26,14 @@ describe('ChatView', () => {
 
   it('can type a message in textarea', () => {
     render(<ChatView role="benhnhan" />);
-    const textarea = screen.getByPlaceholderText('Nhap tin nhan...') as HTMLTextAreaElement;
+    const textarea = screen.getByPlaceholderText('Nhập tin nhắn...') as HTMLTextAreaElement;
     fireEvent.change(textarea, { target: { value: 'Tôi bị đau đầu' } });
     expect(textarea.value).toBe('Tôi bị đau đầu');
   });
 
-  it('shows medical disclaimer', () => {
+  it('shows send hint', () => {
     render(<ChatView role="benhnhan" />);
-    expect(screen.getByText(/Ket qua AI chi mang tinh ho tro/)).toBeInTheDocument();
+    expect(screen.getByText(/Nhấn Enter để gửi/)).toBeInTheDocument();
   });
 
   it('different roles show different welcome text', () => {

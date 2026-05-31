@@ -7,12 +7,12 @@ describe('AdminDashboard', () => {
 
     const overviewTexts = screen.getAllByText('Tổng quan');
     expect(overviewTexts.length).toBeGreaterThan(0);
-    expect(screen.getByText('Quản lý bệnh nhân')).toBeInTheDocument();
-    expect(screen.getByText('Báo cáo & thống kê')).toBeInTheDocument();
-    expect(screen.getByText('Lịch khám hệ thống')).toBeInTheDocument();
+    expect(screen.getByText('Bệnh nhân')).toBeInTheDocument();
+    expect(screen.getByText('Báo cáo')).toBeInTheDocument();
+    expect(screen.getByText('Lịch khám')).toBeInTheDocument();
     expect(screen.getByText('Chat AI')).toBeInTheDocument();
     expect(screen.getByText('Thông báo')).toBeInTheDocument();
-    expect(screen.getByText('Lịch làm việc BS')).toBeInTheDocument();
+    expect(screen.getByText('Lịch làm việc')).toBeInTheDocument();
   });
 
   it('shows overview tab content by default', () => {
@@ -25,12 +25,12 @@ describe('AdminDashboard', () => {
     expect(screen.getByText('945')).toBeInTheDocument();
   });
 
-  it('switches to reports tab when "Báo cáo & thống kê" is clicked', () => {
+  it('switches to reports tab when "Báo cáo" is clicked', () => {
     render(<AdminDashboard onLogout={() => {}} role="admin" />);
 
-    fireEvent.click(screen.getByText('Báo cáo & thống kê'));
+    fireEvent.click(screen.getByText('Báo cáo'));
 
-    expect(screen.getByText('Loại báo cáo')).toBeInTheDocument();
+    expect(screen.getByText('Báo cáo & thống kê')).toBeInTheDocument();
     expect(screen.queryByText('Doanh thu tháng')).not.toBeInTheDocument();
   });
 
