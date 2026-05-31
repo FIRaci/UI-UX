@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Search, CalendarDays, FileHeart, Bot, Send, HeartPulse, LogOut, Activity, MessagesSquare, ArrowLeft, Sparkles, Bell, ChevronRight, Star, Clock, Stethoscope, X, Mic, Plus, History } from "lucide-react";
+import { Search, CalendarDays, FileHeart, Bot, Send, HeartPulse, LogOut, Activity, MessagesSquare, ArrowLeft, Sparkles, Bell, ChevronRight, Star, Clock, Stethoscope, X, Mic, Plus, History, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -76,6 +76,7 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
   const [skipConfirm, setSkipConfirm] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [dismissedSuggestion, setDismissedSuggestion] = useState(false);
+  const [suggestionIndex, setSuggestionIndex] = useState(0);
 
   const appointments = useStore(s => s.appointments.filter(a => a.patientName === ME));
   const myThreads = useStore(s =>
@@ -583,12 +584,19 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
               <div 
                 className="pointer-events-auto flex items-center gap-3 bg-slate-900/80 backdrop-blur-xl pl-5 pr-2 py-2 rounded-full text-white shadow-2xl hover:scale-105 transition-all border border-slate-700 max-w-full"
               >
-                <div className="flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform" onClick={() => { handleDashboardSuggestion(suggestions[0]); setDismissedSuggestion(true); }}>
+                <div className="flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform" onClick={() => { handleDashboardSuggestion(suggestions[suggestionIndex % suggestions.length]); setDismissedSuggestion(true); }}>
                   <Sparkles className="w-5 h-5 text-yellow-400 shrink-0" />
-                  <span className="text-sm font-semibold truncate py-1.5">{suggestions[0].title}: {suggestions[0].actionLabel}</span>
+                  <span className="text-sm font-semibold truncate py-1.5">{suggestions[suggestionIndex % suggestions.length].title}: {suggestions[suggestionIndex % suggestions.length].actionLabel}</span>
                   <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 mr-1" />
                 </div>
                 <div className="w-px h-6 bg-slate-700 mx-1"></div>
+                <button 
+                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
+                  onClick={(e) => { e.stopPropagation(); setSuggestionIndex(i => i + 1); }}
+                  title="Gợi ý khác"
+                >
+                  <RefreshCw className="w-4 h-4 text-slate-400" />
+                </button>
                 <button 
                   className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
                   onClick={(e) => { e.stopPropagation(); setDismissedSuggestion(true); }}
