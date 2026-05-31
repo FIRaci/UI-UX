@@ -109,13 +109,6 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
               </div>
             )}
           </div>
-          
-          <div className="mt-8 text-center p-3 rounded-lg bg-amber-50 border border-amber-100">
-            <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
-              Tài khoản mẫu: benhnhan / tuvan / bacsi / quanly
-              <br/>Mật khẩu: 123456
-            </p>
-          </div>
         </Card>
       </div>
     </div>
