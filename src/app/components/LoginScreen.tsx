@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { toast } from "sonner";
-import { HeartPulse } from "lucide-react";
+import { HeartPulse, Loader2 } from "lucide-react";
 import { fetchAllData } from "../store";
 
 export type Role = "benhnhan" | "tuvan" | "bacsi" | "quanly";
@@ -14,6 +14,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: Role) => void, onNavigateRegister?: () => void }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleFormLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -21,6 +22,7 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
       return;
     }
 
+    setIsLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
@@ -40,6 +42,8 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
       }
     } catch (e) {
       toast.error("Lỗi kết nối đến máy chủ");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -90,10 +94,11 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
               />
             </div>
             <Button 
-              className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-sm mt-2" 
+              className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-sm mt-2 disabled:opacity-70 disabled:cursor-not-allowed" 
               onClick={handleFormLogin}
+              disabled={isLoading}
             >
-              Đăng nhập
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Đăng nhập"}
             </Button>
             
             {onNavigateRegister && (

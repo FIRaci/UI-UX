@@ -1,0 +1,131 @@
+
+
+=== User_Personal ===
+Tôi là người cao tuổi với tình trạng sức khỏe không ổn định và có nhiều bệnh lý nền cần theo dõi thường xuyên. Việc phải di chuyển nhiều và chờ đợi lâu tại cơ sở y tế khiến tôi gặp khó khăn, đồng thời tôi cũng gặp trở ngại trong việc ghi nhớ lịch khám và quản lý thông tin y tế cá nhân. Tôi cần một hệ thống đơn giản, dễ sử dụng, cho phép tra cứu triệu chứng, nhận tư vấn từ xa, nhắc lịch khám và tái khám, cũng như lưu trữ toàn bộ hồ sơ bệnh án một cách rõ ràng và bảo mật. Điều này giúp tôi chủ động hơn trong việc chăm sóc sức khỏe, giảm bớt phụ thuộc vào người khác và duy trì chất lượng cuộc sống ổn định.
+Independent
+Passive
+Safe
+Team player
+Active
+Risky
+Messy
+Organized
+Busy
+Time rich
+Analytical
+Creative
+Introvert
+Extrovert
+Personality
+Joseph Robinette Biden
+“Archetype”
+Age: 96
+Occupation:  Cựu bố Mẽo
+Location: 49 Quảng Ninh
+More info
+More info
+Bio
+Interests
+Needs and expectations
+Influences
+Motivations
+Goals
+Pain points and frustrations
+
+=== Empathy_Map ===
+Says
+Tôi muốn đặt lịch khám nhanh, không phải chờ lâu
+Tôi khó nhớ lịch, có cách nào nhắc tôi không
+Bác sĩ này có uy tín không
+Tôi không hiểu rõ tình trạng bệnh của mình
+Thinks
+Không biết mình có đang mắc bệnh nghiêm trọng không
+Nếu chọn sai bác sĩ thì sẽ tốn thời gian và tiền bạc
+Công nghệ này có khó dùng với mình không
+Thông tin sức khỏe của mình có an toàn không
+does
+Tìm kiếm thông tin trên mạng
+Trì hoãn việc đi khám vì ngại chờ đợi
+Ghi chú hoặc cố nhớ lịch khám
+Đi khám khi tình trạng trở nên nặng hơn
+feels
+Lo lắng về tình trạng sức khỏe
+Mệt mỏi vì quy trình khám bệnh phức tạp
+Bối rối khi sử dụng công nghệ
+Thiếu yên tâm nếu thông tin không rõ ràng
+Gains
+Measures of success, achievements...
+Pains
+Fears, frustrations, obstacles...
+Says
+Tôi muốn đặt lịch khám nhanh chóng không phải đợi.
+Tôi không muốn gọi điện để đặt lịch khám
+What a user says
+What a user says
+Thinks
+What a user thinks
+What a user thinks
+What a user thinks
+What a user thinks
+does
+What a user does
+What a user does
+What a user does
+What a user does
+feels
+What a user feels
+What a user feels
+What a user feels
+What a user feels
+Gains
+Measures of success, achievements...
+Pains
+Fears, frustrations, obstacles...
+by
+.com
+uxcel.com
+Empathy Map Template
++30 Free Shareable Mockups 
+
+=== User_Story ===
+User
+stories
+Designs by Trust
+USER STORY
+Liem
+As a/an
+Bác sĩ điều trị trực ca.
+type of user
+I want to
+Nhận bản tóm tắt bệnh án từ chatbot kèm theo hệ thống nhãn phân loại mức độ khẩn cấp theo màu sắc (Xanh/Vàng/Đỏ).
+action
+so that
+Tôi có thể nắm bắt nhanh tình trạng bệnh nhân mà không phải đọc lại toàn bộ lịch sử trò chuyện dài dòng, từ đó ưu tiên xử lý các ca nguy hiểm trước và tối ưu hóa "thời gian vàng" trong cấp cứu.
+benefit
+USER STORY
+Liem
+As a/an
+Người quản lý vận hành phòng khám
+type of user
+I want to
+Sử dụng bảng điều khiển (Dashboard) hiển thị trực quan danh sách các ca đang chờ và lịch hẹn đã được chatbot xác nhận.
+action
+so that
+Tôi có thể quản lý khối lượng công việc và phân bổ thời gian trực ca một cách khoa học, giúp phòng khám vận hành trơn tru, giảm thiểu tình trạng bỏ sót bệnh nhân hoặc gây quá tải nhận thức cho đội ngũ y tế.
+benefit
+USER STORY
+Liem
+As a/an
+Bác sĩ tư vấn trực tuyến
+type of user
+I want to
+Sử dụng chức năng ghi chú nhanh bằng giọng nói (Speech-to-text) hoặc điền theo các biểu mẫu mẫu (Templates) có sẵn sau mỗi ca tư vấn.
+action
+so that
+Tôi có thể cập nhật hồ sơ bệnh nhân đầy đủ mà không cần nhập liệu thủ công quá nhiều gây mỏi mắt và giảm hiệu quả làm việc, đồng thời đảm bảo dữ liệu luôn sẵn sàng cho việc theo dõi sức khỏe và tái khám sau này
+benefit
+
+=== Scenario_Map ===
+Scenarios
+
+=== Site_Map ===

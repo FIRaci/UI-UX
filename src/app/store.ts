@@ -396,6 +396,9 @@ export const fetchNotifications = async () => {
 };
 
 export const fetchAllData = () => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
   fetchAppointments();
   fetchThreads();
   fetchDoctors();

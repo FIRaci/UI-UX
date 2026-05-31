@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { toast } from "sonner";
-import { HeartPulse, UserRound, MessagesSquare } from "lucide-react";
+import { HeartPulse, UserRound, MessagesSquare, Loader2 } from "lucide-react";
 
 export type Role = "benhnhan" | "tuvan" | "bacsi" | "quanly";
 
@@ -15,6 +15,7 @@ export function RegisterScreen({ onNavigateLogin }: { onNavigateLogin: () => voi
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [role, setRole] = useState<"benhnhan" | "tuvan">("benhnhan");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async () => {
     if (!username.trim() || !password.trim() || !name.trim()) {
@@ -22,6 +23,7 @@ export function RegisterScreen({ onNavigateLogin }: { onNavigateLogin: () => voi
       return;
     }
 
+    setIsLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
@@ -43,6 +45,8 @@ export function RegisterScreen({ onNavigateLogin }: { onNavigateLogin: () => voi
       }
     } catch (e) {
       toast.error("Lỗi kết nối đến máy chủ");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -124,10 +128,11 @@ export function RegisterScreen({ onNavigateLogin }: { onNavigateLogin: () => voi
             </div>
             
             <Button 
-              className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-sm mt-4" 
+              className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-sm mt-4 disabled:opacity-70 disabled:cursor-not-allowed" 
               onClick={handleRegister}
+              disabled={isLoading}
             >
-              Đăng ký
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Đăng ký"}
             </Button>
             
             <div className="mt-6 text-center text-sm pt-2">
