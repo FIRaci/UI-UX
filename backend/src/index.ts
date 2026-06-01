@@ -19,6 +19,14 @@ async function seedDatabase() {
           { username: "quanly", password: hashedPassword, role: "quanly", name: "Quản lý Phòng khám" },
           { username: "admin", password: hashedPassword, role: "admin", name: "Quản trị viên Hệ thống" },
         ]
+    }
+
+    const adminUser = await prisma.user.findFirst({ where: { username: "admin" } });
+    if (!adminUser) {
+      console.log("Seeding admin user...");
+      const adminPassword = await Bun.password.hash("admin123", { algorithm: "bcrypt", cost: 4 });
+      await prisma.user.create({
+        data: { username: "admin", password: adminPassword, role: "admin", name: "Quản trị viên Hệ thống" }
       });
     }
 
