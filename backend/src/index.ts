@@ -19,6 +19,7 @@ async function seedDatabase() {
           { username: "quanly", password: hashedPassword, role: "quanly", name: "Quản lý Phòng khám" },
           { username: "admin", password: hashedPassword, role: "admin", name: "Quản trị viên Hệ thống" },
         ]
+      });
     }
 
     const adminUser = await prisma.user.findFirst({ where: { username: "admin" } });

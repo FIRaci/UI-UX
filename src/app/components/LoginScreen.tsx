@@ -4,16 +4,17 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { toast } from "sonner";
-import { HeartPulse, Loader2 } from "lucide-react";
+import { HeartPulse, Loader2, Eye, EyeOff } from "lucide-react";
 import { fetchAllData } from "../store";
 
 export type Role = "benhnhan" | "tuvan" | "bacsi" | "quanly" | "admin";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: Role) => void, onNavigateRegister?: () => void }) {
+export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: Role, name: string) => void, onNavigateRegister?: () => void }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFormLogin = async () => {
@@ -81,17 +82,26 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
               <div className="flex justify-between">
                 <Label htmlFor="pwd" className="text-xs font-bold text-slate-700">Mật khẩu</Label>
               </div>
-              <Input 
-                id="pwd" 
-                type="password" 
-                placeholder="••••••" 
-                value={password} 
-                onChange={e => setPassword(e.target.value)} 
-                className="h-12 rounded-xl text-sm border-slate-200 focus-visible:ring-blue-600" 
-                onKeyDown={e => {
-                  if (e.key === "Enter") handleFormLogin();
-                }}
-              />
+              <div className="relative">
+                <Input 
+                  id="pwd" 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="••••••" 
+                  value={password} 
+                  onChange={e => setPassword(e.target.value)} 
+                  className="h-12 rounded-xl text-sm border-slate-200 focus-visible:ring-blue-600 pr-10" 
+                  onKeyDown={e => {
+                    if (e.key === "Enter") handleFormLogin();
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
             <Button 
               className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-sm mt-2 disabled:opacity-70 disabled:cursor-not-allowed" 
