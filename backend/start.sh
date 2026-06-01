@@ -1,9 +1,7 @@
 #!/bin/sh
 set -e
 
-if [ ! -f "/app/.env" ]; then
-  echo 'DATABASE_URL="file:./dev.db"' > /app/.env
-fi
+
 
 echo "Running Prisma migrations..."
 cd /app
