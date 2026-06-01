@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-if [ -z "$DATABASE_URL" ]; then
-  export DATABASE_URL="file:/app/prisma/dev.db"
+if [ ! -f "/app/.env" ]; then
+  echo 'DATABASE_URL="file:./dev.db"' > /app/.env
 fi
 
 echo "Running Prisma migrations..."
