@@ -80,6 +80,30 @@ async function seedDatabase() {
       });
     }
 
+    console.log("Seeding doctor accounts...");
+    const allDoctors = await prisma.doctor.findMany();
+    const doctorPassword = await Bun.password.hash("123456", { algorithm: "bcrypt", cost: 4 });
+    for (const doc of allDoctors) {
+      let username = doc.name.toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/[^a-z0-9]/g, "");
+      username = username.replace(/^(bs|pgsts|bsckii|bscki|thsbs)/, "");
+
+      const existingDocUser = await prisma.user.findFirst({ where: { username } });
+      if (!existingDocUser) {
+        await prisma.user.create({
+          data: {
+            username,
+            password: doctorPassword,
+            role: "bacsi",
+            name: doc.name
+          }
+        });
+      }
+    }
+
     // Clear old appointments to ensure they are seeded with today's date
     await prisma.appointment.deleteMany({});
 
