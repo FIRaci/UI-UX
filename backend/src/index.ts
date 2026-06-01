@@ -180,10 +180,9 @@ async function seedDatabase() {
 
 const app = new Elysia()
   .use(cors({
-    origin: process.env.CORS_ORIGIN || "*",
+    origin: "*",
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
   }))
   .use(
     jwt({
