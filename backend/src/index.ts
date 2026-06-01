@@ -17,7 +17,6 @@ async function seedDatabase() {
           { username: "tuvan", password: hashedPassword, role: "tuvan", name: "CV. Đỗ Thanh Hằng" },
           { username: "bacsi", password: hashedPassword, role: "bacsi", name: "BS. Nguyễn Văn An" },
           { username: "quanly", password: hashedPassword, role: "quanly", name: "Quản lý Phòng khám" },
-          { username: "admin", password: hashedPassword, role: "admin", name: "Quản trị viên Hệ thống" },
         ]
       });
     }
@@ -29,6 +28,17 @@ async function seedDatabase() {
       await prisma.user.create({
         data: { username: "admin", password: adminPassword, role: "admin", name: "Quản trị viên Hệ thống" }
       });
+    } else {
+      // Fix for previously seeded admin with "123456" password
+      const isOldPassword = await Bun.password.verify("123456", adminUser.password);
+      if (isOldPassword) {
+        console.log("Fixing admin user password to admin123...");
+        const adminPassword = await Bun.password.hash("admin123", { algorithm: "bcrypt", cost: 4 });
+        await prisma.user.update({
+          where: { id: adminUser.id },
+          data: { password: adminPassword }
+        });
+      }
     }
 
     const doctorCount = await prisma.doctor.count();

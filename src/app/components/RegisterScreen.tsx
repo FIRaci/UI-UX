@@ -57,17 +57,23 @@ export function RegisterScreen({ onNavigateLogin }: { onNavigateLogin: () => voi
       <div className="w-full max-w-[450px]">
         
         {/* Top Branding */}
-        <div className="flex flex-col items-center justify-center mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
-          <div className="w-16 h-16 rounded-3xl bg-blue-600 flex items-center justify-center text-white shadow-xl mb-3">
-            <HeartPulse className="w-8 h-8" />
+        <div className="flex flex-col items-center justify-center mb-6 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg">
+              <HeartPulse className="w-8 h-8" />
+            </div>
+            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">MediCare AI</h1>
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-2">MediCare AI</h1>
-          <p className="text-xs text-slate-500 font-bold tracking-[0.2em] uppercase text-center w-full">Đăng ký tài khoản</p>
+          <p className="text-xs text-slate-500 font-bold tracking-[0.2em] uppercase text-center w-full">Hệ thống Y tế thông minh</p>
         </div>
 
         {/* Register Box */}
         <Card className="p-8 shadow-2xl bg-white border border-slate-200 rounded-3xl animate-in fade-in slide-in-from-bottom-4 duration-700">
           
+          <div className="space-y-2 mb-5 text-center">
+            <h3 className="text-2xl font-bold tracking-tight text-slate-900">Đăng ký</h3>
+          </div>
+
           <div className="space-y-4 mb-6">
             <Label className="text-xs font-bold text-slate-700">Bạn là ai?</Label>
             <div className="grid grid-cols-2 gap-3">
