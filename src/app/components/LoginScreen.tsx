@@ -112,16 +112,6 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
                 </button>
               </div>
             )}
-
-            <div className="mt-4 pt-4 border-t border-slate-100 text-center">
-              <button 
-                onClick={() => { setUsername("admin"); setPassword("admin123"); }}
-                className="text-xs text-slate-400 hover:text-slate-600 font-medium transition-colors"
-                title="Sử dụng tài khoản Quản trị Hệ thống"
-              >
-                Đăng nhập quyền Admin (Hệ thống)
-              </button>
-            </div>
           </div>
         </Card>
       </div>
