@@ -10,6 +10,7 @@ const PatientDashboard = lazy(() => import("./components/PatientDashboard").then
 const DoctorDashboard = lazy(() => import("./components/DoctorDashboard").then(m => ({ default: m.DoctorDashboard })));
 const ConsultantDashboard = lazy(() => import("./components/ConsultantDashboard").then(m => ({ default: m.ConsultantDashboard })));
 const AdminDashboard = lazy(() => import("./components/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
+const SystemAdminDashboard = lazy(() => import("./components/SystemAdminDashboard").then(m => ({ default: m.SystemAdminDashboard })));
 
 const ROLE_SEO: Record<string, { title: string; description: string }> = {
   benhnhan: {
@@ -27,6 +28,10 @@ const ROLE_SEO: Record<string, { title: string; description: string }> = {
   quanly: {
     title: "Quản trị — Vận hành phòng khám thông minh | MediCare AI",
     description: "Bảng điều khiển dành cho quản lý: doanh thu, lịch hệ thống, nhân sự và thông báo toàn hệ thống.",
+  },
+  admin: {
+    title: "System Admin — Quản lý tài khoản | MediCare AI",
+    description: "Quản trị viên hệ thống quản lý tài khoản người dùng và bảo mật.",
   },
 };
 
@@ -58,6 +63,7 @@ export default function App() {
       newRole === "benhnhan" ? "/patient" :
       newRole === "bacsi" ? "/doctor" :
       newRole === "tuvan" ? "/consultant" :
+      newRole === "admin" ? "/system-admin" :
       "/admin"
     );
   };
@@ -88,7 +94,8 @@ export default function App() {
               {role === "bacsi" && <Route path="/doctor/*" element={<DoctorDashboard onLogout={handleLogout} role={role} />} />}
               {role === "tuvan" && <Route path="/consultant/*" element={<ConsultantDashboard onLogout={handleLogout} role={role} />} />}
               {role === "quanly" && <Route path="/admin/*" element={<AdminDashboard onLogout={handleLogout} role={role} />} />}
-              <Route path="*" element={<Navigate to={`/${role === 'benhnhan' ? 'patient' : role === 'bacsi' ? 'doctor' : role === 'tuvan' ? 'consultant' : 'admin'}`} replace />} />
+              {role === "admin" && <Route path="/system-admin/*" element={<SystemAdminDashboard onLogout={handleLogout} role={role} />} />}
+              <Route path="*" element={<Navigate to={`/${role === 'benhnhan' ? 'patient' : role === 'bacsi' ? 'doctor' : role === 'tuvan' ? 'consultant' : role === 'admin' ? 'system-admin' : 'admin'}`} replace />} />
             </>
           )}
         </Routes>

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { HeartPulse, Loader2 } from "lucide-react";
 import { fetchAllData } from "../store";
 
-export type Role = "benhnhan" | "tuvan" | "bacsi" | "quanly";
+export type Role = "benhnhan" | "tuvan" | "bacsi" | "quanly" | "admin";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -115,11 +115,11 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
 
             <div className="mt-4 pt-4 border-t border-slate-100 text-center">
               <button 
-                onClick={() => { setUsername("quanly"); setPassword("123456"); }}
+                onClick={() => { setUsername("admin"); setPassword("admin123"); }}
                 className="text-xs text-slate-400 hover:text-slate-600 font-medium transition-colors"
-                title="Sử dụng tài khoản Quản trị"
+                title="Sử dụng tài khoản Quản trị Hệ thống"
               >
-                Đăng nhập quyền Quản trị viên
+                Đăng nhập quyền Admin (Hệ thống)
               </button>
             </div>
           </div>

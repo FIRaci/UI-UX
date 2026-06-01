@@ -6,7 +6,7 @@ import { Label } from "./ui/label";
 import { toast } from "sonner";
 import { HeartPulse, UserRound, MessagesSquare, Loader2 } from "lucide-react";
 
-export type Role = "benhnhan" | "tuvan" | "bacsi" | "quanly";
+export type Role = "benhnhan" | "tuvan" | "bacsi" | "quanly" | "admin";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 

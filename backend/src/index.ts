@@ -17,6 +17,7 @@ async function seedDatabase() {
           { username: "tuvan", password: hashedPassword, role: "tuvan", name: "CV. Đỗ Thanh Hằng" },
           { username: "bacsi", password: hashedPassword, role: "bacsi", name: "BS. Nguyễn Văn An" },
           { username: "quanly", password: hashedPassword, role: "quanly", name: "Quản lý Phòng khám" },
+          { username: "admin", password: hashedPassword, role: "admin", name: "Quản trị viên Hệ thống" },
         ]
       });
     }
@@ -723,7 +724,7 @@ const app = new Elysia()
         }
       })
       .get("/users", async ({ user, set }) => {
-        if (user?.role !== "quanly") {
+        if (user?.role !== "admin") {
           set.status = 403;
           return { error: "Quyền truy cập bị từ chối" };
         }
@@ -738,7 +739,7 @@ const app = new Elysia()
         }
       })
       .post("/users", async ({ user, body, set }) => {
-        if (user?.role !== "quanly") {
+        if (user?.role !== "admin") {
           set.status = 403;
           return { error: "Quyền truy cập bị từ chối" };
         }
@@ -774,7 +775,7 @@ const app = new Elysia()
         })
       })
       .delete("/users/:id", async ({ params, user, set }) => {
-        if (user?.role !== "quanly") {
+        if (user?.role !== "admin") {
           set.status = 403;
           return { error: "Quyền truy cập bị từ chối" };
         }
