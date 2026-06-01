@@ -74,6 +74,11 @@ export default function App() {
       toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
     };
     window.addEventListener("app:unauthorized", handleUnauthorized);
+    
+    // Ping backend to wake up Render free tier on initial load
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+    fetch(`${API_URL}/api/records`).catch(() => {});
+    
     return () => window.removeEventListener("app:unauthorized", handleUnauthorized);
   }, []);
 

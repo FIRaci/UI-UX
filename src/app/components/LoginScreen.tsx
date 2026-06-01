@@ -24,6 +24,12 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
     }
 
     setIsLoading(true);
+    
+    // Render free tier cold start warning
+    const timeoutId = setTimeout(() => {
+      toast.info("Đang đánh thức máy chủ (có thể mất 30-50s do server miễn phí). Vui lòng đợi...", { duration: 10000 });
+    }, 4000);
+
     try {
       const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
@@ -44,6 +50,7 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
     } catch (e) {
       toast.error("Lỗi kết nối đến máy chủ");
     } finally {
+      clearTimeout(timeoutId);
       setIsLoading(false);
     }
   };

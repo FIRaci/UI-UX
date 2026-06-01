@@ -20,6 +20,12 @@ export function Records() {
   const loadRecords = useCallback(async () => {
     setLoading(true);
     setError(null);
+    
+    // Render free tier cold start warning
+    const timeoutId = setTimeout(() => {
+      toast.info("Đang khởi động lại máy chủ (có thể mất 30-50s do server miễn phí). Vui lòng đợi...", { duration: 10000 });
+    }, 4000);
+    
     try {
       const token = localStorage.getItem("token");
       const headers: Record<string, string> = {};
@@ -51,6 +57,7 @@ export function Records() {
       console.error("Error loading records:", e);
       setError("Không thể tải dữ liệu hồ sơ");
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   }, []);
