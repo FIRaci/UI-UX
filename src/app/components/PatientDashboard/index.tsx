@@ -845,7 +845,7 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
           <div className="shrink-0 p-4 bg-white">
               {/* Quick prompts row — distinct from AI action buttons */}
               <div className="max-w-3xl mx-auto mb-2">
-                <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scroll-smooth">
                   <span className="shrink-0 text-[10px] font-semibold text-slate-400 uppercase tracking-wider pr-1 flex items-center gap-1">
                     <MessagesSquare className="w-3 h-3" />
                     Gợi ý câu hỏi
