@@ -15,7 +15,7 @@ export function AdminDashboard({ onLogout, role }: { onLogout: () => void; role:
   useAppNavigate(
     ["overview", "patients", "reports", "schedule", "chat", "notify", "doctors"],
     setActive,
-    { search: "patients", appointments: "schedule" }
+    { search: "patients", appointments: "schedule", records: "patients" }
   );
 
   return (

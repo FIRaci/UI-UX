@@ -317,6 +317,13 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
   };
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [promptSetIndex, setPromptSetIndex] = useState(0);
+  const QUICK_PROMPT_SETS = [
+    ["Tôi bị đau đầu và buồn nôn", "Lịch khám gần nhất của tôi khi nào?", "Tư vấn dinh dưỡng cho người tiểu đường", "Làm sao để đặt lịch khám mới?", "Có những phương thức thanh toán nào?", "Giải thích kết quả xét nghiệm máu"],
+    ["Tôi bị sốt cao về chiều", "Tim mạch cần lưu ý gì?", "Cách theo dõi huyết áp tại nhà", "Khi nào cần tái khám?", "Thực đơn cho người cao huyết áp", "Tập thể dục cho người lớn tuổi"],
+    ["Tôi bị đau bụng vùng thượng vị", "Các loại bảo hiểm y tế?", "Dị ứng thời tiết có nguy hiểm?", "Chi phí khám tổng quát?", "Uống thuốc đúng cách thế nào?", "Cách phòng bệnh mùa mưa"],
+    ["Tôi bị mất ngủ kéo dài", "Chế độ ăn sau ốm", "Vaccine cần tiêm cho người lớn", "Kiểm tra thị lực ở đâu?", "Nhức mỏi xương khớp", "Khám sức khỏe định kỳ"],
+  ];
 
   const handleSuggestedAction = (action: SuggestedAction) => {
     switch (action.action) {
@@ -756,7 +763,7 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
                   <h3 className="font-bold text-slate-800 text-lg">Xin chào, tôi có thể giúp gì cho bạn?</h3>
                   <p className="text-sm text-slate-500 mb-6">Hãy chọn một gợi ý bên dưới hoặc tự nhập câu hỏi của bạn.</p>
                   <div className="flex flex-wrap justify-center gap-3 max-w-lg">
-                    {["Tôi bị đau đầu và buồn nôn", "Lịch khám gần nhất của tôi khi nào?", "Tư vấn dinh dưỡng cho người tiểu đường", "Làm sao để đặt lịch khám mới?", "Có những phương thức thanh toán nào?", "Giải thích kết quả xét nghiệm máu"].map(prompt => (
+                    {QUICK_PROMPT_SETS[promptSetIndex % QUICK_PROMPT_SETS.length].map(prompt => (
                       <button 
                         key={prompt}
                         onClick={() => { setInput(prompt); sendChat(prompt); }}
@@ -824,8 +831,30 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
                 ))}
               </div>
             )}
+              {/* Quick prompts row */}
+              <div className="max-w-3xl mx-auto mb-2">
+                <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
+                  <button
+                    onClick={() => setPromptSetIndex(i => i + 1)}
+                    className="shrink-0 px-2.5 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-[11px] font-semibold text-slate-500 hover:bg-slate-200 transition-all active:scale-95 flex items-center gap-1"
+                    title="Thay đổi gợi ý"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span className="hidden sm:inline">Gợi ý khác</span>
+                  </button>
+                  {QUICK_PROMPT_SETS[promptSetIndex % QUICK_PROMPT_SETS.length].map(prompt => (
+                    <button
+                      key={prompt}
+                      onClick={() => sendChat(prompt)}
+                      className="shrink-0 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:border-emerald-300 hover:text-emerald-700 hover:bg-emerald-50 transition-all active:scale-95 whitespace-nowrap"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="max-w-3xl mx-auto flex items-end gap-2">
-              <div className="flex-1 relative">
+                <div className="flex-1 relative">
                 <Textarea
                   ref={inputRef}
                   value={input}

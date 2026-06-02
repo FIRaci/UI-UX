@@ -121,20 +121,39 @@ export function ChatView({ role }: { role: string }) {
         throw new Error(`API ${res.status}`);
       }
     } catch {
-      // fallback: local response when AI service offline
       await new Promise(r => setTimeout(r, 300 + Math.random() * 400));
       const reply = ROLE_RESPONSES[role]?.(t) ?? "Cảm ơn bạn! Tôi đã nhận được thông tin và đang phân tích. Bạn có thể cho tôi biết thêm chi tiết được không?";
-      setMessages(m => [...m, { id: (Date.now() + 1).toString(), role: "bot", text: reply, time: new Date() }]);
-      // fallback actions
-      if (role === "benhnhan" && (t.includes("đau") || t.includes("sốt"))) {
-        handleAiActions(["WARNING_RED", "NAVIGATE_APPOINTMENT"]);
+      let fallbackActions: string[] = [];
+      let fallbackSuggested: { label: string; action: string; data?: Record<string, unknown> }[] = [];
+      if (role === "benhnhan") {
+        if (t.includes("đau") || t.includes("sốt")) {
+          fallbackActions = ["WARNING_RED", "NAVIGATE_APPOINTMENT"];
+          fallbackSuggested = [
+            { label: "Đặt lịch khám ngay", action: "BOOK_APPOINTMENT" },
+            { label: "Xem hồ sơ bệnh án", action: "VIEW_RECORDS" },
+          ];
+        } else {
+          fallbackSuggested = [
+            { label: "Tư vấn triệu chứng", action: "BOOK_APPOINTMENT" },
+            { label: "Đặt lịch khám", action: "BOOK_APPOINTMENT" },
+            { label: "Xem hồ sơ", action: "VIEW_RECORDS" },
+          ];
+        }
       } else if (role === "bacsi" && (t.includes("hồ sơ") || t.includes("bệnh án"))) {
-        handleAiActions(["SHOW_PATIENT_HISTORY"]);
+        fallbackActions = ["SHOW_PATIENT_HISTORY"];
       } else if (role === "quanly" && (t.includes("báo cáo") || t.includes("doanh thu"))) {
-        handleAiActions(["SHOW_REPORTS"]);
+        fallbackActions = ["SHOW_REPORTS"];
       } else if (role === "tuvan" && (t.includes("gói") || t.includes("khám"))) {
-        handleAiActions(["SHOW_PACKAGES"]);
+        fallbackActions = ["SHOW_PACKAGES"];
+        fallbackSuggested = [{ label: "Xem gói khám", action: "BOOK_APPOINTMENT" }];
       }
+      if (fallbackActions.length) handleAiActions(fallbackActions);
+      setMessages(m => [...m, {
+        id: (Date.now() + 1).toString(), role: "bot", text: reply, time: new Date(),
+        actions: fallbackActions,
+        suggestedActions: fallbackSuggested.length ? fallbackSuggested : undefined,
+      }]);
+      if (reply) { setInsightText(reply.slice(0, 200)); setInsightActions(fallbackActions); }
     }
 
     setIsTyping(false);
