@@ -36,6 +36,30 @@ load_dotenv()
 
 app = FastAPI(title="MediCare AI - AI Service")
 
+
+def _is_api_quota_exception(exc: BaseException) -> bool:
+    """Detect 429/quota errors from any google-genai / google-api-python-client variant.
+
+    Different exception classes expose the HTTP status differently:
+      - google.genai.errors.APIError:  e.code, e.status
+      - google.api_core.exceptions.*:  e.code (int) via grpc_status_code
+      - httpx.HTTPStatusError:          e.response.status_code
+      - raw requests/HTTPError:        .code
+    """
+    code = getattr(exc, "code", None)
+    status = getattr(exc, "status", None)
+    if code == 429:
+        return True
+    if isinstance(status, str) and status.upper() in ("RESOURCE_EXHAUSTED", "TOO_MANY_REQUESTS"):
+        return True
+    response = getattr(exc, "response", None)
+    if response is not None and getattr(response, "status_code", None) == 429:
+        return True
+    cls_name = type(exc).__name__
+    if cls_name in ("ResourceExhausted", "TooManyRequests", "QuotaExceeded"):
+        return True
+    return False
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -141,10 +165,32 @@ async def chat_endpoint(request: ChatRequest):
         )
     except Exception as e:
         error_msg = str(e)
-        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg or "quota" in error_msg.lower():
+        is_quota_error = (
+            "429" in error_msg
+            or "RESOURCE_EXHAUSTED" in error_msg
+            or "quota" in error_msg.lower()
+            or "rate" in error_msg.lower() and "limit" in error_msg.lower()
+        )
+        is_quota_error = is_quota_error or _is_api_quota_exception(e)
+        if is_quota_error:
             friendly_text = "Hệ thống AI đang quá tải do vượt quá giới hạn API miễn phí (Quota Exceeded). Vui lòng đợi khoảng 1 phút rồi thử lại nhé."
-            return ChatResponse(text=friendly_text, actions=[])
-        return ChatResponse(text=f"Lỗi khi gọi AI: {error_msg}", actions=[])
+            return ChatResponse(
+                text=friendly_text,
+                actions=[],
+                suggestedActions=[
+                    {"label": "Đặt lịch khám", "action": "BOOK_APPOINTMENT", "data": {}},
+                    {"label": "Xem lịch hẹn", "action": "VIEW_APPOINTMENTS", "data": {}},
+                    {"label": "Xem hồ sơ", "action": "VIEW_RECORDS", "data": {}},
+                ],
+            )
+        return ChatResponse(
+            text="Đã có lỗi kết nối tới AI. Vui lòng thử lại sau ít phút.",
+            actions=[],
+            suggestedActions=[
+                {"label": "Đặt lịch khám", "action": "BOOK_APPOINTMENT", "data": {}},
+                {"label": "Xem hồ sơ", "action": "VIEW_RECORDS", "data": {}},
+            ],
+        )
 
 
 # --------------- /api/suggestions ---------------

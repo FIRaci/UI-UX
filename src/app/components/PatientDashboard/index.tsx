@@ -753,8 +753,8 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
           </header>
 
           {/* Chat Messages */}
-          <ScrollArea className="flex-1 px-4 py-6">
-            <div className="max-w-3xl mx-auto space-y-6">
+          <ScrollArea className="flex-1 px-4 py-6" type="hover">
+            <div className="max-w-3xl mx-auto space-y-6 overflow-x-hidden">
               {messages.length === 0 && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-10 gap-2 text-center">
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-4">

@@ -179,3 +179,29 @@
     line-height: 1.5;
   }
 }
+
+/* Hide horizontal scrollbar in chat messages while keeping vertical scroll functional */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Style chat ScrollArea — hide horizontal, soften vertical */
+[data-slot="scroll-area"][data-orientation="horizontal"] {
+  display: none !important;
+}
+[data-slot="scroll-area-scrollbar"][data-orientation="vertical"] {
+  width: 6px !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+[data-slot="scroll-area-thumb"] {
+  background: rgb(16 185 129 / 0.25) !important;
+  border-radius: 999px !important;
+}
+[data-slot="scroll-area-thumb"]:hover {
+  background: rgb(16 185 129 / 0.45) !important;
+}
