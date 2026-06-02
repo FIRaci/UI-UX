@@ -69,6 +69,7 @@ export function ChatView({ role }: { role: string }) {
   const [insightText, setInsightText] = useState("");
   const [insightActions, setInsightActions] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setActivePrompts(role === "benhnhan" ? BENHNHAN_PROMPT_TREE.default : config.prompts);
@@ -117,6 +118,20 @@ export function ChatView({ role }: { role: string }) {
         }]);
         setInsightText(data.text.slice(0, 200));
         setInsightActions(data.actions || []);
+      } else if (res.status === 429) {
+        const quotaReply = "AI hiện đang hết hạn mức sử dụng miễn phí (429 RESOURCE_EXHAUSTED). Vui lòng thử lại sau ít phút, hoặc dùng các gợi ý nhanh bên dưới.";
+        setMessages(m => [...m, {
+          id: (Date.now() + 1).toString(), role: "bot", text: quotaReply, time: new Date(),
+          actions: [],
+          suggestedActions: role === "benhnhan" ? [
+            { label: "Đặt lịch khám", action: "BOOK_APPOINTMENT" },
+            { label: "Xem lịch hẹn", action: "VIEW_APPOINTMENTS" },
+            { label: "Xem hồ sơ", action: "VIEW_RECORDS" },
+          ] : undefined,
+        }]);
+        setInsightText(quotaReply);
+        setInsightActions([]);
+        toast.warning("API key đã hết quota, dùng phản hồi offline");
       } else {
         throw new Error(`API ${res.status}`);
       }
@@ -126,23 +141,58 @@ export function ChatView({ role }: { role: string }) {
       let fallbackActions: string[] = [];
       let fallbackSuggested: { label: string; action: string; data?: Record<string, unknown> }[] = [];
       if (role === "benhnhan") {
-        if (t.includes("đau") || t.includes("sốt")) {
+        const lower = t.toLowerCase();
+        if (lower.includes("đau") || lower.includes("sốt") || lower.includes("triệu chứng")) {
           fallbackActions = ["WARNING_RED", "NAVIGATE_APPOINTMENT"];
           fallbackSuggested = [
             { label: "Đặt lịch khám ngay", action: "BOOK_APPOINTMENT" },
             { label: "Xem hồ sơ bệnh án", action: "VIEW_RECORDS" },
+            { label: "Gọi bác sĩ", action: "CALL_DOCTOR" },
+          ];
+        } else if (lower.includes("lịch khám") || lower.includes("lịch hẹn") || lower.includes("hẹn khám")) {
+          fallbackActions = ["NAVIGATE_APPOINTMENT"];
+          fallbackSuggested = [
+            { label: "Xem lịch hẹn của tôi", action: "VIEW_APPOINTMENTS" },
+            { label: "Đặt lịch khám mới", action: "BOOK_APPOINTMENT" },
+            { label: "Đặt lịch tái khám", action: "BOOK_APPOINTMENT" },
+          ];
+        } else if (lower.includes("hồ sơ") || lower.includes("bệnh án") || lower.includes("kết quả")) {
+          fallbackActions = ["SHOW_REPORTS"];
+          fallbackSuggested = [
+            { label: "Xem hồ sơ bệnh án", action: "VIEW_RECORDS" },
+            { label: "Đặt lịch khám", action: "BOOK_APPOINTMENT" },
+          ];
+        } else if (lower.includes("gói khám") || lower.includes("gói") || lower.includes("tổng quát")) {
+          fallbackActions = ["SHOW_PACKAGES"];
+          fallbackSuggested = [
+            { label: "Xem gói khám", action: "BOOK_APPOINTMENT" },
+            { label: "Tìm bác sĩ", action: "BOOK_APPOINTMENT" },
+          ];
+        } else if (lower.includes("thuốc") || lower.includes("uống thuốc")) {
+          fallbackActions = ["MEDICATION_REMINDER"];
+          fallbackSuggested = [
+            { label: "Đặt lịch khám", action: "BOOK_APPOINTMENT" },
+            { label: "Xem đơn thuốc", action: "VIEW_RECORDS" },
+          ];
+        } else if (lower.includes("thanh toán") || lower.includes("bảo hiểm") || lower.includes("phí")) {
+          fallbackSuggested = [
+            { label: "Xem gói khám", action: "BOOK_APPOINTMENT" },
+            { label: "Đặt lịch khám", action: "BOOK_APPOINTMENT" },
           ];
         } else {
           fallbackSuggested = [
             { label: "Tư vấn triệu chứng", action: "BOOK_APPOINTMENT" },
             { label: "Đặt lịch khám", action: "BOOK_APPOINTMENT" },
             { label: "Xem hồ sơ", action: "VIEW_RECORDS" },
+            { label: "Xem lịch hẹn", action: "VIEW_APPOINTMENTS" },
           ];
         }
       } else if (role === "bacsi" && (t.includes("hồ sơ") || t.includes("bệnh án"))) {
         fallbackActions = ["SHOW_PATIENT_HISTORY"];
+        fallbackSuggested = [{ label: "Xem hồ sơ bệnh nhân", action: "VIEW_RECORDS" }];
       } else if (role === "quanly" && (t.includes("báo cáo") || t.includes("doanh thu"))) {
         fallbackActions = ["SHOW_REPORTS"];
+        fallbackSuggested = [{ label: "Xem báo cáo", action: "VIEW_RECORDS" }];
       } else if (role === "tuvan" && (t.includes("gói") || t.includes("khám"))) {
         fallbackActions = ["SHOW_PACKAGES"];
         fallbackSuggested = [{ label: "Xem gói khám", action: "BOOK_APPOINTMENT" }];
@@ -185,6 +235,9 @@ export function ChatView({ role }: { role: string }) {
       case "NAVIGATE_APPOINTMENT":
         navigate("search");
         break;
+      case "VIEW_APPOINTMENTS":
+        navigate("schedule");
+        break;
       case "VIEW_RECORDS":
       case "SHOW_PATIENT_HISTORY":
         navigate("records");
@@ -195,6 +248,30 @@ export function ChatView({ role }: { role: string }) {
         break;
       case "SHOW_REPORTS":
         toast.info("Đang tải báo cáo...");
+        navigate("records");
+        break;
+      case "MEDICATION_REMINDER":
+        send("Tôi cần được nhắc uống thuốc đều đặn");
+        break;
+      case "CALL_DOCTOR":
+        toast.success("Gọi hotline MediCare: 1900 1234", {
+          duration: 8000,
+          action: { label: "Gọi ngay", onClick: () => window.open("tel:19001234") },
+        });
+        break;
+      case "BOOK_SPEC": {
+        const spec = sa.data?.spec as string;
+        if (spec) {
+          toast.success(`Đang tìm bác sĩ ${spec}...`);
+          navigate("search");
+        } else {
+          navigate("search");
+        }
+        break;
+      }
+      case "SYMPTOM_CHECK":
+        toast.info("Hãy mô tả triệu chứng của bạn ở ô nhập liệu bên dưới");
+        inputRef.current?.focus();
         break;
       default:
         send(sa.label);
@@ -315,6 +392,7 @@ export function ChatView({ role }: { role: string }) {
             )}
             <div className="flex gap-2 items-end max-w-3xl mx-auto">
               <Textarea
+                ref={inputRef}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => {
