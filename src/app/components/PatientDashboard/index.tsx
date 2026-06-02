@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Search, CalendarDays, FileHeart, Bot, Send, HeartPulse, LogOut, Activity, MessagesSquare, ArrowLeft, Sparkles, Bell, ChevronRight, Star, Clock, Stethoscope, X, Mic, Plus, History, RefreshCw, Trash2 } from "lucide-react";
+import { Search, CalendarDays, FileHeart, Bot, Send, HeartPulse, LogOut, Activity, MessagesSquare, ArrowLeft, Sparkles, Bell, ChevronRight, Stethoscope, X, Mic, Plus, History, RefreshCw, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -280,6 +280,25 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
           { label: "Nhi khoa", action: "BOOK_SPEC", data: { spec: "Nhi khoa" } },
           { label: "Xem tất cả", action: "VIEW_SEARCH" },
         ];
+      } else if (t.toLowerCase().includes("thuốc") || t.toLowerCase().includes("uống thuốc")) {
+        replyText = "Nhắc nhở uống thuốc đều đặn rất quan trọng. Bạn nên:\n• Uống thuốc đúng giờ theo đơn của bác sĩ\n• Không tự ý ngưng thuốc hoặc thay đổi liều\n• Nếu quên, hãy uống ngay khi nhớ (trừ khi gần liều kế tiếp)\n\nBạn cần tôi nhắc nhở vào giờ cụ thể không?";
+        sugActions = [
+          { label: "Đặt lịch nhắc thuốc", action: "MEDICATION_REMINDER" },
+          { label: "Xem hồ sơ bệnh án", action: "VIEW_RECORDS" },
+        ];
+      } else if (t.toLowerCase().includes("tim mạch")) {
+        replyText = "Các vấn đề về tim mạch cần được theo dõi kỹ lưỡng. Bạn có thể đặt lịch khám với bác sĩ chuyên khoa Tim mạch tại MediCare.";
+        sugActions = [
+          { label: "Đặt lịch khám Tim mạch", action: "BOOK_SPEC", data: { spec: "Tim mạch" } },
+          { label: "Xem lịch sử khám", action: "VIEW_RECORDS" },
+        ];
+        handleAiActions(["NAVIGATE_APPOINTMENT"]);
+      } else if (t.toLowerCase().includes("huyết áp")) {
+        replyText = "Theo dõi huyết áp thường xuyên rất quan trọng. Chỉ số huyết áp lý tưởng là dưới 120/80 mmHg.\n\nNếu huyết áp của bạn thường xuyên trên 140/90, hãy đến khám bác sĩ Tim mạch.";
+        sugActions = [
+          { label: "Đặt lịch khám Tim mạch", action: "BOOK_SPEC", data: { spec: "Tim mạch" } },
+          { label: "Theo dõi chỉ số", action: "VIEW_RECORDS" },
+        ];
       } else if (t.toLowerCase().includes("hồ sơ") || t.toLowerCase().includes("bệnh án")) {
         replyText = "Đây là tổng quan hồ sơ sức khỏe của bạn. Bạn muốn xem chi tiết không?";
         sugActions = [{ label: "Mở hồ sơ bệnh án", action: "VIEW_RECORDS" }];
@@ -297,10 +316,17 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
     setIsTyping(false);
   };
 
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
   const handleSuggestedAction = (action: SuggestedAction) => {
     switch (action.action) {
       case "SYMPTOM_CHECK":
-        sendChat("Tôi muốn kiểm tra triệu chứng");
+        navigate("/patient/chat");
+        setTimeout(() => {
+          setInput("");
+          inputRef.current?.focus();
+          toast.info("Hãy mô tả triệu chứng của bạn ở ô nhập liệu bên dưới", { duration: 3000 });
+        }, 400);
         break;
       case "BOOK_APPOINTMENT":
         navigate("/patient/search");
@@ -315,7 +341,7 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
         navigate("/patient/appointments");
         break;
       case "MEDICATION_REMINDER":
-        sendChat("Nhắc tôi uống thuốc");
+        sendChat("Tôi cần được nhắc uống thuốc đều đặn");
         break;
       case "BOOK_SPEC": {
         const spec = action.data?.spec as string;
@@ -327,7 +353,10 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
         break;
       }
       case "CALL_DOCTOR":
-        toast.info("Tính năng gọi bác sĩ đang phát triển");
+        toast.success("Gọi hotline MediCare: 1900 1234", {
+          duration: 8000,
+          action: { label: "Gọi ngay", onClick: () => window.open("tel:19001234") },
+        });
         break;
       default:
         break;
@@ -379,7 +408,15 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
   const handleAiActions = (actions?: string[]) => {
     if (!actions?.length) return;
     for (const action of actions) {
-      if (action === "WARNING_RED") toast.error("️ AI phát hiện triệu chứng cần lưu ý!");
+      if (action === "WARNING_RED") toast.error("AI phát hiện triệu chứng cần lưu ý!");
+      else if (action === "NAVIGATE_APPOINTMENT") {
+        toast.success("AI đề xuất đặt lịch khám", {
+          action: { label: "Đặt ngay", onClick: () => navigate("/patient/search") },
+        });
+      } else if (action === "HIGHLIGHT_CRITICAL") toast.warning("AI phát hiện dấu hiệu nghiêm trọng");
+      else if (action === "SHOW_PACKAGES") toast.success("AI đề xuất gói khám phù hợp");
+      else if (action === "SHOW_REPORTS") toast.info("AI đang tải báo cáo");
+      else if (action === "ALERT_OVERLOAD") toast.warning("AI cảnh báo quá tải hệ thống");
     }
   };
 
@@ -684,11 +721,23 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
                 <History className="w-5 h-5" />
               </Button>
               <Button variant="ghost" size="sm" onClick={() => {
-                if (messages.length > 0) {
-                  setCurrentSessionId(Date.now().toString());
-                  setMessages([]);
-                  toast.success("Đã mở cuộc trò chuyện mới");
+                setCurrentSessionId(Date.now().toString());
+                const firstUpcoming = upcoming[0];
+                let welcomeText = `Chào ${ME.split(" ").pop()}! Tôi là trợ lý AI của MediCare.\n\n`;
+                if (firstUpcoming) {
+                  welcomeText += `Bạn có lịch khám **${firstUpcoming.doctorSpec}** với **${firstUpcoming.doctorName}** vào **${firstUpcoming.date}** lúc **${firstUpcoming.time}**.\n\n`;
                 }
+                welcomeText += "Tôi có thể giúp bạn:";
+                setMessages([{
+                  id: "welcome", role: "bot", text: welcomeText, time: new Date(),
+                  suggestedActions: [
+                    { label: "Tư vấn triệu chứng", action: "SYMPTOM_CHECK" },
+                    { label: "Đặt lịch khám mới", action: "BOOK_APPOINTMENT" },
+                    { label: "Xem hồ sơ bệnh án", action: "VIEW_RECORDS" },
+                    { label: "Nhắc uống thuốc", action: "MEDICATION_REMINDER" },
+                  ],
+                }]);
+                toast.success("Đã mở cuộc trò chuyện mới");
               }} className="text-emerald-600 font-semibold bg-emerald-50 hover:bg-emerald-100 rounded-xl px-3 h-9 active:scale-95">
                 <Plus className="w-4 h-4 mr-1.5" />
                 Mới
@@ -775,9 +824,10 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
                 ))}
               </div>
             )}
-            <div className="max-w-3xl mx-auto flex items-end gap-2">
+              <div className="max-w-3xl mx-auto flex items-end gap-2">
               <div className="flex-1 relative">
                 <Textarea
+                  ref={inputRef}
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(input); } }}
@@ -877,17 +927,6 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
         </motion.div>
       )}
       </AnimatePresence>
-
-      {/* Floating Chat Button (visible on sub-pages, not on dashboard or chat) */}
-      {activeView !== "dashboard" && activeView !== "chat" && (
-        <motion.button
-          initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 260, damping: 20 }}
-          className="group fixed bottom-6 right-6 w-14 h-14 sm:w-16 sm:h-16 rounded-[2rem] sm:rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_8px_32px_rgba(16,185,129,0.3)] hover:shadow-[0_12px_40px_rgba(16,185,129,0.5)] flex flex-col items-center justify-center gap-2 hover:scale-110 active:scale-95 transition-all z-40 border-[3px] border-white"
-          onClick={openChat}
-        >
-          <Bot className="w-7 h-7" />
-        </motion.button>
-      )}
 
       {/* Dialogs */}
       <DoctorDetailDialog doctor={selectedDoctor} onClose={() => setSelectedDoctor(null)} onBook={setBookingDoctor} />

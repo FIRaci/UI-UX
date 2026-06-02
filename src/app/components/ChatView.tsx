@@ -56,6 +56,8 @@ const BENHNHAN_PROMPT_TREE: Record<string, string[]> = {
   "Triệu chứng khác": ["Đau nhức xương khớp", "Vấn đề ngoài da", "Khó thở, tức ngực", "Dị ứng"]
 };
 
+type Message = { id: string; role: "bot" | "me"; text: string; time: Date; actions?: string[]; suggestedActions?: { label: string; action: string; data?: Record<string, unknown> }[] };
+
 export function ChatView({ role }: { role: string }) {
   const config = ROLE_CONFIG[role] ?? ROLE_CONFIG.benhnhan;
   const [messages, setMessages] = useState<Message[]>([
@@ -64,6 +66,8 @@ export function ChatView({ role }: { role: string }) {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [activePrompts, setActivePrompts] = useState<string[]>(config.prompts);
+  const [insightText, setInsightText] = useState("");
+  const [insightActions, setInsightActions] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -105,7 +109,14 @@ export function ChatView({ role }: { role: string }) {
       if (res.ok) {
         const data = await res.json();
         handleAiActions(data.actions);
-        setMessages(m => [...m, { id: (Date.now() + 1).toString(), role: "bot", text: data.text, time: new Date() }]);
+        const sugActions = (data.suggestedActions || []).map((a: any) => ({ label: a.label, action: a.action, data: a.data }));
+        setMessages(m => [...m, {
+          id: (Date.now() + 1).toString(), role: "bot", text: data.text, time: new Date(),
+          actions: data.actions || [],
+          suggestedActions: sugActions.length ? sugActions : undefined,
+        }]);
+        setInsightText(data.text.slice(0, 200));
+        setInsightActions(data.actions || []);
       } else {
         throw new Error(`API ${res.status}`);
       }
@@ -129,13 +140,17 @@ export function ChatView({ role }: { role: string }) {
     setIsTyping(false);
   };
 
+  const navigate = (view: string) => {
+    window.dispatchEvent(new CustomEvent("app:navigate", { detail: view }));
+  };
+
   const handleAiActions = (actions?: string[]) => {
     if (!actions?.length) return;
     for (const action of actions) {
       if (action === "WARNING_RED") toast.error("AI cảnh báo: Cần kiểm tra y tế ngay!");
       else if (action === "NAVIGATE_APPOINTMENT") {
         toast.success("AI đề xuất đặt lịch khám", {
-          action: { label: "Đặt ngay", onClick: () => navigate("appointments") },
+          action: { label: "Đặt ngay", onClick: () => navigate("search") },
         });
       } else if (action === "SHOW_PATIENT_HISTORY") toast.info("AI đề xuất xem lịch sử bệnh án");
       else if (action === "HIGHLIGHT_CRITICAL") toast.warning("AI phát hiện dấu hiệu nghiêm trọng");
@@ -145,9 +160,33 @@ export function ChatView({ role }: { role: string }) {
     }
   };
 
-  const navigate = (view: string) => {
-    window.dispatchEvent(new CustomEvent("app:navigate", { detail: view }));
+  const handleSuggestedAction = (sa: { label: string; action: string; data?: Record<string, unknown> }) => {
+    switch (sa.action) {
+      case "BOOK_APPOINTMENT":
+      case "NAVIGATE_APPOINTMENT":
+        navigate("search");
+        break;
+      case "VIEW_RECORDS":
+      case "SHOW_PATIENT_HISTORY":
+        navigate("records");
+        break;
+      case "SHOW_PACKAGES":
+        toast.info("Đang tìm gói khám phù hợp...");
+        navigate("search");
+        break;
+      case "SHOW_REPORTS":
+        toast.info("Đang tải báo cáo...");
+        break;
+      default:
+        send(sa.label);
+        break;
+    }
   };
+
+  const hasWarning = insightActions.includes("WARNING_RED") || insightActions.includes("HIGHLIGHT_CRITICAL");
+  const hasAppointment = insightActions.includes("NAVIGATE_APPOINTMENT");
+  const hasRecords = insightActions.includes("SHOW_PATIENT_HISTORY");
+  const hasPackages = insightActions.includes("SHOW_PACKAGES");
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-5 h-[calc(100vh-7.5rem)] min-h-[500px]">
@@ -183,6 +222,20 @@ export function ChatView({ role }: { role: string }) {
                       }`}>
                         <p className="text-[15px] leading-relaxed whitespace-pre-line">{msg.text}</p>
                       </div>
+                      {msg.role === "bot" && msg.suggestedActions && msg.suggestedActions.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {msg.suggestedActions.map((sa, i) => (
+                            <button
+                              key={i}
+                              onClick={() => handleSuggestedAction(sa)}
+                              className="px-2.5 py-1 bg-white border border-emerald-200 rounded-lg text-xs font-semibold text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 transition-all active:scale-95 shadow-sm flex items-center gap-1"
+                            >
+                              <Sparkles className="w-3 h-3" />
+                              {sa.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       <div className={`text-[11px] text-muted-foreground mt-1 px-1 ${msg.role === "me" ? "text-right" : ""}`}>
                         {msg.time.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
                       </div>
@@ -267,15 +320,38 @@ export function ChatView({ role }: { role: string }) {
       </div>
 
       <div className="space-y-3 hidden xl:block">
-        <Card className="p-4 border border-slate-100 shadow-sm" style={{ borderRadius: "16px" }}>
+        <Card className={`p-4 border shadow-sm ${hasWarning ? 'border-red-200 bg-red-50' : 'border-slate-100'}`} style={{ borderRadius: "16px" }}>
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-4 h-4 text-emerald-600" />
+            <Sparkles className={`w-4 h-4 ${hasWarning ? 'text-red-600' : 'text-emerald-600'}`} />
             <h4 className="text-sm font-bold text-slate-800">Phân tích AI</h4>
+            {hasWarning && <Badge className="bg-red-500 text-white text-[10px] ml-auto">Cảnh báo</Badge>}
           </div>
-          <div className="text-center py-4 text-slate-400">
-            <Bot className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-            <p className="text-xs">Hãy nhắn tin để AI phân tích</p>
-          </div>
+          {insightText ? (
+            <div className="space-y-2">
+              <p className="text-xs text-slate-700 leading-relaxed line-clamp-4">{insightText}</p>
+              {hasWarning && <p className="text-xs font-bold text-red-600">Cần kiểm tra y tế ngay!</p>}
+              {hasAppointment && (
+                <button onClick={() => navigate("search")} className="w-full text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg py-2 hover:bg-emerald-100 transition">
+                  Đặt lịch khám
+                </button>
+              )}
+              {hasRecords && (
+                <button onClick={() => navigate("records")} className="w-full text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg py-2 hover:bg-blue-100 transition">
+                  Xem hồ sơ bệnh án
+                </button>
+              )}
+              {hasPackages && (
+                <button onClick={() => navigate("search")} className="w-full text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200 rounded-lg py-2 hover:bg-purple-100 transition">
+                  Xem gói khám
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-4 text-slate-400">
+              <Bot className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+              <p className="text-xs">Hãy nhắn tin để AI phân tích</p>
+            </div>
+          )}
         </Card>
       </div>
     </div>
