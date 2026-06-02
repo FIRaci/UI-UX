@@ -239,6 +239,201 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
     setInput("");
     setIsTyping(true);
 
+  const parts = text.split(/(\*\*.*?\*\*|\*.*?\*|__.*?__)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-bold text-red-600">{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('__') && part.endsWith('__')) {
+      return <u key={i} className="underline decoration-red-500 decoration-2 underline-offset-2 font-bold text-slate-800">{part.slice(2, -2)}</u>;
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <em key={i} className="italic text-emerald-700 font-medium">{part.slice(1, -1)}</em>;
+    }
+    return <span key={i}>{part}</span>;
+  });
+};
+
+export function PatientDashboard({ onLogout, role }: { onLogout: () => void; role: string }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const activeView = location.pathname.split("/").pop() === "patient" ? "dashboard" : location.pathname.split("/").pop() || "dashboard";
+    const [showNotifs, setShowNotifs] = useState(false);
+  const [search, setSearch] = useState("");
+  const [specFilter, setSpecFilter] = useState<string>("all");
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [bookingDoctor, setBookingDoctor] = useState<Doctor | null>(null);
+  const [viewingAppt, setViewingAppt] = useState<Appointment | null>(null);
+  const [bookDate, setBookDate] = useState("2026-06-01");
+  const [bookTime, setBookTime] = useState("");
+  const [editing, setEditing] = useState<Appointment | null>(null);
+  const [editingOriginal, setEditingOriginal] = useState<Appointment | null>(null);
+  const [skipConfirm, setSkipConfirm] = useState(false);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [dismissedSuggestion, setDismissedSuggestion] = useState(false);
+  const [suggestionIndex, setSuggestionIndex] = useState(0);
+
+  const appointments = useStore(s => s.appointments.filter(a => a.patientName === ME));
+  const myThreads = useStore(s =>
+    s.threads.filter(t => t.userRole === "benhnhan" && t.userName === ME).sort((a, b) => b.updatedAt - a.updatedAt)
+  );
+  const DOCTORS = useStore(s => s.doctors);
+  const unreadNotifs = useStore(s => s.notifications.filter(n => (n.target === "all" || n.target === "patient") && !n.isRead));
+
+  const [activeThreadId, setActiveThreadId] = useState<number | null>(null);
+  const [reply, setReply] = useState("");
+  const [newMsgDoctor, setNewMsgDoctor] = useState<Doctor | null>(null);
+  const [newMsgContent, setNewMsgContent] = useState("");
+  const [showBookingSuccess, setShowBookingSuccess] = useState(false);
+  const [bookedDoctor, setBookedDoctor] = useState<Doctor | null>(null);
+  const [bookedDate, setBookedDate] = useState("");
+  const [bookedTime, setBookedTime] = useState("");
+  const [bookedClinic, setBookedClinic] = useState("");
+  const [cancelAppointment, setCancelAppointment] = useState<Appointment | null>(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  // Chat State
+  const [messages, setMessages] = useState<ChatMsg[]>(() => {
+    const saved = localStorage.getItem("ai_chat_history");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Revive dates
+        return parsed.map((m: any) => ({ ...m, time: new Date(m.time) }));
+      } catch { return []; }
+    }
+    return [];
+  });
+  
+  const [currentSessionId, setCurrentSessionId] = useState<string>(() => {
+    return localStorage.getItem("ai_current_session_id") || Date.now().toString();
+  });
+
+  useEffect(() => {
+    localStorage.setItem("ai_current_session_id", currentSessionId);
+  }, [currentSessionId]);
+
+  useEffect(() => {
+    localStorage.setItem("ai_chat_history", JSON.stringify(messages));
+    if (messages.length > 0) {
+      const sessions = JSON.parse(localStorage.getItem("ai_chat_sessions") || "[]");
+      const existingIdx = sessions.findIndex((s: any) => s.id === currentSessionId);
+      if (existingIdx >= 0) {
+        sessions[existingIdx].msgs = messages;
+        sessions[existingIdx].date = new Date().toISOString();
+      } else {
+        sessions.push({ id: currentSessionId, date: new Date().toISOString(), msgs: messages });
+      }
+      localStorage.setItem("ai_chat_sessions", JSON.stringify(sessions));
+      setChatSessions(sessions);
+    }
+  }, [messages, currentSessionId]);
+
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
+  const [showChatHistory, setShowChatHistory] = useState(false);
+  const [chatSessions, setChatSessions] = useState<any[]>(() => {
+    try { return JSON.parse(localStorage.getItem("ai_chat_sessions") || "[]"); } catch { return []; }
+  });
+
+  useEffect(() => {
+    if (activeView === "dashboard") {
+      try {
+        const saved = localStorage.getItem("access_settings");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.autoVoiceChat) {
+            navigate("/patient/chat");
+            setTimeout(() => {
+              setIsListening(true);
+              toast.info("Chế độ Tiếp cận: Đã tự động bật Mic");
+            }, 600);
+          }
+        }
+      } catch {}
+    }
+  }, [activeView]);
+
+  const upcoming = appointments.filter(a => a.status === "Sắp tới");
+
+  // Badge viewing state
+  const [viewedAppts, setViewedAppts] = useState<number>(0);
+  const [viewedMsgs, setViewedMsgs] = useState<number>(0);
+  const unreadApptsCount = Math.max(0, upcoming.length - viewedAppts);
+  const unreadMsgsCount = Math.max(0, myThreads.length - viewedMsgs);
+
+  // Fetch suggestions on mount
+  useEffect(() => {
+    fetchSuggestions();
+  }, [appointments.length]);
+
+  const fetchSuggestions = async () => {
+    try {
+      const res = await fetch(`${AI_SERVICE_URL}/api/suggestions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientName: ME,
+          upcomingAppointments: upcoming.map(a => ({
+            doctorName: a.doctorName, doctorSpec: a.doctorSpec, date: a.date, time: a.time
+          })),
+          recentRecords: []
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSuggestions(data.suggestions || []);
+      }
+    } catch {
+      // Fallback suggestions
+      const fallback: Suggestion[] = [];
+      if (upcoming[0]) {
+        fallback.push({ id: "1", type: "reminder", title: `Lịch khám ${upcoming[0].doctorSpec}`, description: `${upcoming[0].doctorName} • ${upcoming[0].date} lúc ${upcoming[0].time}`, action: "VIEW_APPOINTMENTS", actionLabel: "Xem lịch" });
+      }
+      fallback.push({ id: "2", type: "health_tip", title: "Khám sức khỏe định kỳ", description: "Đã đến lúc kiểm tra sức khỏe tổng quát 6 tháng/lần", action: "BOOK_APPOINTMENT", actionLabel: "Đặt lịch ngay" });
+      setSuggestions(fallback);
+    }
+  };
+
+  useEffect(() => {
+    if (!activeThreadId && myThreads[0]) setActiveThreadId(myThreads[0].id);
+  }, [myThreads, activeThreadId]);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  const openChat = () => {
+    if (messages.length === 0) {
+      const firstUpcoming = upcoming[0];
+      let welcomeText = `Chào ${ME.split(" ").pop()}! Tôi là trợ lý AI của MediCare.\n\n`;
+      if (firstUpcoming) {
+        welcomeText += `Bạn có lịch khám **${firstUpcoming.doctorSpec}** với **${firstUpcoming.doctorName}** vào **${firstUpcoming.date}** lúc **${firstUpcoming.time}**.\n\n`;
+      }
+      welcomeText += "Tôi có thể giúp bạn:";
+
+      const initialActions: SuggestedAction[] = [
+        { label: "Tư vấn triệu chứng", action: "SYMPTOM_CHECK" },
+        { label: "Đặt lịch khám mới", action: "BOOK_APPOINTMENT" },
+        { label: "Xem hồ sơ bệnh án", action: "VIEW_RECORDS" },
+        { label: "Nhắc uống thuốc", action: "MEDICATION_REMINDER" },
+      ];
+
+      setMessages([{ id: "welcome", role: "bot", text: welcomeText, time: new Date(), suggestedActions: initialActions }]);
+    }
+    navigate("/patient/chat");
+  };
+
+  const sendChat = async (text?: string) => {
+    const t = (text ?? input).trim();
+    if (!t) return;
+    setMessages(m => [...m, { id: Date.now().toString(), role: "me", text: t, time: new Date() }]);
+    setInput("");
+    setIsTyping(true);
+
     try {
       const history = messages.filter(m => m.id !== "welcome").slice(-10).map(m => ({ from: m.role === "me" ? "me" : "bot", text: m.text }));
       const res = await fetch(`${AI_SERVICE_URL}/api/chat`, {
@@ -248,9 +443,18 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
       });
       if (res.ok) {
         const data = await res.json();
+        
+        // Handle Gemini 429 inside 200 OK responses
+        let responseText = data.text || "";
+        if (responseText.includes("429") && responseText.includes("RESOURCE_EXHAUSTED")) {
+          responseText = "Hệ thống AI hiện đang hết lượt sử dụng (Quota exceeded). Vui lòng chờ một lát rồi thử lại nhé.";
+        } else if (responseText.startsWith("Lỗi khi gọi AI:")) {
+          responseText = "Xin lỗi, hệ thống AI đang gặp sự cố kết nối. Vui lòng thử lại sau ít phút.";
+        }
+
         handleAiActions(data.actions);
         const sugActions = (data.suggestedActions || []).map((a: any) => ({ label: a.label, action: a.action, data: a.data }));
-        setMessages(m => [...m, { id: (Date.now() + 1).toString(), role: "bot", text: data.text, time: new Date(), suggestedActions: sugActions.length ? sugActions : undefined }]);
+        setMessages(m => [...m, { id: (Date.now() + 1).toString(), role: "bot", text: responseText, time: new Date(), suggestedActions: sugActions.length ? sugActions : undefined }]);
       } else {
         throw new Error(`API ${res.status}`);
       }
@@ -753,8 +957,8 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
           </header>
 
           {/* Chat Messages */}
-          <ScrollArea className="flex-1 px-4 py-6" type="hover">
-            <div className="max-w-3xl mx-auto space-y-6 overflow-x-hidden">
+          <div className="flex-1 overflow-y-auto px-4 py-6 scroll-smooth">
+            <div className="max-w-3xl mx-auto space-y-6">
               {messages.length === 0 && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-10 gap-2 text-center">
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-4">
@@ -831,7 +1035,7 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
               )}
               <div ref={scrollRef} />
             </div>
-          </ScrollArea>
+          </div>
 
           {/* Chat Input */}
           <div className="shrink-0 p-4 bg-white border-t border-emerald-100/40">
@@ -863,45 +1067,6 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
               </div>
               <div className="max-w-3xl mx-auto flex items-end gap-2">
                 <div className="flex-1 relative">
-                <Textarea
-                  ref={inputRef}
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(input); } }}
-                  placeholder="Nhập triệu chứng hoặc câu hỏi..."
-                  className="resize-none min-h-[44px] max-h-32 rounded-2xl bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50 via-white to-emerald-50 border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 px-4 py-3 text-sm pr-12"
-                  rows={1}
-                />
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                className={`h-11 w-11 rounded-xl shrink-0 transition-all ${isListening ? "bg-red-50 text-red-600 border-red-200 animate-pulse" : "border-slate-200 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200"}`}
-                onClick={() => {
-                  setIsListening(!isListening);
-                  if (!isListening) toast.info("Đang lắng nghe...");
-                  else toast.info("Đã tắt mic");
-                }}
-              >
-                <Mic className="w-4 h-4" />
-              </Button>
-              <Button
-                size="icon"
-                className={`h-11 w-11 rounded-xl shrink-0 transition-all active:scale-95 ${input.trim() ? "bg-emerald-600 hover:bg-emerald-700 shadow-md" : "bg-slate-200 text-slate-400"}`}
-                onClick={() => sendChat(input)}
-                disabled={!input.trim() || isTyping}
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
-            <p className="text-center text-[10px] text-slate-400 mt-2 font-medium">AI mang tính tham khảo, không thay thế chẩn đoán y khoa.</p>
-          </div>
-        </motion.div>
-      )}
-
-      {/* ===== SUB-PAGE VIEWS ===== */}
-      {activeView !== "dashboard" && activeView !== "chat" && (
-        <motion.div 
           key="subpages"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
