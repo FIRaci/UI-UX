@@ -876,9 +876,10 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(input); } }}
+                  onInput={e => { e.currentTarget.style.height = "auto"; e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`; }}
                   placeholder="Nhập triệu chứng hoặc câu hỏi..."
-                  className="resize-none min-h-[44px] max-h-32 rounded-2xl bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50 via-white to-emerald-50 border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 px-4 py-3 text-sm pr-12"
-                  rows={1}
+                  className="resize-none min-h-[44px] max-h-32 rounded-2xl bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50 via-white to-emerald-50 border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 px-4 py-3 text-sm pr-12 overflow-hidden"
+                  rows={2}
                 />
               </div>
               <Button
@@ -944,6 +945,7 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
                       if (doc) setSelectedDoctor(doc);
                     }}
                     onClickAppt={setViewingAppt}
+                    onBookNew={() => { setBookingDoctor(DOCTORS[0]); setActiveView("search"); }}
                   />}
                   {activeView === "records" && <Records />}
                   {activeView === "tracking" && <Tracking onBook={() => { setBookingDoctor(DOCTORS[0]); navigate("/patient/search"); }} skipConfirm={skipConfirm} onSkip={() => setSkipConfirm(true)} onCancelSkip={() => setSkipConfirm(false)} />}

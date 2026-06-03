@@ -80,7 +80,7 @@ export function MessagesTab({
           {threads.map(t => (
             <div
               key={t.id}
-              className={`w-full p-4 flex items-start gap-3 border-b transition-all hover:bg-slate-50 ${activeThreadId === t.id ? "bg-sky-50 border-sky-100" : ""}`}
+              className={`group w-full p-4 flex items-start gap-3 border-b transition-all hover:bg-slate-50 ${activeThreadId === t.id ? "bg-sky-50 border-sky-100" : ""}`}
             >
               <button
                 onClick={() => { setActiveThreadId(t.id); setChatMode("chat"); }}
@@ -107,7 +107,7 @@ export function MessagesTab({
                 </div>
               </button>
               <button
-                className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 mt-1"
+                className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-100 transition-all shrink-0 mt-1"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (window.confirm("Xóa hội thoại này?")) {

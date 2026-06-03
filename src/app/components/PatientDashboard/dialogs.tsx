@@ -42,9 +42,9 @@ export function DoctorDetailDialog({ doctor, onClose, onBook }: {
                 <div className="text-sm text-muted-foreground mt-1">Bác sĩ với hơn 10 năm kinh nghiệm. Tốt nghiệp ĐH Y Hà Nội, từng tu nghiệp tại Singapore.</div>
               </Card>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={onClose}>Đóng</Button>
-              <Button onClick={() => { onBook(doctor); onClose(); }}>Đặt lịch</Button>
+            <DialogFooter className="flex flex-col gap-2 sm:flex-row mt-4">
+              <Button variant="outline" onClick={onClose} className="flex-1 rounded-full text-lg h-12 font-bold text-slate-700 hover:bg-slate-100">Đóng</Button>
+              <Button onClick={() => { onBook(doctor); onClose(); }} className="flex-1 rounded-full text-lg h-12 font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg transition-all">Đặt lịch</Button>
             </DialogFooter>
           </>
         )}
@@ -100,10 +100,10 @@ export function BookingDialog({ doctor, bookDate, onBookDateChange, bookTime, on
                 Phí khám: <b>{doctor.fee}</b> • Phòng khám: {doctor.clinic}
               </Card>
             </div>
-            <DialogFooter>
-              <Button variant="outline" className="active:scale-95 transition-all" onClick={() => { onCancel(); toast.info("Đã hủy đặt lịch"); }} disabled={isSubmitting}>Hủy</Button>
-              <Button className="active:scale-95 transition-all w-36" onClick={handleConfirm} disabled={isSubmitting}>
-                {isSubmitting ? <span className="w-5 h-5 border-2 border-white/50 border-t-transparent rounded-full animate-spin"></span> : "Xác nhận đặt lịch"}
+            <DialogFooter className="flex flex-col gap-2 sm:flex-row mt-4">
+              <Button variant="outline" className="flex-1 rounded-full text-lg h-12 font-bold text-slate-700 hover:bg-slate-100 transition-all active:scale-95" onClick={() => { onCancel(); toast.info("Đã hủy đặt lịch"); }} disabled={isSubmitting}>Hủy</Button>
+              <Button className="flex-1 rounded-full text-lg h-12 font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg transition-all active:scale-95" onClick={handleConfirm} disabled={isSubmitting}>
+                {isSubmitting ? <span className="w-5 h-5 border-2 border-white/50 border-t-transparent rounded-full animate-spin mx-auto"></span> : "Xác nhận đặt lịch"}
               </Button>
             </DialogFooter>
           </>
@@ -164,10 +164,10 @@ export function EditAppointmentDialog({ editing, onEditingChange, editingOrigina
                 </div>
               );
             })()}
-            <DialogFooter>
-              <Button variant="outline" className="active:scale-95 transition-all" onClick={() => { onCancel(); toast.info("Đã hủy thay đổi"); }} disabled={isSubmitting}>Hủy</Button>
-              <Button className="active:scale-95 transition-all w-36" onClick={handleUpdate} disabled={isSubmitting}>
-                {isSubmitting ? <span className="w-5 h-5 border-2 border-white/50 border-t-transparent rounded-full animate-spin"></span> : "Xác nhận đổi lịch"}
+            <DialogFooter className="flex flex-col gap-2 sm:flex-row mt-4">
+              <Button variant="outline" className="flex-1 rounded-full text-lg h-12 font-bold text-slate-700 hover:bg-slate-100 transition-all active:scale-95" onClick={() => { onCancel(); toast.info("Đã hủy thay đổi"); }} disabled={isSubmitting}>Hủy</Button>
+              <Button className="flex-1 rounded-full text-lg h-12 font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg transition-all active:scale-95" onClick={handleUpdate} disabled={isSubmitting}>
+                {isSubmitting ? <span className="w-5 h-5 border-2 border-white/50 border-t-transparent rounded-full animate-spin mx-auto"></span> : "Xác nhận đổi lịch"}
               </Button>
             </DialogFooter>
           </>
@@ -216,10 +216,10 @@ export function NewMessageDialog({ doctor, onDoctorChange, content, onContentCha
                 <Textarea rows={4} placeholder="Nhập câu hỏi cho bác sĩ..." value={content} onChange={e => onContentChange(e.target.value)} />
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" className="active:scale-95 transition-all" onClick={() => { onCancel(); toast.info("Đã hủy gửi tin nhắn"); }} disabled={isSubmitting}>Hủy</Button>
-              <Button className="active:scale-95 transition-all w-24" onClick={handleSend} disabled={isSubmitting}>
-                {isSubmitting ? <span className="w-5 h-5 border-2 border-white/50 border-t-transparent rounded-full animate-spin"></span> : "Gửi"}
+            <DialogFooter className="flex flex-col gap-2 sm:flex-row mt-4">
+              <Button variant="outline" className="flex-1 rounded-full text-lg h-12 font-bold text-slate-700 hover:bg-slate-100 transition-all active:scale-95" onClick={() => { onCancel(); toast.info("Đã hủy gửi tin nhắn"); }} disabled={isSubmitting}>Hủy</Button>
+              <Button className="flex-1 rounded-full text-lg h-12 font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg transition-all active:scale-95" onClick={handleSend} disabled={isSubmitting}>
+                {isSubmitting ? <span className="w-5 h-5 border-2 border-white/50 border-t-transparent rounded-full animate-spin mx-auto"></span> : "Gửi tin nhắn"}
               </Button>
             </DialogFooter>
           </>
@@ -273,8 +273,8 @@ export function AppointmentDetailDialog({ appt, onClose }: {
                 </ul>
               </div>
             </div>
-            <DialogFooter>
-              <Button onClick={onClose} className="w-full">Đóng</Button>
+            <DialogFooter className="mt-4">
+              <Button onClick={onClose} variant="outline" className="w-full rounded-full text-lg h-12 font-bold text-slate-700 hover:bg-slate-100 transition-all">Đóng</Button>
             </DialogFooter>
           </>
         )}
@@ -337,11 +337,11 @@ export function AppointmentSuccessDialog({ doctor, date, time, clinic, onClose, 
               </div>
             </Card>
 
-            <DialogFooter className="flex flex-col gap-2 sm:flex-row">
-              <Button variant="outline" className="flex-1 active:scale-95 transition-all" onClick={onClose}>
+            <DialogFooter className="flex flex-col gap-2 sm:flex-row mt-4">
+              <Button variant="outline" className="flex-1 rounded-full text-lg h-12 font-bold text-slate-700 hover:bg-slate-100 transition-all active:scale-95" onClick={onClose}>
                 Đóng
               </Button>
-              <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all" onClick={onViewAppointments}>
+              <Button className="flex-1 rounded-full text-lg h-12 font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg transition-all active:scale-95" onClick={onViewAppointments}>
                 Xem lịch hẹn
               </Button>
             </DialogFooter>
@@ -414,18 +414,18 @@ export function CancelConfirmDialog({ appointment, isOpen, onClose, onConfirm }:
               </div>
             </Card>
 
-            <DialogFooter className="flex flex-col gap-2 sm:flex-row">
-              <Button variant="outline" className="flex-1 active:scale-95 transition-all" onClick={onClose} disabled={isProcessing}>
+            <DialogFooter className="flex flex-col gap-3 sm:flex-row mt-4">
+              <Button variant="outline" className="flex-1 rounded-full text-lg h-12 font-bold text-slate-700 hover:bg-slate-100 transition-all active:scale-95" onClick={onClose} disabled={isProcessing}>
                 Giữ lịch hẹn
               </Button>
               <Button 
                 variant="destructive" 
-                className="flex-1 active:scale-95 transition-all" 
+                className="flex-1 rounded-full text-lg h-12 font-bold bg-red-600 hover:bg-red-700 text-white shadow-md hover:shadow-lg transition-all active:scale-95" 
                 onClick={handleConfirm}
                 disabled={isProcessing}
               >
                 {isProcessing ? (
-                  <span className="w-5 h-5 border-2 border-white/50 border-t-transparent rounded-full animate-spin"></span>
+                  <span className="w-5 h-5 border-2 border-white/50 border-t-transparent rounded-full animate-spin mx-auto"></span>
                 ) : (
                   "Xác nhận hủy"
                 )}
