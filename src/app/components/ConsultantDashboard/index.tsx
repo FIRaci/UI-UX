@@ -46,16 +46,22 @@ export function ConsultantDashboard({ onLogout }: { onLogout: () => void }) {
   const [readingArticle, setReadingArticle] = useState<Article | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [cancelingAppt, setCancelingAppt] = useState<Appointment | null>(null);
+  const [doctorFilter, setDoctorFilter] = useState<string | null>(null);
+
+  const handleNav = (tab: string) => {
+    if (tab === "doctors") setDoctorFilter(null);
+    setActive(tab);
+  };
 
   const WD = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
   const bookingDays: BookingDay[] = Array.from({ length: 5 }, (_, i) => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() + i);
+    d.setDate(d.getDate() + i + 1);
     const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
     const dateLabel = `${d.getDate()}/${d.getMonth() + 1}`;
-    const dayLabel = i === 0 ? "Hôm nay" : i === 1 ? "Mai" : WD[d.getDay()];
-    const fullLabel = i === 0 ? "Hôm nay" : i === 1 ? "Ngày mai" : `${WD[d.getDay()]} ${dateLabel}`;
+    const dayLabel = i === 0 ? "Mai" : WD[d.getDay()];
+    const fullLabel = i === 0 ? "Ngày mai" : `${WD[d.getDay()]} ${dateLabel}`;
     return { key, dateLabel, dayLabel, fullLabel };
   });
   const [selectedDate, setSelectedDate] = useState(bookingDays[0].key);
@@ -63,7 +69,11 @@ export function ConsultantDashboard({ onLogout }: { onLogout: () => void }) {
   const selectedDayIndex = Math.max(0, bookingDays.findIndex(d => d.key === selectedDate));
   const availableSlots = selectedDoctor ? slotsForDay(selectedDoctor, selectedDayIndex) : [];
 
-  useEffect(() => { setSelectedSlot(""); }, [selectedDoctor, selectedDate]);
+  useEffect(() => {
+    const dayIndex = Math.max(0, bookingDays.findIndex(d => d.key === selectedDate));
+    const slots = selectedDoctor ? slotsForDay(selectedDoctor, dayIndex) : [];
+    setSelectedSlot(slots[0] ?? "");
+  }, [selectedDoctor, selectedDate]);
 
   const goToBooking = (doc: DoctorRec) => {
     setSelectedDoctor(doc);
@@ -86,16 +96,32 @@ export function ConsultantDashboard({ onLogout }: { onLogout: () => void }) {
     if (lower.includes("buồn nôn")) detectedSymptoms.push("Buồn nôn");
     if (lower.includes("chóng mặt") || lower.includes("hoa mắt")) detectedSymptoms.push("Chóng mặt");
 
-    const isEmergency = detectedSymptoms.includes("Đau ngực") || detectedSymptoms.includes("Khó thở");
-    if (isEmergency) {
+    const newPotentialEmergency = detectedSymptoms.includes("Đau ngực") || detectedSymptoms.includes("Khó thở");
+    const alreadyHasPotentialEmergency = aiInsight.symptoms.some(s => s === "Đau ngực" || s === "Khó thở");
+    const severeKeywords = ["dữ dội", "đột ngột", "lan ra", "vã mồ hôi", "ngất", "mất ý thức", "rất nặng", "không chịu được", "choáng", "cực kỳ nặng"];
+    const hasSevereIndicators = severeKeywords.some(kw => lower.includes(kw));
+
+    if ((newPotentialEmergency || alreadyHasPotentialEmergency) && hasSevereIndicators) {
       return {
-        message: "⚠️ Đau ngực hoặc khó thở có thể là dấu hiệu cấp cứu. Nếu triệu chứng dữ dội, lan ra tay/hàm, vã mồ hôi hoặc tăng nhanh, hãy GỌI 115 hoặc đến cơ sở y tế gần nhất ngay. Bạn không nên chờ đặt lịch khám thông thường.",
+        message: "⚠️ Dựa trên những gì bạn mô tả, đây là triệu chứng cần được đánh giá y tế sớm. Nếu đau không giảm hoặc ngày càng nặng hơn, hãy GỌI 115 hoặc đến cơ sở y tế gần nhất — không nên chờ đặt lịch thông thường.",
         insight: {
-          symptoms: detectedSymptoms,
+          symptoms: [...new Set([...aiInsight.symptoms, ...detectedSymptoms])],
           specialty: "Tim mạch",
           severity: "Khẩn cấp",
           confidence: 0.9,
           nextAction: "Gọi 115 hoặc đến cấp cứu ngay nếu triệu chứng nặng",
+        },
+      };
+    }
+
+    if (newPotentialEmergency && !alreadyHasPotentialEmergency) {
+      return {
+        message: `Tôi ghi nhận bạn đang có ${detectedSymptoms.join(" và ").toLowerCase()}. Để đánh giá chính xác hơn, bạn cho tôi biết thêm:\n\n• Cảm giác đau như thế nào — âm ỉ, tức, hay dữ dội?\n• Có lan ra vai hoặc cánh tay không?\n• Có kèm vã mồ hôi hoặc chóng mặt không?\n• Triệu chứng xuất hiện đột ngột hay từ từ?`,
+        insight: {
+          symptoms: detectedSymptoms,
+          specialty: "Tim mạch",
+          severity: "Cao",
+          confidence: 0.55,
         },
       };
     }
@@ -211,7 +237,7 @@ export function ConsultantDashboard({ onLogout }: { onLogout: () => void }) {
       roleColor="bg-emerald-100 text-emerald-700 border border-emerald-200"
       initials="PT"
       active={active}
-      onNav={setActive}
+      onNav={handleNav}
       onLogout={onLogout}
       nav={[
         { key: "dashboard", label: "Tổng quan", icon: LayoutDashboard },
@@ -239,12 +265,14 @@ export function ConsultantDashboard({ onLogout }: { onLogout: () => void }) {
           insight={aiInsight}
           onSend={sendChatMessage}
           onInputChange={setChatInput}
-          onViewDoctors={() => setActive("doctors")}
+          onViewDoctors={() => { setDoctorFilter(aiInsight.specialty); setActive("doctors"); }}
         />
       )}
 
       {active === "doctors" && (
         <DoctorList
+          filterSpecialty={doctorFilter}
+          onFilterClear={() => setDoctorFilter(null)}
           onViewDoctor={setViewingDoctor}
           onBookDoctor={goToBooking}
         />
@@ -292,7 +320,7 @@ export function ConsultantDashboard({ onLogout }: { onLogout: () => void }) {
         onConfirmBooking={confirmBooking}
         onConfirmCancel={confirmCancel}
         onBookFromDoctor={(doc) => { setViewingDoctor(null); goToBooking(doc); }}
-        onNavigateToDoctors={() => { setViewingHistory(null); setActive("doctors"); }}
+        onNavigateToDoctors={(specialty) => { setViewingHistory(null); setDoctorFilter(specialty); setActive("doctors"); }}
       />
     </AppShell>
   );

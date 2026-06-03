@@ -25,7 +25,7 @@ export function HistoryTab({ onViewHistory }: HistoryTabProps) {
         <p className="text-sm text-muted-foreground">Lịch sử tư vấn AI và các khuyến nghị</p>
       </Card>
 
-      {HISTORY.map(h => (
+      {[...HISTORY].sort((a, b) => b.date.localeCompare(a.date)).map(h => (
         <Card
           key={h.id}
           className="p-4 border border-slate-100 hover:shadow-md hover:border-emerald-100 transition-all cursor-pointer"

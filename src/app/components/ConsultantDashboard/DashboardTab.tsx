@@ -1,7 +1,7 @@
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { Bot, Sparkles, CalendarClock, Info } from "lucide-react";
+import { Bot, Sparkles, CalendarClock, Info, Check } from "lucide-react";
 import { SEVERITY, HISTORY, DOCTORS, type Severity, type Appointment, type ConsultHistory } from "./constants";
 
 function SeverityBadge({ severity }: { severity: Severity }) {
@@ -37,14 +37,17 @@ export function DashboardTab({ appointments, onNavigate, onViewHistory, onCancel
               <Sparkles className="w-4 h-4 mr-2" /> Bắt đầu tư vấn AI
             </Button>
           </div>
-          <div className="hidden sm:flex flex-col gap-2 items-center justify-center h-full">
+          <div className="hidden sm:flex flex-col items-start justify-between h-full py-1">
             {[
               "Phân tích triệu chứng",
               "Gợi ý bác sĩ phù hợp",
               "Đặt lịch nhanh chóng",
             ].map((text, i) => (
-              <div key={i} className="bg-white/15 rounded-xl px-4 py-2.5 text-base font-medium backdrop-blur-sm w-fit">
-                {text}
+              <div key={i} className="flex items-center gap-3 text-white/90">
+                <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center shrink-0">
+                  <Check className="w-3.5 h-3.5 text-white" />
+                </div>
+                <span className="text-base font-semibold">{text}</span>
               </div>
             ))}
           </div>
@@ -52,7 +55,7 @@ export function DashboardTab({ appointments, onNavigate, onViewHistory, onCancel
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4 border border-slate-100 hover:shadow-sm transition-all flex flex-row items-center gap-4" style={{ borderRadius: "16px" }}>
+        <Card className="p-4 border border-slate-100 hover:shadow-md transition-all flex flex-row items-center gap-4 cursor-pointer" style={{ borderRadius: "16px" }} onClick={() => onNavigate("history")}>
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0">
             <span className="text-2xl font-bold text-emerald-600">{HISTORY.length}</span>
           </div>
@@ -61,7 +64,7 @@ export function DashboardTab({ appointments, onNavigate, onViewHistory, onCancel
             <div className="text-xs text-emerald-600 font-medium mt-0.5">Hoàn thành</div>
           </div>
         </Card>
-        <Card className="p-4 border border-slate-100 hover:shadow-sm transition-all flex flex-row items-center gap-4" style={{ borderRadius: "16px" }}>
+        <Card className="p-4 border border-slate-100 hover:shadow-md transition-all flex flex-row items-center gap-4 cursor-pointer" style={{ borderRadius: "16px" }} onClick={() => onNavigate("doctors")}>
           <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center shrink-0">
             <span className="text-2xl font-bold text-teal-600">{DOCTORS.length}</span>
           </div>
@@ -70,7 +73,7 @@ export function DashboardTab({ appointments, onNavigate, onViewHistory, onCancel
             <div className="text-xs text-teal-600 font-medium mt-0.5">Sẵn sàng</div>
           </div>
         </Card>
-        <Card className="p-4 border border-slate-100 hover:shadow-sm transition-all flex flex-row items-center gap-4" style={{ borderRadius: "16px" }}>
+        <Card className="p-4 border border-slate-100 hover:shadow-md transition-all flex flex-row items-center gap-4 cursor-pointer" style={{ borderRadius: "16px" }} onClick={() => document.getElementById("upcoming-appointments")?.scrollIntoView({ behavior: "smooth" })}>
           <div className="w-12 h-12 rounded-2xl bg-violet-50 flex items-center justify-center shrink-0">
             <span className="text-2xl font-bold text-violet-600">{appointments.length}</span>
           </div>
@@ -82,7 +85,7 @@ export function DashboardTab({ appointments, onNavigate, onViewHistory, onCancel
       </div>
 
       {appointments.length > 0 && (
-        <Card className="p-5 border border-slate-100" style={{ borderRadius: "16px" }}>
+        <Card id="upcoming-appointments" className="p-5 border border-slate-100" style={{ borderRadius: "16px" }}>
           <h4 className="tracking-tight font-bold text-slate-800 mb-3 flex items-center gap-2">
             <CalendarClock className="w-4 h-4 text-emerald-600" /> Lịch hẹn sắp tới
           </h4>
@@ -120,7 +123,7 @@ export function DashboardTab({ appointments, onNavigate, onViewHistory, onCancel
           <h4 className="tracking-tight font-bold text-slate-800">Lịch sử tư vấn gần đây</h4>
           <Button size="sm" variant="outline" className="rounded-xl" onClick={() => onNavigate("history")}>Xem tất cả</Button>
         </div>
-        {HISTORY.slice(0, 2).map(h => (
+        {[...HISTORY].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 2).map(h => (
           <div
             key={h.id}
             className="p-3 border border-slate-100 rounded-xl mb-2 hover:bg-slate-50 hover:border-emerald-100 transition cursor-pointer"

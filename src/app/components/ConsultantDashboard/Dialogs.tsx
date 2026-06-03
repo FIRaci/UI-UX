@@ -35,7 +35,7 @@ interface DialogsProps {
   onConfirmBooking: () => void;
   onConfirmCancel: () => void;
   onBookFromDoctor: (d: DoctorRec) => void;
-  onNavigateToDoctors: () => void;
+  onNavigateToDoctors: (specialty: string | null) => void;
 }
 
 export function Dialogs({
@@ -209,8 +209,8 @@ export function Dialogs({
               </div>
               <DialogFooter>
                 <Button variant="outline" className="rounded-xl" onClick={onCloseViewHistory}>Đóng</Button>
-                <Button className="rounded-xl bg-emerald-600 hover:bg-emerald-700" onClick={onNavigateToDoctors}>
-                  Đặt lịch với chuyên gia
+                <Button className="rounded-xl bg-emerald-600 hover:bg-emerald-700" onClick={() => onNavigateToDoctors(viewingHistory?.specialty ?? null)}>
+                  Đặt lịch với bác sĩ
                 </Button>
               </DialogFooter>
             </>
