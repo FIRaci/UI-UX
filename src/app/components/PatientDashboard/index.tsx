@@ -714,8 +714,8 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
         >
           {/* Chat Header */}
           <header className="h-16 bg-white border-b border-emerald-100/40 px-4 flex items-center gap-3 shrink-0">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/patient")} className="rounded-full hover:bg-slate-100">
-              <ArrowLeft className="w-5 h-5 text-slate-600" />
+            <Button variant="ghost" size="icon" onClick={() => navigate("/patient")} className="w-12 h-12 rounded-full hover:bg-slate-100 transition-all active:scale-95 shadow-sm bg-white/50 border border-slate-200">
+              <ArrowLeft className="w-6 h-6 text-slate-800" strokeWidth={2.5} />
             </Button>
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
               <Bot className="w-5 h-5 text-white" />
@@ -919,8 +919,8 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
         >
           <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50 via-white to-emerald-50 pointer-events-none" />
           <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-emerald-100/40 px-4 h-14 flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/patient")} className="rounded-full hover:bg-slate-100">
-              <ArrowLeft className="w-5 h-5 text-slate-600" />
+            <Button variant="ghost" size="icon" onClick={() => navigate("/patient")} className="w-12 h-12 rounded-full hover:bg-slate-100 transition-all active:scale-95 shadow-sm bg-white/50 border border-slate-200">
+              <ArrowLeft className="w-6 h-6 text-slate-800" strokeWidth={2.5} />
             </Button>
             <h2 className="font-bold text-slate-800 text-base">
               {activeView === "search" ? "Tìm bác sĩ" :

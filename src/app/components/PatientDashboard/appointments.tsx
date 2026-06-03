@@ -8,7 +8,9 @@ export function Appointments({
   appointments,
   onCancel,
   onEdit,
+  onClickAppt,
   onClickDoctor,
+  onBookNew,
 }: {
   appointments: Appointment[];
   onCancel: (id: number) => void;
@@ -121,11 +123,11 @@ export function Appointments({
                             Đã hủy
                           </span>
                         )}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 mt-1">
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-9 rounded-lg text-xs px-3 font-semibold bg-white border-slate-200 text-slate-700 hover:bg-slate-100 active:scale-95 transition-all"
+                            className="h-10 rounded-lg text-sm px-4 font-bold bg-sky-50 border-sky-200 text-sky-700 hover:bg-sky-100 hover:border-sky-300 active:scale-95 transition-all shadow-sm"
                             onClick={(e) => { e.stopPropagation(); onClickAppt?.(a); }}
                           >
                             Chi tiết
@@ -135,25 +137,25 @@ export function Appointments({
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-9 rounded-lg text-xs px-3 font-semibold bg-slate-100 border-transparent text-slate-800 hover:bg-slate-200 active:scale-95 transition-all"
+                                className="h-10 rounded-lg text-sm px-4 font-bold bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 hover:border-amber-300 active:scale-95 transition-all shadow-sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   onEdit(a);
                                 }}
                               >
-                                <Pencil className="w-3.5 h-3.5 mr-1 text-slate-500" />
+                                <Pencil className="w-4 h-4 mr-1.5 text-amber-600" />
                                 Sửa
                               </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-9 rounded-lg text-xs px-3 font-bold bg-white text-rose-600 border-rose-200 hover:bg-rose-50 hover:border-rose-300 active:scale-95 transition-all"
+                                className="h-10 rounded-lg text-sm px-4 font-bold bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100 hover:border-rose-300 active:scale-95 transition-all shadow-sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   onCancel(a.id);
                                 }}
                               >
-                                <X className="w-3.5 h-3.5 mr-1" />
+                                <X className="w-4 h-4 mr-1.5 text-rose-600" />
                                 Hủy
                               </Button>
                             </>
