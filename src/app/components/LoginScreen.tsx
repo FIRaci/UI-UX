@@ -61,12 +61,10 @@ export function LoginScreen({ onLogin, onNavigateRegister }: { onLogin: (role: R
         
         {/* Top Branding */}
         <div className="flex flex-col items-center justify-center mb-6 animate-in fade-in slide-in-from-top-4 duration-700">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg">
-              <HeartPulse className="w-8 h-8" />
-            </div>
-            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">MediCare AI</h1>
+          <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg mb-3">
+            <HeartPulse className="w-8 h-8" />
           </div>
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-1">MediCare AI</h1>
           <p className="text-xs text-slate-500 font-bold tracking-[0.2em] uppercase text-center w-full">Hệ thống Y tế thông minh</p>
         </div>
 
