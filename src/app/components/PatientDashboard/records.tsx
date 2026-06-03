@@ -10,7 +10,6 @@ import { useStore } from "../../store";
 export function Records() {
   const [tab, setTab] = useState("benhan");
   const [openItem, setOpenItem] = useState<any | null>(null);
-  const [openItem, setOpenItem] = useState<any | null>(null);
   
   const allRecords = useStore(s => s.records);
   const records = useMemo(() => {
