@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Search, CalendarDays, FileHeart, Bot, Send, HeartPulse, LogOut, Activity, MessagesSquare, ArrowLeft, Sparkles, Bell, ChevronRight, Stethoscope, X, Mic, Plus, History, RefreshCw, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useStore, store, type Appointment } from "../../store";
 import { ME, type Doctor } from "./constants";
@@ -62,7 +62,9 @@ const renderMessage = (text: string) => {
 export function PatientDashboard({ onLogout, role }: { onLogout: () => void; role: string }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const activeView = location.pathname.split("/").pop() === "patient" ? "dashboard" : location.pathname.split("/").pop() || "dashboard";
+  const params = useParams();
+  const subpath = params["*"]?.replace(/\/$/, "") || "";
+  const activeView = subpath === "" ? "dashboard" : subpath;
     const [showNotifs, setShowNotifs] = useState(false);
   const [search, setSearch] = useState("");
   const [specFilter, setSpecFilter] = useState<string>("all");
