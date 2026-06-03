@@ -77,7 +77,11 @@ export default function App() {
     
     // Ping backend to wake up Render free tier on initial load
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    fetch(`${API_URL}/api/records`).catch(() => {});
+    fetch(`${API_URL}/`).catch(() => {});
+    
+    // Ping AI service to wake it up
+    const AI_URL = import.meta.env.VITE_AI_SERVICE_URL || "http://localhost:8000";
+    fetch(`${AI_URL}/`).catch(() => {});
     
     return () => window.removeEventListener("app:unauthorized", handleUnauthorized);
   }, []);
