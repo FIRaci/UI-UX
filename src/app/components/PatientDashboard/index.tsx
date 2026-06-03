@@ -240,9 +240,9 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
       // Fallback suggestions
       const fallback: Suggestion[] = [];
       if (upcoming[0]) {
-        fallback.push({ id: "1", type: "reminder", title: `Lịch khám ${upcoming[0].doctorSpec}`, description: `${upcoming[0].doctorName} • ${upcoming[0].date} lúc ${upcoming[0].time}`, action: "VIEW_APPOINTMENTS", actionLabel: "Xem lịch" });
+        fallback.push({ id: "1", type: "reminder", title: `Khám ${upcoming[0].doctorSpec}`, description: `${upcoming[0].date} - ${upcoming[0].time}`, action: "VIEW_APPOINTMENTS", actionLabel: "Xem chi tiết lịch hẹn" });
       }
-      fallback.push({ id: "2", type: "health_tip", title: "Khám sức khỏe định kỳ", description: "Đã đến lúc kiểm tra sức khỏe tổng quát 6 tháng/lần", action: "BOOK_APPOINTMENT", actionLabel: "Đặt lịch ngay" });
+      fallback.push({ id: "2", type: "reminder", title: "Lịch uống thuốc", description: "Sáng: Kháng sinh & Vitamin C", action: "VIEW_RECORDS", actionLabel: "Xác nhận đã uống" });
       setSuggestions(fallback);
     }
   };
@@ -708,36 +708,35 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
           {suggestions.length > 0 && !dismissedSuggestion && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="absolute bottom-4 sm:bottom-6 z-40 w-full flex justify-center px-4">
               <div className="flex flex-col items-center gap-3 max-w-lg w-full">
-                {/* Main suggestion chip - bigger and easier to click */}
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full flex items-center gap-4 bg-gradient-to-r from-emerald-600 to-teal-600 backdrop-blur-xl pl-5 pr-3 py-4 rounded-2xl text-white shadow-2xl border border-emerald-500/30 cursor-pointer"
-                  onClick={() => { handleDashboardSuggestion(suggestions[suggestionIndex % suggestions.length]); setDismissedSuggestion(true); }}
-                >
-                  <Sparkles className="w-6 h-6 text-yellow-300 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-bold">{suggestions[suggestionIndex % suggestions.length].title}</div>
-                    <div className="text-xs text-emerald-100 mt-0.5 truncate">{suggestions[suggestionIndex % suggestions.length].actionLabel}</div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-emerald-200 shrink-0" />
-                </motion.div>
+                {/* Main suggestion chip - side by side layout */}
+                <div className="grid grid-cols-2 gap-3 w-full">
+                  {suggestions.slice(0, 2).map((sugg, idx) => (
+                    <motion.div 
+                      key={sugg.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`w-full flex items-center gap-3 p-3 sm:p-4 rounded-2xl text-white shadow-2xl border cursor-pointer
+                        ${idx === 0 ? "bg-gradient-to-br from-emerald-600 to-teal-700 border-emerald-500/30" : "bg-gradient-to-br from-blue-600 to-indigo-700 border-blue-500/30"}`}
+                      onClick={() => { handleDashboardSuggestion(sugg); setDismissedSuggestion(true); }}
+                    >
+                      <Sparkles className={`w-5 h-5 shrink-0 ${idx === 0 ? "text-yellow-300" : "text-cyan-300"}`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-bold truncate leading-tight">{sugg.title}</div>
+                        <div className="text-[11px] opacity-90 mt-0.5 truncate leading-tight">{sugg.description}</div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 opacity-50 shrink-0" />
+                    </motion.div>
+                  ))}
+                </div>
                 
                 {/* Control buttons */}
                 <div className="flex items-center gap-2">
                   <button 
-                    className="h-10 px-4 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 transition-colors cursor-pointer text-white text-xs font-semibold"
-                    onClick={(e) => { e.stopPropagation(); setSuggestionIndex(i => i + 1); }}
-                  >
-                    <RefreshCw className="w-4 h-4 mr-1.5" />
-                    Gợi ý khác
-                  </button>
-                  <button 
-                    className="h-10 px-4 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors cursor-pointer text-white text-xs font-semibold"
+                    className="h-10 px-4 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-md hover:bg-black/60 transition-colors cursor-pointer text-white text-[11px] font-bold"
                     onClick={(e) => { e.stopPropagation(); setDismissedSuggestion(true); }}
                   >
-                    <X className="w-4 h-4 mr-1.5" />
-                    Đóng
+                    <X className="w-3.5 h-3.5 mr-1.5" />
+                    Đóng gợi ý
                   </button>
                 </div>
               </div>
