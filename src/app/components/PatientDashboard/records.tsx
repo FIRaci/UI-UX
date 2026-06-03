@@ -61,7 +61,7 @@ export function Records() {
                       <div className="text-xs text-slate-600 mt-2 leading-relaxed bg-slate-50/80 px-3 py-2 rounded-lg font-medium border border-slate-100/50">{it.note}</div>
                     </div>
                   </div>
-                  <Button size="sm" variant="outline" className="h-8 rounded-full text-[11px] font-bold px-4 border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 shrink-0 ml-3 active:scale-95 transition-all shadow-sm">Chi tiết</Button>
+                  <Button size="sm" variant="outline" className="h-10 rounded-lg text-sm px-4 font-bold bg-sky-50 border-sky-200 text-sky-700 hover:bg-sky-100 hover:border-sky-300 active:scale-95 transition-all shadow-sm shrink-0 ml-3" onClick={(e) => { e.stopPropagation(); setOpenItem(it); }}>Chi tiết</Button>
                 </div>
               ))
             )}
