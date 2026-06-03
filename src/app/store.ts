@@ -50,6 +50,7 @@ type State = {
   doctors: any[];
   articles: any[];
   notifications: Notification[];
+  records: any[];
 };
 
 const initial: State = {
@@ -58,6 +59,7 @@ const initial: State = {
   doctors: [],
   articles: [],
   notifications: [],
+  records: [],
 };
 
 let state: State = initial;
@@ -395,6 +397,23 @@ export const fetchNotifications = async () => {
   }
 };
 
+export const fetchRecords = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_URL}/api/records`, { headers });
+    if (handleUnauthorizedResponse(res)) return;
+    if (res.ok) {
+      const data = await res.json();
+      setState(s => ({ ...s, records: data }));
+    }
+  } catch (error) {
+    console.error("Failed to fetch records:", error);
+  }
+};
+
 export const fetchAllData = () => {
   const token = localStorage.getItem("token");
   if (!token) return;
@@ -404,6 +423,7 @@ export const fetchAllData = () => {
   fetchDoctors();
   fetchArticles();
   fetchNotifications();
+  fetchRecords();
 };
 
 if (typeof window !== "undefined") {

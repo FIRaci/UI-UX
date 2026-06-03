@@ -1,70 +1,33 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "../ui/dialog";
 import { ME } from "./constants";
-import { toast } from "sonner";
 import { FileText, Download, Activity, Heart, Thermometer, User, Hash, Stethoscope, Droplet, HeartPulse, Pill, RefreshCw } from "lucide-react";
-import { Skeleton } from "../ui/skeleton";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+import { useStore } from "../../store";
 
 export function Records() {
   const [tab, setTab] = useState("benhan");
   const [openItem, setOpenItem] = useState<any | null>(null);
-  const [records, setRecords] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadRecords = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    
-    // Render free tier cold start warning
-    const timeoutId = setTimeout(() => {
-      toast.info("Đang khởi động lại máy chủ (có thể mất 30-50s do server miễn phí). Vui lòng đợi...", { duration: 10000 });
-    }, 4000);
-    
-    try {
-      const token = localStorage.getItem("token");
-      const headers: Record<string, string> = {};
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-      const res = await fetch(`${API_URL}/api/records`, { headers });
-      if (res.status === 401) {
-        localStorage.removeItem("token");
-        window.dispatchEvent(new CustomEvent("app:unauthorized"));
-        return;
-      }
-      if (res.ok) {
-        const data = await res.json();
-        let filtered = data.filter((r: any) => r.patientName === ME);
-        if (!filtered.some((r: any) => r.type === "donthuoc")) {
-          filtered.push({
-            id: "mock_donthuoc_1",
-            patientName: ME,
-            title: "Đơn thuốc Điều trị Cảm cúm",
-            date: "2026-05-29",
-            doctor: "BS. Nguyễn Văn An",
-            note: "Nhiễm siêu vi nhẹ. Uống thuốc theo toa và tái khám nếu sốt cao.",
-            type: "donthuoc"
-          });
-        }
-        filtered.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setRecords(filtered);
-      }
-    } catch (e) {
-      console.error("Error loading records:", e);
-      setError("Không thể tải dữ liệu hồ sơ");
-    } finally {
-      clearTimeout(timeoutId);
-      setLoading(false);
+  const [openItem, setOpenItem] = useState<any | null>(null);
+  
+  const allRecords = useStore(s => s.records);
+  const records = useMemo(() => {
+    let filtered = allRecords.filter((r: any) => r.patientName === ME);
+    if (!filtered.some((r: any) => r.type === "donthuoc")) {
+      filtered = [...filtered, {
+        id: "mock_donthuoc_1",
+        patientName: ME,
+        title: "Đơn thuốc Điều trị Cảm cúm",
+        date: "2026-05-29",
+        doctor: "BS. Nguyễn Văn An",
+        note: "Nhiễm siêu vi nhẹ. Uống thuốc theo toa và tái khám nếu sốt cao.",
+        type: "donthuoc"
+      }];
     }
-  }, []);
-
-  useEffect(() => {
-    loadRecords();
-  }, [loadRecords]);
+    return filtered.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [allRecords]);
 
   const items: any = {
     benhan: records.filter(r => r.type === "benhan"),
@@ -84,29 +47,8 @@ export function Records() {
         </div>
         {(["benhan", "ketqua", "donthuoc"] as const).map(k => (
           <TabsContent key={k} value={k} className="p-5 space-y-3.5 m-0 bg-transparent backdrop-blur-xl">
-            {loading ? (
-              <>
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="p-4 border border-slate-100 rounded-xl flex items-start gap-4" style={{ borderRadius: "16px" }}>
-                    <Skeleton className="w-12 h-12 rounded-2xl shrink-0" />
-                    <div className="flex-1 space-y-3">
-                      <Skeleton className="h-4 w-3/5" />
-                      <Skeleton className="h-3 w-2/5" />
-                      <Skeleton className="h-10 w-full" />
-                    </div>
-                  </div>
-                ))}
-              </>
-            ) : error ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-red-50 text-red-300 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Activity className="w-8 h-8" />
-                </div>
-                <div className="text-slate-500 text-sm font-medium mb-4">{error}</div>
-                <Button size="sm" className="rounded-xl" onClick={loadRecords}>
-                  <RefreshCw className="w-4 h-4 mr-1.5" /> Thử lại
-                </Button>
-              </div>
+            {items[k].length === 0 ? (
+              <div className="text-center py-12 text-slate-500 text-sm font-medium">Chưa có dữ liệu</div>
             ) : (
               items[k].map((it: any) => (
                 <div key={it.id} className="p-4.5 border border-slate-100 rounded-xl flex justify-between items-start hover:shadow-md transition-all bg-white/40 hover:bg-white/80 cursor-pointer group" style={{ borderRadius: "16px" }} onClick={() => setOpenItem(it)}>

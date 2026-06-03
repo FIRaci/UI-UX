@@ -84,6 +84,10 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
   );
   const DOCTORS = useStore(s => s.doctors);
   const unreadNotifs = useStore(s => s.notifications.filter(n => (n.target === "all" || n.target === "patient") && !n.isRead));
+  const allRecords = useStore(s => s.records);
+  const recentRecords = allRecords
+    .filter(r => r.patientName === ME)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const [activeThreadId, setActiveThreadId] = useState<number | null>(null);
   const [reply, setReply] = useState("");
@@ -214,10 +218,10 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
   const unreadApptsCount = Math.max(0, upcoming.length - viewedAppts);
   const unreadMsgsCount = Math.max(0, myThreads.length - viewedMsgs);
 
-  // Fetch suggestions on mount
+  // Fetch suggestions on mount or when data changes
   useEffect(() => {
     fetchSuggestions();
-  }, [appointments.length]);
+  }, [appointments.length, recentRecords.length]);
 
   const fetchSuggestions = async () => {
     try {
@@ -229,7 +233,7 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
           upcomingAppointments: upcoming.map(a => ({
             doctorName: a.doctorName, doctorSpec: a.doctorSpec, date: a.date, time: a.time
           })),
-          recentRecords: []
+          recentRecords: recentRecords
         })
       });
       if (res.ok) {
