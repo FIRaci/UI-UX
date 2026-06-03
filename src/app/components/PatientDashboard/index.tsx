@@ -96,6 +96,50 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
   const [bookedClinic, setBookedClinic] = useState("");
   const [cancelAppointment, setCancelAppointment] = useState<Appointment | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showUrgentAlert, setShowUrgentAlert] = useState(false);
+  const [urgentAppt, setUrgentAppt] = useState<Appointment | null>(null);
+  const [urgentType, setUrgentType] = useState<"missed" | "today" | null>(null);
+
+  useEffect(() => {
+    if (sessionStorage.getItem("urgent_alert_shown")) return;
+    
+    const upcomings = appointments
+      .filter(a => a.status === "Sắp tới")
+      .sort((a, b) => {
+        let da = a.date.includes('/') ? a.date.split('/').reverse().join('-') : a.date;
+        let db = b.date.includes('/') ? b.date.split('/').reverse().join('-') : b.date;
+        return new Date(da).getTime() - new Date(db).getTime();
+      });
+      
+    if (upcomings.length > 0) {
+      const closest = upcomings[0];
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+      
+      let apptDate = closest.date;
+      if (apptDate.includes('/')) {
+         const parts = apptDate.split('/');
+         if (parts[0].length === 2 && parts[2].length === 4) {
+             apptDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+         }
+      }
+
+      if (apptDate < todayStr) {
+        setUrgentType("missed");
+        setUrgentAppt(closest);
+        setShowUrgentAlert(true);
+        sessionStorage.setItem("urgent_alert_shown", "true");
+      } else if (apptDate === todayStr) {
+        setUrgentType("today");
+        setUrgentAppt(closest);
+        setShowUrgentAlert(true);
+        sessionStorage.setItem("urgent_alert_shown", "true");
+      }
+    }
+  }, [appointments]);
 
   // Chat State
   const [messages, setMessages] = useState<ChatMsg[]>(() => {
@@ -975,6 +1019,46 @@ export function PatientDashboard({ onLogout, role }: { onLogout: () => void; rol
       </AnimatePresence>
 
       {/* Dialogs */}
+      <Dialog open={showUrgentAlert} onOpenChange={setShowUrgentAlert}>
+        <DialogContent className="sm:max-w-md rounded-[32px] p-0 overflow-hidden border-0 bg-white/80 backdrop-blur-2xl shadow-2xl">
+          <div className={`p-8 text-center text-white ${urgentType === "missed" ? "bg-rose-500" : "bg-amber-500"}`}>
+            <div className="w-20 h-20 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4">
+              <CalendarDays className="w-10 h-10" />
+            </div>
+            <h2 className="text-3xl font-black mb-2">
+              {urgentType === "missed" ? "Lỡ Hẹn Khám!" : "Lịch Khám Hôm Nay!"}
+            </h2>
+            <p className="text-white/90 font-medium text-lg">
+              {urgentType === "missed" 
+                ? "Bạn đã bỏ lỡ một lịch khám quan trọng." 
+                : "Bạn có lịch hẹn với bác sĩ vào ngày hôm nay."}
+            </p>
+          </div>
+          <div className="p-8 space-y-4">
+            {urgentAppt && (
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex justify-between items-center text-left">
+                <div>
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Bác sĩ phụ trách</div>
+                  <div className="text-lg font-bold text-slate-800">{urgentAppt.doctorName}</div>
+                  <div className="text-sm font-semibold text-slate-600">{urgentAppt.time} - {urgentAppt.date}</div>
+                </div>
+                <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center">
+                  <Stethoscope className="w-6 h-6 text-slate-400" />
+                </div>
+              </div>
+            )}
+            <div className="flex gap-3 pt-4">
+              <Button onClick={() => setShowUrgentAlert(false)} variant="outline" className="flex-1 h-14 rounded-xl font-bold text-slate-500 hover:bg-slate-50 border-slate-200">
+                Đã hiểu
+              </Button>
+              <Button onClick={() => { setShowUrgentAlert(false); navigate("/patient/appointments"); }} className={`flex-1 h-14 rounded-xl font-bold text-white shadow-lg ${urgentType === "missed" ? "bg-rose-600 hover:bg-rose-700 shadow-rose-500/20" : "bg-amber-500 hover:bg-amber-600 shadow-amber-500/20"}`}>
+                Xem chi tiết lịch
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <DoctorDetailDialog doctor={selectedDoctor} onClose={() => setSelectedDoctor(null)} onBook={setBookingDoctor} />
       <BookingDialog doctor={bookingDoctor} bookDate={bookDate} onBookDateChange={setBookDate} bookTime={bookTime} onBookTimeChange={setBookTime} onConfirm={handleBook} onCancel={() => setBookingDoctor(null)} />
       <EditAppointmentDialog editing={editing} onEditingChange={setEditing} editingOriginal={editingOriginal} onUpdate={updateAppt} onCancel={() => { setEditing(null); setEditingOriginal(null); }} appointments={appointments} doctors={DOCTORS} />

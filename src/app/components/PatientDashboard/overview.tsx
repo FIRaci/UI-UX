@@ -1,6 +1,6 @@
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
-import { Clock, Search, MessagesSquare, FileHeart, ChevronRight, Activity, ArrowRight, ActivitySquare, HeartPulse, Bot, CalendarDays } from "lucide-react";
+import { Clock, Search, MessagesSquare, FileHeart, ChevronRight, Activity, ArrowRight, ActivitySquare, HeartPulse, Bot, CalendarDays, Pill, CheckCircle2 } from "lucide-react";
 import type { Appointment } from "../../store";
 
 export function Overview({ onJump, appts, threads }: { onJump: (v: string) => void; appts: Appointment[]; threads: any[] }) {
@@ -10,8 +10,7 @@ export function Overview({ onJump, appts, threads }: { onJump: (v: string) => vo
     <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
       
       {/* Hero Section / Health Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 p-8 bg-blue-900 text-white shadow-xl relative overflow-hidden border-0 group rounded-[32px]">
+      <Card className="w-full p-8 bg-blue-900 text-white shadow-xl relative overflow-hidden border-0 group rounded-[32px]">
           {/* Decorative glowing orbs */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -z-10 translate-x-1/3 -translate-y-1/3 transition-colors duration-700" />
           <div className="absolute bottom-0 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl -z-10 translate-y-1/3 transition-colors duration-700" />
@@ -40,7 +39,9 @@ export function Overview({ onJump, appts, threads }: { onJump: (v: string) => vo
             </div>
           </div>
         </Card>
-
+      
+      {/* Reminders Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         {/* Upcoming Appointment */}
         <Card className="p-7 bg-white shadow-sm border border-slate-200 relative overflow-hidden group flex flex-col rounded-[32px]">
           <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-700">
@@ -58,7 +59,7 @@ export function Overview({ onJump, appts, threads }: { onJump: (v: string) => vo
               <p className="text-slate-500 font-medium text-[15px]">{upcoming.doctorSpec}</p>
               
               <div className="mt-8">
-                <Button onClick={() => onJump("appointments")} className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold">
+                <Button onClick={() => onJump("appointments")} className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-sm">
                   Xem chi tiết lịch hẹn
                 </Button>
               </div>
@@ -74,6 +75,41 @@ export function Overview({ onJump, appts, threads }: { onJump: (v: string) => vo
               </Button>
             </div>
           )}
+        </Card>
+
+        {/* Medication Reminder */}
+        <Card className="p-7 bg-white shadow-sm border border-slate-200 relative overflow-hidden group flex flex-col rounded-[32px]">
+          <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-700">
+            <Pill className="w-32 h-32" />
+          </div>
+          
+          <div className="inline-flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full self-start mb-6 uppercase tracking-wider">
+            <Pill className="w-4 h-4" /> Lịch uống thuốc hôm nay
+          </div>
+          
+          <div className="flex-1 flex flex-col justify-center space-y-4">
+            {/* Morning */}
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
+              <div>
+                <div className="text-sm font-bold text-emerald-900">Sáng (Sau ăn)</div>
+                <div className="text-xs font-medium text-emerald-700/70 mt-1">Kháng sinh & Vitamin C</div>
+              </div>
+              <div className="flex items-center text-emerald-600 text-sm font-bold gap-1.5">
+                <CheckCircle2 className="w-5 h-5" /> Đã uống
+              </div>
+            </div>
+            
+            {/* Evening */}
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 group-hover:border-slate-200 transition-colors">
+              <div>
+                <div className="text-sm font-bold text-slate-700">Tối (Trước khi ngủ)</div>
+                <div className="text-xs font-medium text-slate-500 mt-1">Thuốc an thần nhẹ</div>
+              </div>
+              <Button size="sm" className="rounded-xl h-9 text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 shadow-sm">
+                Xác nhận uống
+              </Button>
+            </div>
+          </div>
         </Card>
       </div>
 

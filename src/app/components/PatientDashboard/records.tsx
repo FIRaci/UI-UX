@@ -76,10 +76,10 @@ export function Records() {
     <Card className="p-0 overflow-hidden bg-transparent/60 backdrop-blur-2xl border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] shadow-emerald-500/10 animate-fade-in" style={{ borderRadius: "20px" }}>
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <div className="border-b border-slate-100 px-5 pt-4 bg-transparent">
-          <TabsList className="bg-transparent/40 backdrop-blur-md rounded-xl p-1 h-10 border border-slate-200/50">
-            <TabsTrigger value="benhan" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-transparent data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Bệnh án</TabsTrigger>
-            <TabsTrigger value="ketqua" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-transparent data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Kết quả xét nghiệm</TabsTrigger>
-            <TabsTrigger value="donthuoc" className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-transparent data-[state=active]:text-slate-800 data-[state=active]:shadow-sm">Đơn thuốc</TabsTrigger>
+          <TabsList className="flex w-full justify-center bg-slate-100/80 backdrop-blur-md rounded-2xl p-1.5 h-14 border border-slate-200 shadow-inner">
+            <TabsTrigger value="benhan" className="flex-1 rounded-xl text-sm font-extrabold px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm transition-all">Bệnh án</TabsTrigger>
+            <TabsTrigger value="ketqua" className="flex-1 rounded-xl text-sm font-extrabold px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-sky-700 data-[state=active]:shadow-sm transition-all">Kết quả xét nghiệm</TabsTrigger>
+            <TabsTrigger value="donthuoc" className="flex-1 rounded-xl text-sm font-extrabold px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm transition-all">Đơn thuốc</TabsTrigger>
           </TabsList>
         </div>
         {(["benhan", "ketqua", "donthuoc"] as const).map(k => (

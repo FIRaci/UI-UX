@@ -26,22 +26,22 @@ export function Appointments({
     >
       <Tabs defaultValue="upcoming" className="w-full">
         <div className="border-b border-slate-100 px-5 pt-4 bg-transparent">
-          <TabsList className="bg-transparent/40 backdrop-blur-md rounded-xl p-1 h-10 border border-slate-200/50">
+          <TabsList className="flex w-full justify-center bg-slate-100/80 backdrop-blur-md rounded-2xl p-1.5 h-14 border border-slate-200 shadow-inner">
             <TabsTrigger
               value="upcoming"
-              className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-transparent data-[state=active]:text-slate-800 data-[state=active]:shadow-sm"
+              className="flex-1 rounded-xl text-sm font-extrabold px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm transition-all"
             >
               Sắp tới
             </TabsTrigger>
             <TabsTrigger
               value="past"
-              className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-transparent data-[state=active]:text-slate-800 data-[state=active]:shadow-sm"
+              className="flex-1 rounded-xl text-sm font-extrabold px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-sky-700 data-[state=active]:shadow-sm transition-all"
             >
               Đã khám
             </TabsTrigger>
             <TabsTrigger
               value="cancelled"
-              className="rounded-lg text-xs font-bold px-4 py-1.5 data-[state=active]:bg-transparent data-[state=active]:text-slate-800 data-[state=active]:shadow-sm"
+              className="flex-1 rounded-xl text-sm font-extrabold px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-rose-700 data-[state=active]:shadow-sm transition-all"
             >
               Đã hủy
             </TabsTrigger>
@@ -119,7 +119,7 @@ export function Appointments({
                           </span>
                         )}
                         {s === "Đã hủy" && (
-                          <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 text-[10px] font-bold border border-slate-200 mb-1">
+                          <span className="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-[11px] font-extrabold border border-rose-100 mb-1 shadow-sm">
                             Đã hủy
                           </span>
                         )}

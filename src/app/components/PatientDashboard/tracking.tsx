@@ -31,19 +31,19 @@ export function Tracking({ onBook, skipConfirm, onSkip, onCancelSkip }: {
           </div>
           
           {metrics.map(m => (
-            <Card key={m.label} className="p-4 bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all hover:border-teal-100 hover:scale-[1.02] cursor-default" style={{ borderRadius: "20px" }}>
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-xl ${m.c.replace('bg-', 'bg-').replace('500', '100')} flex items-center justify-center`}>
-                    <m.icon className={`w-4 h-4 ${m.c.replace('bg-', 'text-').replace('500', '600')}`} />
+            <Card key={m.label} className="p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all hover:border-teal-100 hover:scale-[1.02] cursor-default" style={{ borderRadius: "24px" }}>
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 rounded-2xl ${m.c.replace('bg-', 'bg-').replace('500', '100')} flex items-center justify-center`}>
+                    <m.icon className={`w-6 h-6 ${m.c.replace('bg-', 'text-').replace('500', '600')}`} />
                   </div>
-                  <span className="text-sm font-semibold text-slate-700">{m.label}</span>
+                  <span className="text-base font-extrabold text-slate-700">{m.label}</span>
                 </div>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${m.sc}`}>{m.status}</span>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold border ${m.sc}`}>{m.status}</span>
               </div>
               
-              <div className="flex items-end gap-2 mb-3">
-                <span className="text-2xl font-black text-slate-800 leading-none tracking-tight">{m.value}</span>
+              <div className="flex items-end gap-2 mb-4">
+                <span className="text-4xl font-black text-slate-800 leading-none tracking-tight">{m.value}</span>
                 <span className="text-xs font-bold text-slate-400 mb-1">{m.unit}</span>
                 <div className="ml-auto flex items-center gap-1">
                   {m.trend === 'up' && <TrendingUp className="w-3 h-3 text-rose-500" />}
